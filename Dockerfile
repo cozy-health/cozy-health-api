@@ -1,41 +1,41 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpq-dev \
     zlib1g-dev \
     libzip-dev \
+    nginx \
     && docker-php-ext-install pdo pdo_mysql zip
 
-# Copy Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy application code
 COPY . .
 
-# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /app && chmod -R 755 /app
+RUN chown -R www-data:www-data /app && chmod -R 755 /app/storage /app/bootstrap/cache
 
-# Fix Apache MPM conflict: disable all MPMs, enable only prefork
-RUN a2dismod mpm_event mpm_worker || true && \
-    a2enmod mpm_prefork rewrite
-
-# Point Apache DocumentRoot to Laravel's public folder
-RUN sed -i 's|/var/www/html|/app/public|g' /etc/apache2/sites-available/000-default.conf && \
-    sed -i 's|/var/www/html|/app/public|g' /etc/apache2/apache2.conf
-
-# Allow .htaccess overrides
-RUN echo '<Directory /app/public>\n    AllowOverride All\n    Require all granted\n</Directory>' \
-    > /etc/apache2/conf-available/app.conf && \
-    a2enconf app
+RUN mkdir -p /etc/nginx/sites-available && \
+    echo 'server { \
+    listen 80; \
+    server_name _; \
+    root /app/public; \
+    index index.php; \
+    location / { \
+        try_files $uri $uri/ /index.php?$query_string; \
+    } \
+    location ~ \.php$ { \
+        fastcgi_pass 127.0.0.1:9000; \
+        fastcgi_index index.php; \
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name; \
+        include fastcgi_params; \
+    } \
+}' > /etc/nginx/sites-available/default
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
