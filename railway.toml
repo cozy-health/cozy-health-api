@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfile = "Dockerfile"
+
+[deploy]
+startCommand = "php artisan migrate --force && php artisan db:seed --force"
+numReplicas = 1
+restartPolicyMaxRetries = 3
