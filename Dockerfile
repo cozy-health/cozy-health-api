@@ -24,7 +24,7 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /app && chmod -R 755 /app
 
 # Enable Apache modules
-RUN a2enmod rewrite headers
+RUN a2enmod rewrite
 
 # Configure Apache
 RUN echo '<Directory /app/public>\n    AllowOverride All\n    Require all granted\n</Directory>' > /etc/apache2/conf-available/app.conf && \
