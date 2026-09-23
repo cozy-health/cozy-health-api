@@ -23,8 +23,9 @@
         <p>If you didn't request a password reset, you can safely ignore this email.</p>
         
         <div class="footer">
+            <p>This is an automated message — please do not reply to this email.</p>
+            <p>For support, contact us at <a href="mailto:team@cozyhealth.org">team@cozyhealth.org</a>.</p>
             <p>&copy; {{ date('Y') }} Cozy Health. All rights reserved.</p>
-            <p>If you have any questions, contact our support team at team@cozyhealth.org.</p>
         </div>
     </div>
 </body>

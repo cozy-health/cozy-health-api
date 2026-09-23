@@ -23,6 +23,7 @@ class PasswordResetRequestMail extends Mailable
     public function build()
     {
         return $this->subject('Reset your Cozy Health password')
+                    ->replyTo('team@cozyhealth.org', 'Cozy Health Support')
                     ->view('emails.password-reset-request');
     }
 }

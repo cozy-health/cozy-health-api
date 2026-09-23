@@ -20,8 +20,9 @@
         <p>If you did not make this change, please contact us immediately to secure your account.</p>
         
         <div class="footer">
+            <p>This is an automated message — please do not reply to this email.</p>
+            <p>For support or to report suspicious activity, contact us at <a href="mailto:team@cozyhealth.org">team@cozyhealth.org</a>.</p>
             <p>&copy; {{ date('Y') }} Cozy Health. All rights reserved.</p>
-            <p>If you have any questions or need to report suspicious activity, contact our support team at team@cozyhealth.org.</p>
         </div>
     </div>
 </body>

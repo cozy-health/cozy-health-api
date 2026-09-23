@@ -21,6 +21,7 @@ class PasswordResetConfirmationMail extends Mailable
     public function build()
     {
         return $this->subject('Your password has been reset')
+                    ->replyTo('team@cozyhealth.org', 'Cozy Health Support')
                     ->view('emails.password-reset-confirmation');
     }
 }
