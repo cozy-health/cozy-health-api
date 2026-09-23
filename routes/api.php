@@ -1,8 +1,10 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\{AuthController,ProfileController,LookupController,MoodCheckinController,JournalController,QuizController,ActivityController,NotificationController,ProviderController,SubscriptionController,SupportController};
+use App\Http\Controllers\Api\V1\{AuthController,PasswordResetController,ProfileController,LookupController,MoodCheckinController,JournalController,QuizController,ActivityController,NotificationController,ProviderController,SubscriptionController,SupportController};
 Route::prefix('v1')->group(function(){
  Route::post('register',[AuthController::class,'register']); Route::post('login',[AuthController::class,'login']);
+ Route::post('forgot-password',[PasswordResetController::class,'forgotPassword']);
+ Route::post('reset-password',[PasswordResetController::class,'resetPassword']);
  Route::middleware('auth:sanctum')->group(function(){
   Route::post('logout',[AuthController::class,'logout']); Route::get('me',[ProfileController::class,'show']); Route::put('me',[ProfileController::class,'update']);
   Route::get('feelings',[LookupController::class,'feelings']); Route::get('feeling-expressions',[LookupController::class,'expressions']); Route::get('feeling-causes',[LookupController::class,'causes']); Route::get('coping-mechanisms',[LookupController::class,'coping']);
