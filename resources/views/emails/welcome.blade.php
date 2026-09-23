@@ -340,7 +340,7 @@
                                                         <tr>
                                                             <td width="48" height="48" align="center" valign="middle"
                                                                 style="background-color: #e6effb; border-radius: 12px;">
-                                                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230460d8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 7h6v6'%3E%3C/path%3E%3Cpath d='m22 7-8.5 8.5-5-5L2 17'%3E%3C/path%3E%3C/svg%3E"
+                                                                <img src="https://img.icons8.com/ios-filled/50/0460d8/line-chart.png"
                                                                     width="24" height="24" alt="Track Mood"
                                                                     style="display: block; margin: 0; padding: 0;" />
                                                             </td>
@@ -373,7 +373,7 @@
                                                         <tr>
                                                             <td width="48" height="48" align="center" valign="middle"
                                                                 style="background-color: #e6f8ec; border-radius: 12px;">
-                                                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300bc4c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='6'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='2'%3E%3C/circle%3E%3C/svg%3E"
+                                                                <img src="https://img.icons8.com/ios-filled/50/00bc4c/center-direction.png"
                                                                     width="24" height="24" alt="Identify Triggers"
                                                                     style="display: block; margin: 0; padding: 0;" />
                                                             </td>
@@ -406,7 +406,7 @@
                                                         <tr>
                                                             <td width="48" height="48" align="center" valign="middle"
                                                                 style="background-color: #fef0e6; border-radius: 12px;">
-                                                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f25c05' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'%3E%3C/path%3E%3Cpath d='M9 18h6'%3E%3C/path%3E%3Cpath d='M10 22h4'%3E%3C/path%3E%3C/svg%3E"
+                                                                <img src="https://img.icons8.com/ios-filled/50/f25c05/toolbox.png"
                                                                     width="24" height="24" alt="Build Coping Strategies"
                                                                     style="display: block; margin: 0; padding: 0;" />
                                                             </td>
@@ -439,7 +439,7 @@
                                                         <tr>
                                                             <td width="48" height="48" align="center" valign="middle"
                                                                 style="background-color: #fefae6; border-radius: 12px;">
-                                                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f2cb05' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6v6l4 2'%3E%3C/path%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3C/svg%3E"
+                                                                <img src="https://img.icons8.com/ios-filled/50/f2cb05/visible.png"
                                                                     width="24" height="24" alt="Real-time Insights"
                                                                     style="display: block; margin: 0; padding: 0;" />
                                                             </td>
