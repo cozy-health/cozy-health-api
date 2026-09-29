@@ -21,7 +21,15 @@ class AuthController extends Controller
         $user = User::create($request->validated());
         
         // Send welcome email in background
-        Mail::to($user->email)->send(new WelcomeMail($user));
+        try {
+            Mail::to($user->email)->send(new WelcomeMail($user));
+        } catch (\Throwable $e) {
+            \Log::warning('Welcome email failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
         
