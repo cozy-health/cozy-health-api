@@ -1,3 +1,10 @@
 <?php
-namespace App\Http\Controllers\Api\V1; use App\Http\Controllers\Controller; use App\Support\ApiResponse;
-class NotificationController extends Controller {use ApiResponse; public function index(){return response()->json(['notifications'=>request()->user()->notifications()->latest()->get()]);} public function unread(){return response()->json(['unread_count'=>request()->user()->unreadNotifications()->count()]);} public function read(string $id){$n=request()->user()->notifications()->findOrFail($id);$n->markAsRead();return $this->success($n,'Notification marked as read.');} public function readAll(){request()->user()->unreadNotifications->markAsRead();return $this->success(null,'All notifications marked as read.');} public function destroy(string $id){request()->user()->notifications()->findOrFail($id)->delete();return $this->success(null,'Notification deleted.');}}
+namespace App\Http\Controllers\Api\V1;
+use Illuminate\Http\Request;
+class NotificationController extends ApiController {
+    public function index(Request $request) { return $this->success([]); }
+    public function store(Request $request) { return $this->success([]); }
+    public function show($id) { return $this->success([]); }
+    public function update(Request $request, $id) { return $this->success([]); }
+    public function destroy($id) { return $this->success([]); }
+}

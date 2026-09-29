@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class JournalEntry extends Model
+{
+    protected $table = 'journal_entries';
+    protected $keyType = 'string';
+    public $incrementing = false;
+    protected $fillable = array (
+  0 => 'id',
+  1 => 'user_id',
+  2 => 'type',
+  3 => 'title',
+  4 => 'body',
+  5 => 'voice_url',
+  6 => 'voice_duration',
+  7 => 'transcription',
+  8 => 'prompt_id',
+  9 => 'prompt_text',
+  10 => 'tags',
+  11 => 'linked_mood_entry_id',
+  12 => 'word_count',
+  13 => 'is_crisis_flagged',
+  14 => 'is_deleted',
+  15 => 'client_created_at',
+  16 => 'client_updated_at',
+);
+    protected $casts = array (
+  'tags' => 'array',
+  'is_crisis_flagged' => 'boolean',
+  'is_deleted' => 'boolean',
+  'client_created_at' => 'datetime',
+  'client_updated_at' => 'datetime',
+);
+    public function user() { return $this->belongsTo(User::class); }
+
+    protected static function booted()
+    {
+        static::addGlobalScope('user', function ($query) {
+            if (auth()->check()) {
+                $query->where('user_id', auth()->id());
+            }
+        });
+    }
+}
