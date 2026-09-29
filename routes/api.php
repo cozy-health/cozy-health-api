@@ -10,8 +10,15 @@ use App\Http\Controllers\Api\V1\ContentController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\SyncController;
+use App\Http\Controllers\Api\V1\AuthController;
+
+Route::prefix('v1')->group(function () {
+    Route::post('auth/register', [AuthController::class, 'register']);
+    Route::post('auth/login', [AuthController::class, 'login']);
+});
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);
     Route::apiResource('conversations', ChatController::class);
