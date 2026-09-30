@@ -8,7 +8,6 @@ use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
@@ -18,33 +17,12 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $r)
     {
-        Log::info('REGISTER CALLED', ['email' => $r->input('email')]);
-
         $u = User::create($r->validated());
 
-        Log::info('USER CREATED', ['id' => $u->id, 'email' => $u->email]);
-
-        // Send welcome email - never let it break registration
         try {
-            Log::info('ABOUT TO SEND WELCOME EMAIL', [
-                'to' => $u->email,
-                'mailer' => config('mail.default'),
-                'host' => config('mail.mailers.smtp.host'),
-                'port' => config('mail.mailers.smtp.port'),
-                'username_set' => !empty(config('mail.mailers.smtp.username')),
-                'from' => config('mail.from.address'),
-            ]);
-
             Mail::to($u->email)->send(new WelcomeMail($u));
-
-            Log::info('WELCOME EMAIL SENT', ['email' => $u->email]);
         } catch (\Throwable $e) {
-            Log::error('WELCOME EMAIL FAILED', [
-                'error' => $e->getMessage(),
-                'class' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+            \Log::error('Welcome email failed: ' . $e->getMessage());
         }
 
         $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
