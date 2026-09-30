@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -18,6 +19,31 @@ class AuthController extends Controller
     public function register(RegisterRequest $r)
     {
         $u = User::create($r->validated());
+
+        $u->profile()->create([
+            'id' => (string) Str::uuid(),
+            'name' => $u->name,
+            'email' => $u->email,
+            'username' => null,
+            'avatar_url' => null,
+            'bio' => null,
+            'theme' => 'system',
+            'accent_color' => '#0460D8',
+            'language' => 'en',
+            'reduce_motion' => false,
+            'high_contrast' => false,
+            'haptics_enabled' => true,
+            'text_size' => 1.00,
+            'show_stats' => false,
+            'show_username' => true,
+            'notifications_master' => true,
+            'daily_checkin_enabled' => true,
+            'daily_checkin_time' => '09:00',
+            'journal_reminder_enabled' => false,
+            'comments_notifications' => true,
+            'achievements_notifications' => true,
+            'marketing_notifications' => false,
+        ]);
 
         try {
             Mail::to($u->email)->send(new WelcomeMail($u));

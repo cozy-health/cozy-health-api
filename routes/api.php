@@ -11,10 +11,13 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\SyncController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PasswordResetController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register']);
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword']);
 });
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
