@@ -23,8 +23,11 @@ class AuthController extends Controller
         // Send welcome email in background
         try {
             Mail::to($user->email)->send(new WelcomeMail($user));
+            \Log::info('Welcome email sent', [
+                'email' => $user->email,
+            ]);
         } catch (\Throwable $e) {
-            \Log::warning('Welcome email failed', [
+            \Log::error('Welcome email failed', [
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'error' => $e->getMessage(),
