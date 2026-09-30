@@ -21,8 +21,9 @@ class AuthController extends Controller
 
         try {
             Mail::to($u->email)->send(new WelcomeMail($u));
+            \Log::info('WELCOME EMAIL SENT to ' . $u->email);
         } catch (\Throwable $e) {
-            \Log::error('Welcome email failed: ' . $e->getMessage());
+            \Log::error('WELCOME EMAIL FAILED: ' . $e->getMessage());
         }
 
         $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
