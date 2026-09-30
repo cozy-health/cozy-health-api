@@ -16,8 +16,14 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
-RUN chown -R www-data:www-data /app && chmod -R 755 /app/storage /app/bootstrap/cache
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R www-data:www-data /app \
+    && chmod -R 777 storage bootstrap/cache
 
 EXPOSE 8000
 
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+CMD mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache \
+    && php artisan config:clear \
+    && php artisan migrate --force \
+    && php artisan serve --host=0.0.0.0 --port=8000
