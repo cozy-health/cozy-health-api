@@ -18,6 +18,12 @@ class SyncController extends ApiController {
                 }
                 
                 $data['user_id'] = $request->user()->id;
+                if (in_array($type, ['journal_entry', 'mood_entry'], true)) {
+                    $data['is_crisis_flagged'] = filter_var(
+                        $data['is_crisis_flagged'] ?? false,
+                        FILTER_VALIDATE_BOOLEAN
+                    );
+                }
                 
                 $modelClass = '\App\Models\\' . str_replace(' ', '', ucwords(str_replace('_', ' ', $type)));
                 if (!class_exists($modelClass)) {
