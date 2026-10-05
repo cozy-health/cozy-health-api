@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\SyncController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PasswordResetController;
+use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register'])
@@ -35,6 +36,10 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('user/profile', [UserProfileController::class, 'update']);
     Route::patch('user/preferences', [UserProfileController::class, 'updatePreferences']);
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
+    Route::get('provider', [ProviderController::class, 'show']);
+    Route::post('provider/request', [ProviderController::class, 'requestCode']);
+    Route::post('provider/verify', [ProviderController::class, 'verify']);
+    Route::delete('provider', [ProviderController::class, 'destroy']);
     Route::apiResource('quiz-attempts', QuizController::class);
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
