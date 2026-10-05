@@ -36,6 +36,8 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('user/preferences', [UserProfileController::class, 'updatePreferences']);
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
     Route::apiResource('quiz-attempts', QuizController::class);
+    Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::apiResource('notifications', NotificationController::class);
     Route::get('subscription', [SubscriptionController::class, 'show']);
     Route::post('sync/batch', [SyncController::class, 'batch']);
