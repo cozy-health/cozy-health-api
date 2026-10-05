@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if (!$request->is('api/*')) return null;
             $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
             $message = $status === 500 && !config('app.debug') ? 'Server error. Please try again later.' : ($e->getMessage() ?: 'Something went wrong.');
-            return response()->json(['success'=>false,'message'=>$message],$status);
+            $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
+            return response()->json(['success'=>false,'message'=>$message],$status,$headers);
         });
     })->create();

@@ -27,6 +27,27 @@ it('throttles login after 10 attempts', function () {
         ->assertTooManyRequests();
 });
 
+it('includes retry after header on login throttle responses', function () {
+    for ($i = 0; $i < 10; $i++) {
+        $this->withHeader('Accept', 'application/json')
+            ->postJson('/api/v1/auth/login', [
+                'email' => 'missing@example.com',
+                'password' => 'wrong-password',
+            ]);
+    }
+
+    $response = $this->withHeader('Accept', 'application/json')
+        ->postJson('/api/v1/auth/login', [
+            'email' => 'missing@example.com',
+            'password' => 'wrong-password',
+        ]);
+
+    $response->assertTooManyRequests()
+        ->assertHeader('Retry-After');
+
+    expect((int) $response->headers->get('Retry-After'))->toBeGreaterThan(0);
+});
+
 it('throttles register after 5 attempts', function () {
     for ($i = 0; $i < 5; $i++) {
         $this->withHeader('Accept', 'application/json')
