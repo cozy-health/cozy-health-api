@@ -14,10 +14,14 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PasswordResetController;
 
 Route::prefix('v1')->group(function () {
-    Route::post('auth/register', [AuthController::class, 'register']);
-    Route::post('auth/login', [AuthController::class, 'login']);
-    Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword']);
-    Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword']);
+    Route::post('auth/register', [AuthController::class, 'register'])
+        ->middleware('throttle:5,1');
+    Route::post('auth/login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1');
+    Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword'])
+        ->middleware('throttle:3,1');
+    Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword'])
+        ->middleware('throttle:5,1');
 });
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
