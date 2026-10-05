@@ -7,8 +7,10 @@ class SafetyPlanController extends ApiController {
         return $this->success($entries); 
     }
     public function store(Request $request) { return $this->success([]); }
-    public function show($id) { 
-        $entry = \App\Models\SafetyPlan::find($id);
+    public function show(Request $request) { 
+        $entry = \App\Models\SafetyPlan::where('user_id', $request->user()->id)
+            ->where('is_deleted', false)
+            ->first();
         if (!$entry) {
             return response()->json([
                 'error' => [

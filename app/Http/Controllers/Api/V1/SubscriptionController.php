@@ -7,15 +7,15 @@ class SubscriptionController extends ApiController {
         return $this->success($entries); 
     }
     public function store(Request $request) { return $this->success([]); }
-    public function show($id) { 
-        $entry = \App\Models\SubscriptionStatus::find($id);
+    public function show(Request $request) { 
+        $entry = \App\Models\SubscriptionStatus::where('user_id', $request->user()->id)
+            ->latest('expires_at')
+            ->first();
         if (!$entry) {
-            return response()->json([
-                'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'Resource not found.'
-                ]
-            ], 404);
+            return $this->success([
+                'plan' => null,
+                'status' => 'none',
+            ]);
         }
         return $this->success($entry); 
     }
