@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update']);
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);
+    Route::get('journals', [JournalEntryController::class, 'index']);
     Route::apiResource('conversations', ChatController::class);
     Route::get('safety-plan', [SafetyPlanController::class, 'show']);
     Route::put('safety-plan', [SafetyPlanController::class, 'store']);
@@ -43,6 +44,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('provider/verify', [ProviderController::class, 'verify']);
     Route::delete('provider', [ProviderController::class, 'destroy']);
     Route::apiResource('quiz-attempts', QuizController::class);
+    Route::get('quiz-results', [QuizController::class, 'index']);
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::apiResource('notifications', NotificationController::class);
