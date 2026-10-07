@@ -27,6 +27,8 @@ Route::prefix('v1')->group(function () {
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
+    Route::patch('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update']);
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);
     Route::apiResource('conversations', ChatController::class);

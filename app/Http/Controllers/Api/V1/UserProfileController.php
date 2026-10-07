@@ -12,9 +12,9 @@ class UserProfileController extends Controller
     private function getOrCreateProfile(Request $request): UserProfile
     {
         $user = $request->user();
-        $profile = $user->profile;
+        $profile = $user->profile()->first();
 
-        if (!$profile) {
+        if (! $profile) {
             $profile = $user->profile()->create([
                 'id' => (string) Str::uuid(),
                 'name' => $user->name,
@@ -43,7 +43,7 @@ class UserProfileController extends Controller
 
     public function show(Request $request)
     {
-        return response()->json(['data' => $this->getOrCreateProfile($request)]);
+        return response()->json(['data' => $this->profileData($request, $this->getOrCreateProfile($request))]);
     }
 
     public function update(Request $request)
@@ -52,14 +52,20 @@ class UserProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'username' => 'sometimes|nullable|string|max:50|unique:user_profiles,username,' . $profile->id,
+            'username' => 'sometimes|nullable|string|max:50|unique:user_profiles,username,'.$profile->id,
             'bio' => 'sometimes|nullable|string|max:150',
             'avatar_url' => 'sometimes|nullable|string|max:500',
+            'timezone' => ['sometimes', 'string', 'max:64', 'timezone'],
         ]);
+
+        if (array_key_exists('timezone', $validated)) {
+            $request->user()->update(['timezone' => $validated['timezone']]);
+            unset($validated['timezone']);
+        }
 
         $profile->update($validated);
 
-        return response()->json(['data' => $profile, 'message' => 'Profile updated.']);
+        return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Profile updated.']);
     }
 
     public function updatePreferences(Request $request)
@@ -80,7 +86,7 @@ class UserProfileController extends Controller
 
         $profile->update($validated);
 
-        return response()->json(['data' => $profile, 'message' => 'Preferences updated.']);
+        return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Preferences updated.']);
     }
 
     public function updateNotificationPreferences(Request $request)
@@ -99,6 +105,11 @@ class UserProfileController extends Controller
 
         $profile->update($validated);
 
-        return response()->json(['data' => $profile, 'message' => 'Notification preferences updated.']);
+        return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Notification preferences updated.']);
+    }
+
+    private function profileData(Request $request, UserProfile $profile): array
+    {
+        return [...$profile->toArray(), 'timezone' => $request->user()->timezone ?? 'UTC'];
     }
 }

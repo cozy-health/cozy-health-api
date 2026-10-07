@@ -37,6 +37,11 @@ keep complete server responses until that prerequisite is met.
 
 ## Roadmap priorities
 
+Phase 2.6 finding: backend streaks, Home daily mood queries, weekly/monthly
+insights and daily affirmation refresh are not implemented. Add timezone-aware
+UTC range queries and endpoint regression tests when those features are built.
+Reminder scheduling is also absent; Phase 18 must interpret times in users.timezone.
+
 | Priority | Item | Why | When |
 |---|---|---|---|
 | P0 | Replace artisan serve with PHP-FPM + Nginx | Railway Dockerfile starts the development server; blocked requests stall its default single worker. PHP documents it as unsuitable for public production use. A specific concurrency/502 threshold has not been measured | Before beta launch (Phase 25) |

@@ -1,3 +1,42 @@
 <?php
-namespace App\Http\Controllers\Api\V1; use App\Http\Controllers\Controller; use App\Http\Requests\{StoreJournalRequest,UpdateJournalRequest}; use App\Models\Journal; use App\Support\ApiResponse;
-class JournalController extends Controller {use ApiResponse; public function index(){return response()->json(['journals'=>request()->user()->journals()->latest('entry_date')->latest()->get()]);} public function store(StoreJournalRequest $r){$j=$r->user()->journals()->create([...$r->validated(),'entry_date'=>$r->input('entry_date',today())]);return $this->success($j,'Journal created successfully.',201);} public function update(UpdateJournalRequest $r,Journal $journal){abort_unless($journal->user_id===$r->user()->id,404);$journal->update($r->validated());return $this->success($journal->fresh(),'Journal updated successfully.');} public function destroy(Journal $journal){abort_unless($journal->user_id===request()->user()->id,404);$journal->delete();return $this->success(null,'Journal deleted successfully.');}}
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreJournalRequest;
+use App\Http\Requests\UpdateJournalRequest;
+use App\Models\Journal;
+use App\Support\ApiResponse;
+
+class JournalController extends Controller
+{
+    use ApiResponse;
+
+    public function index()
+    {
+        return response()->json(['journals' => request()->user()->journals()->latest('entry_date')->latest()->get()]);
+    }
+
+    public function store(StoreJournalRequest $r)
+    {
+        $j = $r->user()->journals()->create([...$r->validated(), 'entry_date' => $r->input('entry_date', $r->user()->localToday()->toDateString())]);
+
+        return $this->success($j, 'Journal created successfully.', 201);
+    }
+
+    public function update(UpdateJournalRequest $r, Journal $journal)
+    {
+        abort_unless($journal->user_id === $r->user()->id, 404);
+        $journal->update($r->validated());
+
+        return $this->success($journal->fresh(), 'Journal updated successfully.');
+    }
+
+    public function destroy(Journal $journal)
+    {
+        abort_unless($journal->user_id === request()->user()->id, 404);
+        $journal->delete();
+
+        return $this->success(null, 'Journal deleted successfully.');
+    }
+}
