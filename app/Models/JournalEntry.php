@@ -27,9 +27,11 @@ class JournalEntry extends Model
   14 => 'is_deleted',
   15 => 'client_created_at',
   16 => 'client_updated_at',
+  17 => 'is_draft',
 );
     protected $casts = array (
   'tags' => 'array',
+  'is_draft' => 'boolean',
   'is_crisis_flagged' => 'boolean',
   'is_deleted' => 'boolean',
   'client_created_at' => 'datetime',
