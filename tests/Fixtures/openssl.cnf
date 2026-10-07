@@ -1,0 +1,5 @@
+# Minimal portable configuration for generating ephemeral RSA test keys.
+[req]
+distinguished_name = test_distinguished_name
+
+[test_distinguished_name]

@@ -12,15 +12,15 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'timezone', 'password', 'avatar_path', 'date_of_birth', 'gender', 'personalization', 'privacy_settings', 'is_active'];
+    protected $fillable = ['name', 'email', 'timezone', 'password', 'avatar_path', 'date_of_birth', 'gender', 'personalization', 'privacy_settings', 'is_active', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at'];
 
     protected $attributes = ['timezone' => 'UTC'];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'google_sub', 'apple_sub'];
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'personalization' => 'array', 'privacy_settings' => 'array', 'is_active' => 'boolean', 'date_of_birth' => 'date'];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'personalization' => 'array', 'privacy_settings' => 'array', 'is_active' => 'boolean', 'date_of_birth' => 'date', 'google_linked_at' => 'datetime', 'apple_linked_at' => 'datetime'];
     }
 
     public function profile()

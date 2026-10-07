@@ -6,7 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\{LoginRequest, RegisterRequest};
 use App\Mail\WelcomeMail;
 use App\Models\User;
+use App\Services\Google\GoogleTokenVerifier;
+use App\Services\Google\InvalidGoogleTokenException;
 use App\Support\ApiResponse;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -81,6 +86,108 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => $u,
+            'token' => $token,
+        ], 'Logged in successfully.');
+    }
+
+    public function googleSignIn(Request $request, GoogleTokenVerifier $googleVerifier)
+    {
+        $request->validate([
+            'id_token' => ['required', 'string', 'max:16384'],
+            'device_name' => ['sometimes', 'string', 'max:120'],
+        ]);
+
+        try {
+            $claims = $googleVerifier->verify($request->input('id_token'));
+        } catch (InvalidGoogleTokenException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Google ID token.',
+            ], 401);
+        }
+
+        $created = false;
+        try {
+            $user = DB::transaction(function () use ($claims, &$created) {
+                $user = User::where('google_sub', $claims['sub'])->lockForUpdate()->first();
+
+                if (!$user) {
+                    $user = User::where('email', $claims['email'])->lockForUpdate()->first();
+                    if ($user) {
+                        abort_if(!$user->is_active, 403, 'This account has been disabled.');
+                        abort_if(!$claims['email_verified'], 409, 'Sign in to your existing account to link Google.');
+                        abort_if($user->google_sub !== null, 409, 'This account is already linked to a different Google identity.');
+                        $user->google_sub = $claims['sub'];
+                        $user->google_linked_at = now();
+                        if ($user->email_verified_at === null) {
+                            $user->email_verified_at = now();
+                        }
+                        $user->save();
+                    }
+                }
+
+                if (!$user) {
+                    $user = new User([
+                        'name' => $claims['name'] ?? 'Cozy User',
+                        'email' => $claims['email'],
+                        'google_sub' => $claims['sub'],
+                        'google_linked_at' => now(),
+                        'password' => Hash::make(Str::random(64)),
+                        'is_active' => true,
+                    ]);
+                    // email_verified_at is deliberately not mass assignable on User.
+                    $user->email_verified_at = $claims['email_verified'] ? now() : null;
+                    $user->save();
+                    $user->profile()->create([
+                        'id' => (string) Str::uuid(),
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'username' => null,
+                        'avatar_url' => null,
+                        'bio' => null,
+                        'theme' => 'system',
+                        'accent_color' => '#0460D8',
+                        'language' => 'en',
+                        'reduce_motion' => false,
+                        'high_contrast' => false,
+                        'haptics_enabled' => true,
+                        'text_size' => 1.00,
+                        'show_stats' => false,
+                        'show_username' => true,
+                        'notifications_master' => true,
+                        'daily_checkin_enabled' => true,
+                        'daily_checkin_time' => '09:00',
+                        'journal_reminder_enabled' => false,
+                        'comments_notifications' => true,
+                        'achievements_notifications' => true,
+                        'marketing_notifications' => false,
+                    ]);
+                    $created = true;
+                }
+
+                abort_if(!$user->is_active, 403, 'This account has been disabled.');
+
+                return $user->refresh();
+            }, 3);
+        } catch (UniqueConstraintViolationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An account was linked concurrently. Please try again.',
+            ], 409);
+        }
+
+        if ($created) {
+            try {
+                Mail::to($user->email)->send(new WelcomeMail($user));
+            } catch (\Throwable $e) {
+                \Log::error('WELCOME EMAIL FAILED: ' . $e->getMessage());
+            }
+        }
+
+        $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
+
+        return $this->success([
+            'user' => $user,
             'token' => $token,
         ], 'Logged in successfully.');
     }
