@@ -12,9 +12,10 @@
 
     "require": {
         "php": "^8.2",
+        "darkaonline/l5-swagger": "^11.1",
+        "firebase/php-jwt": "^7.2",
         "laravel/framework": "^12.1",
-        "laravel/sanctum": "^4.0",
-        "darkaonline/l5-swagger": "^11.1"
+        "laravel/sanctum": "^4.0"
     },
 
     "require-dev": {
