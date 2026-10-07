@@ -19,3 +19,18 @@ plan; growth alone does not imply that the composite index should replace it.
 | Chat message-list relationship audit | ChatController::show returns only conversation attributes; no message-list route or messages relationship is implemented | When conversation messages are implemented |
 | Community and content-article relationship audit | CommunityPostController and ContentArticleController do not exist | When those feature endpoints are implemented |
 | Saved-article HTTP relationship audit | SavedArticleController does not exist; ContentController::index reads saved_articles but has no registered route. Its direct invocation has no N+1 | When the saved-article route is implemented |
+
+## Deferred from Phase 2.3 (Column Selection)
+
+| Item | Reason | When |
+|---|---|---|
+| SELECT * removal on list endpoints | Mobile cache replaces records; partial list responses would wipe cached data | After mobile preserves absent fields during partial updates, supports detail fetching for incomplete records, and the compatible mobile release is shipped and verified on device |
+| Journal list body field | Full body is required for the cached detail view | After mobile supports separate summary/detail fetch |
+| Profile, notification, and subscription projections | All three responses replace cached records; the revised scope permits trimming only non-cached responses | After the mobile cache contract is updated and verified |
+| Provider column selection | No persistent cache, but mobile expects has_provider and connection status/provider_name/provider_phone while GET /provider returns a connection with a nested provider; SELECT-only changes cannot resolve this mismatch | After the provider response contract is reconciled and tested |
+| P0 mobile cache merge (Phase 2.5) | Typed fromJson constructors already replace absent fields with defaults/nulls before LocalDbService receives records, so storage cannot distinguish absence from an explicit null | Next mobile session; retain raw JSON key presence through ingestion, preserve absent values, and honor explicit nulls |
+
+Merge alone does not hydrate a previously uncached record from a partial list.
+Before removing full bodies or notes, mobile also needs summary/detail fetching
+and a way to identify incomplete cached records. Ship and verify mobile first;
+keep complete server responses until that prerequisite is met.
