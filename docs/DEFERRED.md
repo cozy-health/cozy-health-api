@@ -7,6 +7,8 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 
 | Item | Work remaining | Scheduled for |
 |---|---|---|
+| P1: 8 Composer advisories in 3 dependencies | Discovered during Phase 4a JWT install. `composer audit` reports 1 Laravel debug-page XSS advisory, 6 CommonMark XSS/denial-of-service advisories, and 1 Flysystem path-validation advisory. None affect firebase/php-jwt. Evaluate each and update dependencies before Phase 12 | Phase 12 (Security) |
+| Dashboard CORS configuration | Railway origins include the provider dashboard, but config/cors.php uses literal origins/methods rather than CORS_ALLOWED_* env vars; both the current config and Railway methods omit PATCH. Wire and verify the dashboard origin and GET, POST, PATCH, PUT, DELETE, OPTIONS | Phase 4.5 (Dashboard endpoints) |
 | Phase 2.3 SELECT * removal | Resume after Phase 2.5 ships and is verified on device. Preserve raw key presence before fromJson defaults; retain absent cached fields, clear explicit nulls, and fetch details for incomplete list records. Journal bodies and profile/notification/subscription projections share this prerequisite | After Phase 2.5 (mobile cache merge and detail-fetch fallback) |
 | Subscription endpoints | Implement packages, activation, cancellation, receipt verification and restore; retain existing mobile methods | Phase 12 (Payments) |
 | Chat message endpoints and relationship audit | Implement conversation message reads/writes and audit relationship loading when the message-list route exists; retain mobile methods | Phase 17 (LLM) |
@@ -28,3 +30,9 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 
 No additional work is assigned here at Phase 2 closure. Activity endpoints remain
 outside MVP scope; schedule them if the feature is adopted.
+
+## Completed housekeeping
+
+| Item | Resolution | Status |
+|---|---|---|
+| Composer disable-tls was true | Fixed global Composer config on 2026-10-07: disable-tls=false and secure-http=true | Done |
