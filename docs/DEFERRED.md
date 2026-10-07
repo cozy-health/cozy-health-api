@@ -34,3 +34,10 @@ Merge alone does not hydrate a previously uncached record from a partial list.
 Before removing full bodies or notes, mobile also needs summary/detail fetching
 and a way to identify incomplete cached records. Ship and verify mobile first;
 keep complete server responses until that prerequisite is met.
+
+## Roadmap priorities
+
+| Priority | Item | Why | When |
+|---|---|---|---|
+| P0 | Provider endpoint returns fields missing | Mobile expects has_provider, status, provider_name, provider_phone; backend does not return the expected contract | Before Phase 4 (Auth) |
+| P1 | Phase 2.3 SELECT * removal (fully deferred) | Blocked on Phase 2.5: preserve raw key presence before fromJson defaults, merge absent fields while honoring explicit nulls, and fetch details for partial list records | After compatible mobile cache release ships and is verified |
