@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
     Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
+    Route::get('me/provider-access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'patient']);
     Route::patch('me/provider/{linkId}/consent', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'update']);
     Route::delete('me/provider/{linkId}', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'destroy']);
     Route::patch('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update']);
@@ -106,5 +107,6 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('clients/{userId}/notes', [$notes, 'index']);
         Route::post('clients/{userId}/notes', [$notes, 'store']);
         Route::delete('clients/{userId}/notes/{noteId}', [$notes, 'destroy']);
+        Route::get('access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'provider']);
     });
 });

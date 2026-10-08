@@ -49,7 +49,7 @@ class ProviderAuthController extends Controller
                 ->lockForUpdate()->get();
             foreach ($links as $link) {
                 $link->update(['provider_id' => $provider->id]);
-                ProviderAccessLog::create(['provider_id' => $provider->id, 'user_id' => $link->user_id,
+                ProviderAccessLog::create(['provider_id' => $provider->id, 'user_id' => $link->user_id, 'link_id' => $link->id,
                     'action' => 'link_attached', 'resource_type' => 'client', 'resource_id' => (string) $link->id,
                     'ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
             }
