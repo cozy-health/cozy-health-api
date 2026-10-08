@@ -100,7 +100,11 @@ class SyncController extends ApiController
                     // Explicit ownership constraint also protects deletes and cancellations.
                     $query = $modelClass::where('user_id', $request->user()->id);
                     if ($action === 'upsert') {
-                        $query->updateOrCreate(['id' => $data['id']], $data);
+                        $record = $query->updateOrCreate(['id' => $data['id']], $data);
+                        $event = ['mood_entry' => 'mood_logged', 'journal_entry' => 'journal_created', 'quiz_attempt' => 'quiz_completed'][$type] ?? null;
+                        if ($record->wasRecentlyCreated && $event && ! ($data['is_deleted'] ?? false)) {
+                            app(\App\Services\Analytics\AnalyticsService::class)->track($event);
+                        }
                     } elseif ($action === 'delete') {
                         $query->where('id', $data['id'])->delete();
                     } elseif ($isCancellation) {

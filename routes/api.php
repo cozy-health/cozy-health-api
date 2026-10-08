@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
+    Route::get('admin/metrics/analytics', \App\Http\Controllers\AnalyticsMetricsController::class)
+        ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::put('admin/settings/{key}', [\App\Http\Controllers\AdminSettingsController::class, 'update'])
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'show'])->middleware('throttle:120,1');

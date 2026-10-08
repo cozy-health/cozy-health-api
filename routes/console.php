@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('analytics:prune --older-than=14months')->daily()->withoutOverlapping();
 
 Artisan::command('user:make-admin {email}', function () {
     $user = \App\Models\User::where('email', $this->argument('email'))->first();

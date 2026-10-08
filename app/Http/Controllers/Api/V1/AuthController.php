@@ -60,6 +60,7 @@ class AuthController extends Controller
             \Log::warning('Welcome email could not be queued.');
         }
 
+        app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered');
         $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
 
         return $this->success([
@@ -85,6 +86,7 @@ class AuthController extends Controller
             ], 403);
         }
 
+        app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
         $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
 
         return $this->success([
@@ -184,6 +186,8 @@ class AuthController extends Controller
             }
         }
 
+        if ($created) { app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered'); }
+        app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
         $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
 
         return $this->success([
@@ -295,6 +299,8 @@ class AuthController extends Controller
             }
         }
 
+        if ($created) { app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered'); }
+        app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
         $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
 
         return $this->success([

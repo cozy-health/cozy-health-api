@@ -59,6 +59,7 @@ class ProviderController extends Controller
         abort_unless(Hash::check($r->code, $connection->verification_code), 422, 'The verification code is invalid.');
         $connection->update(['verification_code' => null, 'verification_expires_at' => null, 'verified_at' => now()]);
         $connection = $connection->fresh()->load('provider');
+        app(\App\Services\Analytics\AnalyticsService::class)->track('provider_linked');
 
         return response()->json([
             'success' => true,

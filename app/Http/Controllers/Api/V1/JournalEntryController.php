@@ -20,7 +20,9 @@ class JournalEntryController extends ApiController
         $data['id'] ??= (string) Str::uuid();
         $data['body'] = $data['body'] ?? '';
         $data['user_id'] = $request->user()->id;
-        return $this->success(JournalEntry::create($data)->refresh());
+        $entry = JournalEntry::create($data)->refresh();
+        app(\App\Services\Analytics\AnalyticsService::class)->track('journal_created');
+        return $this->success($entry);
     }
 
     public function show($id)

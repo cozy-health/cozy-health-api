@@ -16,6 +16,7 @@ class MoodEntryController extends ApiController {
             ['id' => $data['id']],
             $data
         );
+        if ($entry->wasRecentlyCreated) { app(\App\Services\Analytics\AnalyticsService::class)->track('mood_logged'); }
         return $this->success($entry);
     }
     public function show($id) {

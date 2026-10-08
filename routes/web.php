@@ -7,5 +7,8 @@ Route::post('/webhooks/brevo', \App\Http\Controllers\BrevoWebhookController::cla
 
 Route::get('/up', \App\Http\Controllers\HealthController::class)->withoutMiddleware('web');
 
+Route::get('/admin/metrics/analytics', \App\Http\Controllers\AnalyticsMetricsController::class)
+    ->withoutMiddleware('web')->middleware(['api', 'auth:sanctum', 'role:admin', 'throttle:30,1']);
+
 Route::put('/admin/settings/{key}', [\App\Http\Controllers\AdminSettingsController::class, 'update'])
     ->withoutMiddleware('web')->middleware(['api', 'auth:sanctum', 'role:admin', 'throttle:30,1']);
