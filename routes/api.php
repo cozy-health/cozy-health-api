@@ -119,5 +119,11 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('clients/{userId}/resources', [$assignments, 'index']);
         Route::post('clients/{userId}/resources', [$assignments, 'store']);
         Route::delete('clients/{userId}/resources/{assignmentId}', [$assignments, 'destroy']);
+        $reports = \App\Http\Controllers\Api\V1\Provider\ProviderReportController::class;
+        Route::get('reports', [$reports, 'index']);
+        Route::post('reports', [$reports, 'store']);
+        Route::get('reports/{reportId}', [$reports, 'show']);
+        Route::get('reports/{reportId}/download', [$reports, 'download']);
+        Route::get('reports/{reportId}/file', [$reports, 'file'])->middleware('signed')->name('provider.reports.file');
     });
 });
