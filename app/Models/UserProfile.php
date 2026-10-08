@@ -57,6 +57,17 @@ class UserProfile extends Model
 
     protected static function booted()
     {
+        static::saving(function (UserProfile $profile) {
+            if (! $profile->isDirty('email')) {
+                return;
+            }
+            $owner = $profile->user()->first();
+            if ($owner?->is_demo && $profile->email !== $owner->email) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => ['The demo account email cannot be changed.'],
+                ]);
+            }
+        });
         static::addGlobalScope('user', function ($query) {
             if (auth()->check()) {
                 $query->where('user_id', auth()->id());

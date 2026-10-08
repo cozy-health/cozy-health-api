@@ -7,6 +7,19 @@ class ChatController extends ApiController {
         return $this->success($entries); 
     }
     public function store(Request $request) { return $this->success([]); }
+    public function messages(Request $request, string $id) {
+        $conversation = \App\Models\ChatConversation::where('user_id', $request->user()->id)->find($id);
+        if (! $conversation) {
+            return $this->error('Resource not found.', 'NOT_FOUND', [], 404);
+        }
+        $validated = $request->validate(['per_page' => ['sometimes', 'integer', 'min:1', 'max:100']]);
+        $messages = \App\Models\ChatMessage::where('user_id', $request->user()->id)
+            ->where('conversation_id', $conversation->id)
+            ->orderByRaw('COALESCE(client_created_at, created_at) ASC')->orderBy('id')
+            ->paginate($validated['per_page'] ?? 50);
+
+        return $this->success($messages);
+    }
     public function show($id) { 
         $entry = \App\Models\ChatConversation::find($id);
         if (!$entry) {

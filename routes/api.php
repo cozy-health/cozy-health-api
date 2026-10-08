@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::apiResource('journal-entries', JournalEntryController::class);
     Route::get('journals', [JournalEntryController::class, 'index']);
     Route::apiResource('conversations', ChatController::class);
+    Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->middleware('throttle:60,1');
     Route::get('safety-plan', [SafetyPlanController::class, 'show']);
     Route::put('safety-plan', [SafetyPlanController::class, 'store']);
     Route::get('user/profile', [UserProfileController::class, 'show']);

@@ -16,6 +16,9 @@ class AccountController extends Controller
     public function destroy(Request $request, AppleTokenService $appleTokens)
     {
         $user = $request->user();
+        if ($user->is_demo) {
+            return response()->json(['success' => false, 'message' => 'This account cannot be deleted.'], 403);
+        }
         // Provider calls stay outside the database transaction.
         $appleTokens->revoke($user);
 

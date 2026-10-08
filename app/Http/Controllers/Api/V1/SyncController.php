@@ -92,6 +92,11 @@ class SyncController extends ApiController
 
                         return null;
                     }
+                    if ($type === 'chat_message' && $action === 'upsert'
+                        && ! ChatConversation::where('user_id', $request->user()->id)
+                            ->where('id', $data['conversation_id'] ?? null)->exists()) {
+                        return 'Conversation not found';
+                    }
                     // Explicit ownership constraint also protects deletes and cancellations.
                     $query = $modelClass::where('user_id', $request->user()->id);
                     if ($action === 'upsert') {
@@ -115,7 +120,7 @@ class SyncController extends ApiController
                     ? [...$result, 'success' => true]
                     : [...$result, 'error' => $error];
             } catch (ValidationException $e) {
-                $results[] = [...$result, 'error' => 'Invalid preferences payload', 'errors' => $e->errors()];
+                $results[] = [...$result, 'error' => $type === 'user_preferences' ? 'Invalid preferences payload' : 'Invalid sync payload', 'errors' => $e->errors()];
             } catch (Throwable $e) {
                 report($e);
                 $results[] = [...$result, 'error' => 'Unable to apply sync operation'];
