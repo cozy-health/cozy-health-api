@@ -55,6 +55,9 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
+    Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
+    Route::patch('me/provider/{linkId}/consent', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'update']);
+    Route::delete('me/provider/{linkId}', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'destroy']);
     Route::patch('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update']);
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);

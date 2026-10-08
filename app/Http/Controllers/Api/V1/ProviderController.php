@@ -8,6 +8,7 @@ use App\Http\Requests\ProviderVerifyRequest;
 use App\Models\Provider;
 use App\Models\ProviderClientLink;
 use App\Services\Analytics\AnalyticsService;
+use App\Services\Provider\ProviderAudit;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -100,7 +101,13 @@ class ProviderController extends Controller
 
     public function destroy()
     {
-        request()->user()->providerClientLinks()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        DB::transaction(function () {
+            $links = request()->user()->providerClientLinks()->whereNull('revoked_at')->lockForUpdate()->get();
+            foreach ($links as $link) {
+                $link->update(['revoked_at' => now()]);
+                ProviderAudit::record(request(), $link, 'revoked', 'client', (string) $link->id);
+            }
+        });
 
         return $this->success(null, 'Provider connection removed.');
     }
