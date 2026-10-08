@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::table('provider_reports', function (Blueprint $table) {
             // Existing reports have no provable consent snapshot and cannot be downloaded.
             $table->json('consent_snapshot')->nullable();
+            $table->timestamp('link_verified_at')->nullable();
             $table->foreignId('link_id')->nullable()->constrained('provider_client_links')->nullOnDelete();
         });
     }
@@ -19,7 +20,7 @@ return new class extends Migration
     {
         Schema::table('provider_reports', function (Blueprint $table) {
             $table->dropConstrainedForeignId('link_id');
-            $table->dropColumn('consent_snapshot');
+            $table->dropColumn(['consent_snapshot', 'link_verified_at']);
         });
     }
 };

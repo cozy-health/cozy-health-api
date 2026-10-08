@@ -78,7 +78,7 @@ class ProviderReportService
                 }
                 $report = ProviderReport::create(['provider_id' => $provider->id, 'user_id' => $user->id, 'type' => $type,
                     'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), 'file_path' => $path,
-                    'generated_at' => $generatedAt, 'link_id' => $link->id, 'consent_snapshot' => $flags]);
+                    'generated_at' => $generatedAt, 'link_id' => $link->id, 'link_verified_at' => $link->verified_at, 'consent_snapshot' => $flags]);
                 ProviderAudit::record(request(), $link, 'create', 'report', (string) $report->id);
 
                 return $report;
@@ -93,7 +93,7 @@ class ProviderReportService
 
     public function accessible(ProviderReport $report, ProviderClientLink $link): bool
     {
-        if ($report->link_id !== $link->id || ! is_array($report->consent_snapshot)) {
+        if ($report->link_id !== $link->id || ! $report->link_verified_at?->equalTo($link->verified_at) || ! is_array($report->consent_snapshot)) {
             return false;
         }
         foreach (['moods', 'journals', 'quizzes', 'notes'] as $type) {

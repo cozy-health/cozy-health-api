@@ -62,7 +62,8 @@ class ProviderReportController extends Controller
             [$report, $link] = $this->find($request, $reportId);
             abort_unless(Storage::disk('local')->exists($report->file_path), 404);
             $expires = now()->addHour();
-            $url = URL::temporarySignedRoute('provider.reports.file', $expires, ['reportId' => $report->id]);
+            // Sign only the path/query so TLS termination cannot invalidate the signature.
+            $url = URL::temporarySignedRoute('provider.reports.file', $expires, ['reportId' => $report->id], absolute: false);
             ProviderAudit::record($request, $link, 'view', 'report', (string) $report->id);
 
             return response()->json(['download_url' => $url, 'expires_at' => $expires->toIso8601String()])->header('Cache-Control', 'private, no-store');

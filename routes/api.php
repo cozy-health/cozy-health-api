@@ -124,6 +124,6 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('reports', [$reports, 'store']);
         Route::get('reports/{reportId}', [$reports, 'show']);
         Route::get('reports/{reportId}/download', [$reports, 'download']);
-        Route::get('reports/{reportId}/file', [$reports, 'file'])->middleware('signed')->name('provider.reports.file');
+        Route::get('reports/{reportId}/file', [$reports, 'file'])->middleware('signed:relative')->name('provider.reports.file');
     });
 });
