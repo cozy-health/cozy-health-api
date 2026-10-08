@@ -61,7 +61,7 @@ class ProviderController extends Controller
             return $connection;
         });
         $data = ['expires_in_minutes' => 15];
-        if (app()->isLocal()) {
+        if (app()->isLocal() && $connection->verification_code && Hash::check($code, $connection->verification_code)) {
             $data['development_code'] = $code;
         }
 
@@ -70,7 +70,7 @@ class ProviderController extends Controller
             'success' => true,
             'message' => 'Verification code created.',
             'data' => $data,
-            'status' => 'pending',
+            'status' => $connection->verified_at ? 'verified' : 'pending',
             ...$this->providerPayload($connection->load('provider')),
         ]);
     }
@@ -102,8 +102,8 @@ class ProviderController extends Controller
     public function destroy()
     {
         DB::transaction(function () {
-            $links = request()->user()->providerClientLinks()->whereNull('revoked_at')->lockForUpdate()->get();
-            foreach ($links as $link) {
+            $link = request()->user()->providerConnection()->lockForUpdate()->first();
+            if ($link) {
                 $link->update(['revoked_at' => now()]);
                 ProviderAudit::record(request(), $link, 'revoked', 'client', (string) $link->id);
             }

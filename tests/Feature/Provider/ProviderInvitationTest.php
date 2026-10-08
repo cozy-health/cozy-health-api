@@ -54,8 +54,21 @@ class ProviderInvitationTest extends TestCase
         $link = ProviderClientLink::create(['user_id' => $user->id, 'provider_email' => 'invite@example.test',
             'verified_at' => now(), 'consent_moods' => true]);
         Sanctum::actingAs($user);
-        $this->postJson('/api/v1/provider/request', ['provider_email' => 'invite@example.test'])->assertOk();
+        $this->postJson('/api/v1/provider/request', ['provider_email' => 'invite@example.test'])->assertOk()
+            ->assertJsonPath('status', 'verified')->assertJsonPath('has_provider', true)->assertJsonMissingPath('data.development_code');
         $this->assertTrue($link->fresh()->consent_moods);
         $this->assertDatabaseCount('provider_client_links', 1);
+    }
+
+    public function test_cancel_current_invitation_preserves_other_verified_links(): void
+    {
+        $user = User::factory()->create();
+        $existing = ProviderClientLink::create(['user_id' => $user->id, 'provider_email' => 'existing@example.test', 'verified_at' => now()]);
+        $pending = ProviderClientLink::create(['user_id' => $user->id, 'provider_email' => 'pending@example.test']);
+        Sanctum::actingAs($user);
+        $this->deleteJson('/api/v1/provider')->assertOk();
+        $this->assertNotNull($pending->fresh()->revoked_at);
+        $this->assertNull($existing->fresh()->revoked_at);
+        $this->getJson('/api/v1/provider')->assertOk()->assertJsonPath('provider.id', $existing->id);
     }
 }
