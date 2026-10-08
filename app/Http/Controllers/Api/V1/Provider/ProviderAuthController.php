@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\ProviderPasswordResetMail;
 use App\Mail\ProviderPasswordResetConfirmationMail;
 use App\Models\Provider;
+use App\Models\ProviderClientLink;
+use App\Models\ProviderAccessLog;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +43,18 @@ class ProviderAuthController extends Controller
         ]);
         $data['password_hash'] = $data['password'];
         unset($data['password']);
-        $provider = Provider::create($data);
+        $provider = DB::transaction(function () use ($data, $request) {
+            $provider = Provider::create($data);
+            $links = ProviderClientLink::whereNull('provider_id')->where('provider_email', $provider->email)
+                ->lockForUpdate()->get();
+            foreach ($links as $link) {
+                $link->update(['provider_id' => $provider->id]);
+                ProviderAccessLog::create(['provider_id' => $provider->id, 'user_id' => $link->user_id,
+                    'action' => 'link_attached', 'resource_type' => 'client', 'resource_id' => (string) $link->id,
+                    'ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
+            }
+            return $provider;
+        });
         return $this->success([
             'provider' => $provider->refresh(),
             'token' => $provider->createToken('cozy-provider')->plainTextToken,

@@ -298,6 +298,8 @@ class ProviderAuthTest extends TestCase
         foreach (['moods', 'journals', 'quizzes', 'notes'] as $type) { $this->assertFalse($link->{'consent_'.$type}); }
         $this->assertSame($provider->id, $link->provider->id);
         $this->assertSame($user->id, $link->user->id);
+        $this->assertCount(0, $provider->clientLinks()->active()->get());
+        $link->update(['verified_at' => now()]);
         $this->assertCount(1, $provider->clientLinks()->active()->get());
         $link->update(['revoked_at' => now()]);
         $this->assertCount(0, $provider->clientLinks()->active()->get());
