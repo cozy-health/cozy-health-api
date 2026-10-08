@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class PasswordResetConfirmationMail extends Mailable
+class PasswordResetConfirmationMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -15,6 +15,7 @@ class PasswordResetConfirmationMail extends Mailable
 
     public function __construct(User $user)
     {
+        $this->onQueue('email');
         $this->user = $user;
     }
 

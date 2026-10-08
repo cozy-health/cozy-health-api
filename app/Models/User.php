@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class User extends Authenticatable
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'timezone', 'password', 'avatar_path', 'date_of_birth', 'gender', 'personalization', 'privacy_settings', 'is_active', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at'];

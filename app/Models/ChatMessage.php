@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChatMessage extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'chat_messages';
     protected $keyType = 'string';
     public $incrementing = false;

@@ -2,17 +2,17 @@
 namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 class ChatController extends ApiController {
-    public function index(Request $request) { 
+    public function index(\App\Http\Requests\PaginationRequest $request) {
         $entries = \App\Models\ChatConversation::orderBy('updated_at', 'desc')->paginate($request->input('per_page', 20));
-        return $this->success($entries); 
+        return $this->success($entries);
     }
     public function store(Request $request) { return $this->success([]); }
-    public function messages(Request $request, string $id) {
+    public function messages(\App\Http\Requests\PaginationRequest $request, string $id) {
         $conversation = \App\Models\ChatConversation::where('user_id', $request->user()->id)->find($id);
         if (! $conversation) {
             return $this->error('Resource not found.', 'NOT_FOUND', [], 404);
         }
-        $validated = $request->validate(['per_page' => ['sometimes', 'integer', 'min:1', 'max:100']]);
+        $validated = $request->validated();
         $messages = \App\Models\ChatMessage::where('user_id', $request->user()->id)
             ->where('conversation_id', $conversation->id)
             ->orderByRaw('COALESCE(client_created_at, created_at) ASC')->orderBy('id')
@@ -20,7 +20,7 @@ class ChatController extends ApiController {
 
         return $this->success($messages);
     }
-    public function show($id) { 
+    public function show($id) {
         $entry = \App\Models\ChatConversation::find($id);
         if (!$entry) {
             return response()->json([
@@ -30,7 +30,7 @@ class ChatController extends ApiController {
                 ]
             ], 404);
         }
-        return $this->success($entry); 
+        return $this->success($entry);
     }
     public function update(Request $request, $id) { return $this->success([]); }
     public function destroy($id) { return $this->success([]); }

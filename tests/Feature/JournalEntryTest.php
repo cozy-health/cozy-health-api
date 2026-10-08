@@ -76,7 +76,7 @@ it('ignores supplied ownership and server timestamps on create', function () {
 it('deletes the owners entry', function () {
     $id = $this->postJson('/api/v1/journal-entries', $this->journalPayload)->json('data.id');
     $this->deleteJson('/api/v1/journal-entries/'.$id)->assertOk()->assertExactJson(['message' => 'Journal entry deleted.']);
-    $this->assertDatabaseMissing('journal_entries', ['id' => $id]);
+    $this->assertSoftDeleted('journal_entries', ['id' => $id]);
 });
 
 it('returns boolean draft state in index and show', function () {

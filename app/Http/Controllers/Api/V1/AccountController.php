@@ -37,7 +37,7 @@ class AccountController extends Controller
                 'apple_token_client_id' => null,
             ])->save();
             // User-owned rows with foreign keys are removed by their existing cascades.
-            $user->delete();
+            $user->forceDelete();
         }, 3);
 
         return $this->success(null, 'Account deleted successfully.');

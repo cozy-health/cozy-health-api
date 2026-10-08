@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProviderRequestRequest extends FormRequest
+class ProviderRequestRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

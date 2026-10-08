@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MoodEntry extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'mood_entries';
     protected $keyType = 'string';
     public $incrementing = false;

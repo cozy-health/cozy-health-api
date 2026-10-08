@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SafetyPlan extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'safety_plans';
     protected $keyType = 'string';
     public $incrementing = false;

@@ -61,7 +61,7 @@ it('google signin creates a new user and registration profile defaults', functio
     ]);
     $this->assertDatabaseHas('personal_access_tokens', ['name' => 'google-test-device']);
     $this->withToken($response->json('data.token'))->getJson('/api/v1/me')->assertOk();
-    Mail::assertSent(WelcomeMail::class);
+    Mail::assertQueued(WelcomeMail::class);
 });
 
 it('google signin links an existing verified email account', function () {
@@ -74,7 +74,7 @@ it('google signin links an existing verified email account', function () {
         ->and($user->fresh()->email_verified_at)->not->toBeNull()
         ->and($user->fresh()->password)->toBe($password);
     $this->assertDatabaseCount('users', 1);
-    Mail::assertNothingSent();
+    Mail::assertNothingOutgoing();
 });
 
 it('google signin returns an existing user by google sub even when email changes', function () {

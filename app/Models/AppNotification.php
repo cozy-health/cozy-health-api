@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AppNotification extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'app_notifications';
     protected $keyType = 'string';
     public $incrementing = false;

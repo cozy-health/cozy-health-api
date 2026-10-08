@@ -2,12 +2,12 @@
 namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 class NotificationController extends ApiController {
-    public function index(Request $request) { 
+    public function index(\App\Http\Requests\PaginationRequest $request) {
         $entries = \App\Models\AppNotification::orderBy('client_created_at', 'desc')->paginate($request->input('per_page', 20));
-        return $this->success($entries); 
+        return $this->success($entries);
     }
     public function store(Request $request) { return $this->success([]); }
-    public function show($id) { 
+    public function show($id) {
         $entry = \App\Models\AppNotification::find($id);
         if (!$entry) {
             return response()->json([
@@ -17,7 +17,7 @@ class NotificationController extends ApiController {
                 ]
             ], 404);
         }
-        return $this->success($entry); 
+        return $this->success($entry);
     }
     public function update(Request $request, $id) { return $this->success([]); }
     public function destroy($id) { return $this->success([]); }

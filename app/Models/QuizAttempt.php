@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuizAttempt extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'quiz_attempts';
     protected $keyType = 'string';
     public $incrementing = false;

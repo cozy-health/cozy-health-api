@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SavedArticle extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'saved_articles';
     protected $keyType = 'string';
     public $incrementing = false;

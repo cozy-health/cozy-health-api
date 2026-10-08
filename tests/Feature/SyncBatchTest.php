@@ -59,7 +59,7 @@ it('accepts both top level and nested ids for deletion', function () {
         $this->postJson('/api/v1/sync/batch', ['operations' => [$op]])
             ->assertOk()->assertJsonPath('data.results.0.success', true)
             ->assertJsonPath('data.results.0.id', $entry->id);
-        $this->assertDatabaseMissing('mood_entries', ['id' => $entry->id]);
+        $this->assertSoftDeleted('mood_entries', ['id' => $entry->id]);
     }
 });
 

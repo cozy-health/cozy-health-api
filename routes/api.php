@@ -19,6 +19,10 @@ use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
+    Route::post('admin/queue/test-email', function (\App\Http\Requests\TestEmailRequest $request) {
+        \App\Jobs\SendTestEmail::dispatch($request->validated('email'));
+        return response()->json(['message' => 'Test email queued.'], 202);
+    })->middleware(['auth:sanctum', 'role:admin', 'throttle:3,60']);
     Route::post('auth/register', [AuthController::class, 'register'])
         ->middleware('throttle:5,1');
     Route::post('auth/login', [AuthController::class, 'login'])

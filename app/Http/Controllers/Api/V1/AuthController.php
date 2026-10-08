@@ -93,12 +93,9 @@ class AuthController extends Controller
         ], 'Logged in successfully.');
     }
 
-    public function googleSignIn(Request $request, GoogleTokenVerifier $googleVerifier)
+    public function googleSignIn(\App\Http\Requests\GoogleSignInRequest $request, GoogleTokenVerifier $googleVerifier)
     {
-        $request->validate([
-            'id_token' => ['required', 'string', 'max:16384'],
-            'device_name' => ['sometimes', 'string', 'max:120'],
-        ]);
+        $request->validated();
 
         try {
             $claims = $googleVerifier->verify($request->input('id_token'));
@@ -195,14 +192,9 @@ class AuthController extends Controller
         ], 'Logged in successfully.');
     }
 
-    public function appleSignIn(Request $request, AppleTokenVerifier $appleVerifier, AppleTokenService $appleTokens)
+    public function appleSignIn(\App\Http\Requests\AppleSignInRequest $request, AppleTokenVerifier $appleVerifier, AppleTokenService $appleTokens)
     {
-        $request->validate([
-            'identity_token' => ['required', 'string', 'max:16384'],
-            'authorization_code' => ['sometimes', 'string', 'max:4096'],
-            'full_name' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'device_name' => ['sometimes', 'string', 'max:120'],
-        ]);
+        $request->validated();
 
         try {
             $claims = $appleVerifier->verify($request->input('identity_token'));
@@ -314,7 +306,7 @@ class AuthController extends Controller
     public function logout()
     {
         request()->user()->currentAccessToken()?->delete();
-        
+
         return $this->success(null, 'Logged out successfully.');
     }
 }

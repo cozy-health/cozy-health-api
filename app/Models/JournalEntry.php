@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JournalEntry extends Model
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $table = 'journal_entries';
     protected $keyType = 'string';
     public $incrementing = false;

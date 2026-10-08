@@ -8,13 +8,15 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Illuminate\Auth\AuthenticationException;
 
 return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(api: __DIR__.'/../routes/api.php', commands: __DIR__.'/../routes/console.php', health: '/up', apiPrefix: 'api')
+    ->withProviders([\App\Providers\AppServiceProvider::class])
+    ->withRouting(api: __DIR__.'/../routes/api.php', commands: __DIR__.'/../routes/console.php', web: __DIR__.'/../routes/web.php', apiPrefix: 'api')
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias(['role' => \App\Http\Middleware\RequireRole::class]);
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*'));
-        
+
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             if (!$request->is('api/*')) return null;
             return response()->json(['success'=>false,'message'=>'Unauthenticated.'], 401);

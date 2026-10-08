@@ -13,9 +13,9 @@ class InsightsController extends Controller
 {
     private const ENTRY_TIME = 'COALESCE(client_created_at, created_at)';
 
-    public function weekly(Request $request): JsonResponse
+    public function weekly(\App\Http\Requests\WeeklyInsightsRequest $request): JsonResponse
     {
-        $validated = $request->validate(['weeks' => ['sometimes', 'integer', 'in:1,4,12']]);
+        $validated = $request->validated();
         $weeks = (int) ($validated['weeks'] ?? 1);
         $today = CarbonImmutable::instance($request->user()->localToday());
         $end = $today->addDay();
@@ -50,7 +50,7 @@ class InsightsController extends Controller
         return $this->respond('Weekly insights retrieved.', ['weeks' => $result]);
     }
 
-    public function triggers(Request $request): JsonResponse
+    public function triggers(\App\Http\Requests\DailyInsightsRequest $request): JsonResponse
     {
         [$days, $start, $end] = $this->dayRange($request);
         // One projected query for the validated date range; the model decodes JSON.
@@ -81,7 +81,7 @@ class InsightsController extends Controller
         return $this->respond('Trigger insights retrieved.', ['range_days' => $days, 'triggers' => $triggers]);
     }
 
-    public function sleepMood(Request $request): JsonResponse
+    public function sleepMood(\App\Http\Requests\DailyInsightsRequest $request): JsonResponse
     {
         [$days, $start, $end] = $this->dayRange($request);
         $points = $this->between($request, $start, $end)->whereBetween('sleep_quality', [1, 5])
@@ -98,7 +98,7 @@ class InsightsController extends Controller
 
     private function dayRange(Request $request): array
     {
-        $validated = $request->validate(['days' => ['sometimes', 'integer', 'in:7,30,90']]);
+        $validated = $request->validated();
         $days = (int) ($validated['days'] ?? 30);
         $end = CarbonImmutable::instance($request->user()->localToday())->addDay();
 

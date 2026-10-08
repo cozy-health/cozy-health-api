@@ -17,18 +17,16 @@ class PasswordResetController extends Controller
 {
     use ApiResponse;
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(\App\Http\Requests\ForgotPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        $request->validated();
 
         $user = User::where('email', $request->email)->first();
 
         if ($user) {
             // Generate a 6-digit code
             $token = sprintf('%06d', mt_rand(100000, 999999));
-            
+
             // Upsert token in database
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $user->email],
@@ -47,13 +45,9 @@ class PasswordResetController extends Controller
         return $this->success(null, 'If your email is registered, you will receive a password reset code shortly.');
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(\App\Http\Requests\ResetPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'token' => 'required|string',
-            'password' => 'required|string|min:8',
-        ]);
+        $request->validated();
 
         $resetRecord = DB::table('password_reset_tokens')
             ->where('email', $request->email)
@@ -74,7 +68,7 @@ class PasswordResetController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,

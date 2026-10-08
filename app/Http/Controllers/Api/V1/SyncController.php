@@ -35,9 +35,9 @@ class SyncController extends ApiController
         'subscription_status' => SubscriptionStatus::class,
     ];
 
-    public function batch(Request $request)
+    public function batch(\App\Http\Requests\SyncBatchRequest $request)
     {
-        $request->validate(['operations' => ['sometimes', 'array']]);
+        $request->validated();
         $results = [];
 
         foreach ($request->input('operations', []) as $operation) {
