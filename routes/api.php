@@ -21,6 +21,8 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1');
     Route::post('auth/google', [AuthController::class, 'googleSignIn'])
         ->middleware('throttle:10,1');
+    Route::post('auth/apple', [AuthController::class, 'appleSignIn'])
+        ->middleware('throttle:10,1');
     Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword'])
         ->middleware('throttle:3,1');
     Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword'])
