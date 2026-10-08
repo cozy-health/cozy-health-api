@@ -62,6 +62,7 @@ class AppleTokenVerifier
 
             return [
                 'sub' => $claims['sub'],
+                'aud' => $claims['aud'],
                 'email' => $claims['email'],
                 'email_verified' => $this->booleanClaim($claims['email_verified'] ?? null),
                 'is_private_email' => $this->booleanClaim($claims['is_private_email'] ?? false)

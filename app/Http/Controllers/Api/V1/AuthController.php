@@ -7,6 +7,7 @@ use App\Http\Requests\{LoginRequest, RegisterRequest};
 use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Services\Apple\AppleTokenVerifier;
+use App\Services\Apple\AppleTokenService;
 use App\Services\Apple\InvalidAppleTokenException;
 use App\Services\Google\GoogleTokenVerifier;
 use App\Services\Google\InvalidGoogleTokenException;
@@ -194,16 +195,19 @@ class AuthController extends Controller
         ], 'Logged in successfully.');
     }
 
-    public function appleSignIn(Request $request, AppleTokenVerifier $appleVerifier)
+    public function appleSignIn(Request $request, AppleTokenVerifier $appleVerifier, AppleTokenService $appleTokens)
     {
         $request->validate([
             'identity_token' => ['required', 'string', 'max:16384'],
+            'authorization_code' => ['sometimes', 'string', 'max:4096'],
             'full_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'device_name' => ['sometimes', 'string', 'max:120'],
         ]);
 
         try {
             $claims = $appleVerifier->verify($request->input('identity_token'));
+            $grant = $request->filled('authorization_code')
+                ? $appleTokens->exchangeAuthorizationCode($request->input('authorization_code'), $claims) : null;
         } catch (InvalidAppleTokenException $e) {
             return response()->json([
                 'success' => false,
@@ -213,7 +217,7 @@ class AuthController extends Controller
 
         $created = false;
         try {
-            $user = DB::transaction(function () use ($request, $claims, &$created) {
+            $user = DB::transaction(function () use ($request, $claims, $grant, &$created) {
                 $user = User::where('apple_sub', $claims['sub'])->lockForUpdate()->first();
 
                 if (!$user) {
@@ -275,6 +279,12 @@ class AuthController extends Controller
                 }
 
                 abort_if(!$user->is_active, 403, 'This account has been disabled.');
+
+                if ($grant !== null) {
+                    $user->apple_refresh_token = $grant['refresh_token'];
+                    $user->apple_token_client_id = $grant['client_id'];
+                    $user->save();
+                }
 
                 return $user->refresh();
             }, 3);

@@ -16,11 +16,11 @@ class User extends Authenticatable
 
     protected $attributes = ['timezone' => 'UTC'];
 
-    protected $hidden = ['password', 'remember_token', 'google_sub', 'apple_sub'];
+    protected $hidden = ['password', 'remember_token', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at', 'apple_refresh_token', 'apple_token_client_id'];
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'personalization' => 'array', 'privacy_settings' => 'array', 'is_active' => 'boolean', 'date_of_birth' => 'date', 'google_linked_at' => 'datetime', 'apple_linked_at' => 'datetime'];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'personalization' => 'array', 'privacy_settings' => 'array', 'is_active' => 'boolean', 'date_of_birth' => 'date', 'google_linked_at' => 'datetime', 'apple_linked_at' => 'datetime', 'apple_refresh_token' => 'encrypted'];
     }
 
     public function profile()
