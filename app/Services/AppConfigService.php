@@ -15,7 +15,7 @@ class AppConfigService
     {
         $config = Cache::remember('app:config', 60, fn () => [
             'flags' => array_replace(self::DEFAULT_FLAGS, FeatureFlag::pluck('enabled', 'key')->all()),
-            'min_app_version' => '1.0.0', 'maintenance_mode' => false, 'maintenance_message' => null,
+            ...array_replace(\App\Models\Setting::DEFAULTS, \App\Models\Setting::pluck('value', 'key')->all()),
         ]);
         return [...$config, 'server_time' => now()->toIso8601String()];
     }

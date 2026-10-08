@@ -13,6 +13,19 @@ Artisan::command('user:make-admin {email}', function () {
     return 0;
 })->purpose('Grant an existing active user the administrator role');
 
+Artisan::command('settings:set {key} {value}', function () {
+    $raw = $this->argument('value');
+    $value = in_array($raw, ['true', 'false', 'null'], true) ? json_decode($raw, true) : $raw;
+    try {
+        app(\App\Services\SettingsService::class)->set($this->argument('key'), $value);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        $this->error(implode(' ', array_merge(...array_values($e->errors()))));
+        return 1;
+    }
+    $this->info('Setting updated.');
+    return 0;
+});
+
 Artisan::command('flags:set {key} {enabled}', function () {
     $key = $this->argument('key');
     $enabled = $this->argument('enabled');

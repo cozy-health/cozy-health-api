@@ -15,19 +15,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*'));
+        $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*', 'admin/*', 'webhooks/*'));
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if (!$request->is('api/*')) return null;
+            if (!$request->is('api/*', 'admin/*', 'webhooks/*')) return null;
             return response()->json(['success'=>false,'message'=>'Unauthenticated.'], 401);
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) {
-            if (!$request->is('api/*')) return null;
+            if (!$request->is('api/*', 'admin/*', 'webhooks/*')) return null;
             return response()->json(['success'=>false,'message'=>'The submitted data is invalid.','errors'=>$e->errors()],422);
         });
         $exceptions->render(function (Throwable $e, Request $request) {
-            if (!$request->is('api/*')) return null;
+            if (!$request->is('api/*', 'admin/*', 'webhooks/*')) return null;
             $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
             $message = $status === 500 && !config('app.debug') ? 'Server error. Please try again later.' : ($e->getMessage() ?: 'Something went wrong.');
             $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
