@@ -102,5 +102,9 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('clients/{userId}/journals', [$clients, 'journals']);
         Route::get('clients/{userId}/quizzes', [$clients, 'quizzes']);
         Route::get('clients/{userId}/consents', [$clients, 'consents']);
+        $notes = \App\Http\Controllers\Api\V1\Provider\ProviderNotesController::class;
+        Route::get('clients/{userId}/notes', [$notes, 'index']);
+        Route::post('clients/{userId}/notes', [$notes, 'store']);
+        Route::delete('clients/{userId}/notes/{noteId}', [$notes, 'destroy']);
     });
 });
