@@ -108,5 +108,10 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('clients/{userId}/notes', [$notes, 'store']);
         Route::delete('clients/{userId}/notes/{noteId}', [$notes, 'destroy']);
         Route::get('access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'provider']);
+        $resources = \App\Http\Controllers\Api\V1\Provider\ProviderResourceController::class;
+        Route::get('resources', [$resources, 'index']);
+        Route::post('resources', [$resources, 'store']);
+        Route::patch('resources/{resourceId}', [$resources, 'update']);
+        Route::delete('resources/{resourceId}', [$resources, 'destroy']);
     });
 });

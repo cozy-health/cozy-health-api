@@ -14,7 +14,8 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 | Chat message endpoints and relationship audit | Implement conversation message reads/writes and audit relationship loading when the message-list route exists; retain mobile methods | Phase 17 (LLM) |
 | Content save/unsave and saved-article HTTP relationship audit | Register the saved-content read route and implement save/unsave, then audit relationship loading; retain mobile methods | Phase 20 (Content Feed) |
 | Dashboard, insights and daily affirmations | Build endpoints together with mobile wiring. Use user-local day/week/month boundaries converted to UTC for queries and local-midnight affirmation refresh | Phase 4.5 |
-| Provider verification code delivery | Generated codes are not emailed or sent by SMS. Wire delivery or correct mobile copy before the provider flow ships | Provider flow launch (phase to be assigned) |
+| PD-3 iPhone smoke test | Consent toggles and access log on a real device remain pending. Batch device checks at the end of PD-7 with the full provider flow; an active provider link is needed to test consent. | End of PD-7; after PD-5 or when the first real provider link exists |
+| Provider verification code delivery | Backend generates codes but sends no email/SMS. Mobile says "code sent", which is inaccurate. Live linking needs delivery before the provider flow works end-to-end. | Before beta |
 | Timezone-aware reminder scheduling | Interpret reminder times in users.timezone; no scheduling job exists yet | Phase 18 (Notifications) |
 | Crisis detector / persistence audit | Reported test-account journal entries containing "I want to kill myself ," have is_crisis_flagged=false while similar entries are flagged. Investigate detection, save/sync paths and legacy records; punctuation is a hypothesis, not a confirmed cause | Phase 14 (clinician review) or a standalone crisis audit |
 
