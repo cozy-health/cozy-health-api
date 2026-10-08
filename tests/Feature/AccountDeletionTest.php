@@ -14,6 +14,7 @@ use Tests\Support\AppleSigningKey;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    \Illuminate\Support\Facades\Mail::fake();
     Cache::flush();
     Http::preventStrayRequests();
     AppleSigningKey::configure();

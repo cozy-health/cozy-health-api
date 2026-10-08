@@ -40,6 +40,13 @@ class AccountController extends Controller
             $user->forceDelete();
         }, 3);
 
+        if (! $user->email_invalid) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\AccountDeletedMail());
+            } catch (\Throwable) {
+                \Illuminate\Support\Facades\Log::warning('Account deletion confirmation could not be queued.');
+            }
+        }
         return $this->success(null, 'Account deleted successfully.');
     }
 }

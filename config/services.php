@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'brevo' => ['webhook_token' => env('BREVO_WEBHOOK_TOKEN')],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'ios_client_id' => env('GOOGLE_IOS_CLIENT_ID'),

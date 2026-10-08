@@ -55,9 +55,9 @@ class AuthController extends Controller
 
         try {
             Mail::to($u->email)->send(new WelcomeMail($u));
-            \Log::info('WELCOME EMAIL SENT to ' . $u->email);
+            \Log::info('Welcome email queued.');
         } catch (\Throwable $e) {
-            \Log::error('WELCOME EMAIL FAILED: ' . $e->getMessage());
+            \Log::warning('Welcome email could not be queued.');
         }
 
         $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
@@ -180,7 +180,7 @@ class AuthController extends Controller
             try {
                 Mail::to($user->email)->send(new WelcomeMail($user));
             } catch (\Throwable $e) {
-                \Log::error('WELCOME EMAIL FAILED: ' . $e->getMessage());
+                \Log::warning('Welcome email could not be queued.');
             }
         }
 
@@ -291,7 +291,7 @@ class AuthController extends Controller
             try {
                 Mail::to($user->email)->send(new WelcomeMail($user));
             } catch (\Throwable $e) {
-                \Log::error('WELCOME EMAIL FAILED: ' . $e->getMessage());
+                \Log::warning('Welcome email could not be queued.');
             }
         }
 

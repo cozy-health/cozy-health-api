@@ -35,12 +35,14 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/apple', [AuthController::class, 'appleSignIn'])
         ->middleware('throttle:10,1');
     Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword'])
-        ->middleware('throttle:3,1');
+        ->middleware(['throttle:3,1', 'throttle:password-reset-email']);
     Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword'])
         ->middleware('throttle:5,1');
 });
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    Route::post('auth/email-verification/resend', [\App\Http\Controllers\Api\V1\EmailVerificationController::class, 'resend'])->middleware('throttle:verification-email');
+    Route::post('auth/email-verification/verify', [\App\Http\Controllers\Api\V1\EmailVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::get('dashboard', [DashboardController::class, 'show'])->middleware('throttle:60,1');
     Route::get('/affirmations/today', [AffirmationController::class, 'today'])->middleware('throttle:60,1');
     Route::prefix('/insights')->group(function () {

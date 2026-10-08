@@ -25,6 +25,6 @@ class PasswordResetRequestMail extends Mailable implements \Illuminate\Contracts
     {
         return $this->subject('Reset your Cozy Health password')
                     ->replyTo('team@cozyhealth.org', 'Cozy Health Support')
-                    ->view('emails.password-reset-request');
+                    ->view('emails.auth.password-reset')->text('emails.auth.password-reset-text');
     }
 }

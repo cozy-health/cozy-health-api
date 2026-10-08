@@ -23,9 +23,9 @@ class PasswordResetController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if ($user) {
+        if ($user && ! $user->email_invalid) {
             // Generate a 6-digit code
-            $token = sprintf('%06d', mt_rand(100000, 999999));
+            $token = (string) random_int(100000, 999999);
 
             // Upsert token in database
             DB::table('password_reset_tokens')->updateOrInsert(

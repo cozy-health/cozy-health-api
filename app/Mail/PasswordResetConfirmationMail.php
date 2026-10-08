@@ -23,6 +23,6 @@ class PasswordResetConfirmationMail extends Mailable implements \Illuminate\Cont
     {
         return $this->subject('Your password has been reset')
                     ->replyTo('team@cozyhealth.org', 'Cozy Health Support')
-                    ->view('emails.password-reset-confirmation');
+                    ->view('emails.auth.password-reset-confirmation')->text('emails.auth.password-reset-confirmation-text');
     }
 }

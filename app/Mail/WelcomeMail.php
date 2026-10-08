@@ -30,6 +30,6 @@ class WelcomeMail extends Mailable implements \Illuminate\Contracts\Queue\Should
     {
         return $this->subject('Welcome to Cozy Health, ' . $this->user->name)
                     ->replyTo('team@cozyhealth.org', 'Cozy Health Team')
-                    ->view('emails.welcome');
+                    ->view('emails.auth.welcome')->text('emails.auth.welcome-text');
     }
 }
