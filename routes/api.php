@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
     Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
     Route::get('me/provider-access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'patient']);
+    Route::get('me/resources', [\App\Http\Controllers\Api\V1\Provider\ProviderAssignmentController::class, 'patientIndex']);
+    Route::patch('me/resources/{assignmentId}', [\App\Http\Controllers\Api\V1\Provider\ProviderAssignmentController::class, 'patientUpdate']);
     Route::patch('me/provider/{linkId}/consent', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'update']);
     Route::delete('me/provider/{linkId}', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'destroy']);
     Route::patch('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'update']);
@@ -113,5 +115,9 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('resources', [$resources, 'store']);
         Route::patch('resources/{resourceId}', [$resources, 'update']);
         Route::delete('resources/{resourceId}', [$resources, 'destroy']);
+        $assignments = \App\Http\Controllers\Api\V1\Provider\ProviderAssignmentController::class;
+        Route::get('clients/{userId}/resources', [$assignments, 'index']);
+        Route::post('clients/{userId}/resources', [$assignments, 'store']);
+        Route::delete('clients/{userId}/resources/{assignmentId}', [$assignments, 'destroy']);
     });
 });
