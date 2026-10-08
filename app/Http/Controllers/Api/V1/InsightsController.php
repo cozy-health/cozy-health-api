@@ -8,7 +8,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class InsightsController extends Controller
 {
@@ -54,22 +53,30 @@ class InsightsController extends Controller
     public function triggers(Request $request): JsonResponse
     {
         [$days, $start, $end] = $this->dayRange($request);
-        $entries = $this->between($request, $start, $end)->select('id', 'intensity', 'triggers');
-        // Expand JSON in SQL and count each trigger once per entry, without raw history reads.
-        $expansion = DB::connection()->getDriverName() === 'sqlite'
-            ? "json_each(entries.triggers) AS expanded"
-            : "JSON_TABLE(entries.triggers, '$[*]' COLUMNS(value VARCHAR(255) PATH '$')) AS expanded";
-        $names = DB::query()->fromSub($entries, 'entries')->crossJoin(DB::raw($expansion))
-            ->selectRaw('DISTINCT entries.id, entries.intensity, TRIM(expanded.value) AS name')
-            ->whereRaw("TRIM(expanded.value) <> ''");
-        $triggers = DB::query()->fromSub($names, 'named_triggers')
-            ->selectRaw('name, COUNT(*) AS count, AVG(intensity) AS avg_intensity')
-            ->groupBy('name')->orderByDesc('count')->orderBy('name')->get()
-            ->map(fn ($row) => [
-                'name' => $row->name,
-                'count' => (int) $row->count,
-                'avg_intensity' => round((float) $row->avg_intensity, 2),
-            ])->all();
+        // One projected query for the validated date range; the model decodes JSON.
+        $entries = $this->between($request, $start, $end)->get(['intensity', 'triggers']);
+        $totals = [];
+        foreach ($entries as $entry) {
+            $names = [];
+            foreach (is_array($entry->triggers) ? $entry->triggers : [] as $trigger) {
+                if (! is_string($trigger) || trim($trigger) === '') {
+                    continue;
+                }
+                $names[trim($trigger)] = true;
+            }
+            // A repeated trigger in the same entry contributes once to both metrics.
+            foreach ($names as $name => $_) {
+                $totals[$name] ??= ['name' => (string) $name, 'count' => 0, 'total_intensity' => 0];
+                $totals[$name]['count']++;
+                $totals[$name]['total_intensity'] += $entry->intensity;
+            }
+        }
+        $triggers = array_map(fn (array $row) => [
+            'name' => $row['name'],
+            'count' => $row['count'],
+            'avg_intensity' => round($row['total_intensity'] / $row['count'], 2),
+        ], array_values($totals));
+        usort($triggers, fn (array $a, array $b) => ($b['count'] <=> $a['count']) ?: strcmp($a['name'], $b['name']));
 
         return $this->respond('Trigger insights retrieved.', ['range_days' => $days, 'triggers' => $triggers]);
     }

@@ -105,6 +105,16 @@ test('triggers_respects_days_param', function () {
     }
 });
 
+test('triggers_ignore_non_string_values_trim_names_and_sort_ties', function () {
+    $user = User::factory()->create();
+    insightsMood($user, attributes: ['triggers' => [' Work ', 'Work', 'Sleep', '', '  ', null, 7, false, ['nested']], 'intensity' => 8]);
+    insightsMood($user, attributes: ['triggers' => ['Sleep', 'Work'], 'intensity' => 3]);
+    $this->actingAs($user, 'sanctum')->getJson('/api/v1/insights/triggers')->assertOk()->assertJsonPath('data.triggers', [
+        ['name' => 'Sleep', 'count' => 2, 'avg_intensity' => 5.5],
+        ['name' => 'Work', 'count' => 2, 'avg_intensity' => 5.5],
+    ]);
+});
+
 test('triggers_rejects_invalid_days', function () {
     $this->actingAs(User::factory()->create(), 'sanctum');
     foreach (['0', '8', '91', 'abc', '7.5', ''] as $days) {
