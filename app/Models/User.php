@@ -65,6 +65,11 @@ class User extends Authenticatable
         return $this->hasMany(QuizResult::class);
     }
 
+    public function providerClientLinks() { return $this->hasMany(ProviderClientLink::class); }
+    public function providerAssignments() { return $this->hasMany(ProviderAssignment::class); }
+    public function providerNotes() { return $this->hasMany(ProviderNote::class); }
+    public function providerReports() { return $this->hasMany(ProviderReport::class); }
+
     public function providerConnection()
     {
         return $this->hasOne(ProviderConnection::class);
