@@ -12,9 +12,11 @@ use App\Models\SafetyPlan;
 use App\Models\SavedArticle;
 use App\Models\SubscriptionStatus;
 use App\Models\UserProfile;
+use App\Services\UserPreferencesSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
+use Illuminate\Validation\ValidationException;
 
 class SyncController extends ApiController
 {
@@ -25,6 +27,7 @@ class SyncController extends ApiController
         'chat_message' => ChatMessage::class,
         'safety_plan' => SafetyPlan::class,
         'user_profile' => UserProfile::class,
+        'user_preferences' => UserProfile::class,
         'quiz_attempt' => QuizAttempt::class,
         'saved_article' => SavedArticle::class,
         'app_notification' => AppNotification::class,
@@ -83,7 +86,12 @@ class SyncController extends ApiController
             }
 
             try {
-                $error = DB::transaction(function () use ($modelClass, $action, $data, $request, $isCancellation) {
+                $error = DB::transaction(function () use ($modelClass, $action, $data, $request, $isCancellation, $type) {
+                    if ($type === 'user_preferences') {
+                        app(UserPreferencesSync::class)->apply($request->user(), $action, $data);
+
+                        return null;
+                    }
                     // Explicit ownership constraint also protects deletes and cancellations.
                     $query = $modelClass::where('user_id', $request->user()->id);
                     if ($action === 'upsert') {
@@ -106,6 +114,8 @@ class SyncController extends ApiController
                 $results[] = $error === null
                     ? [...$result, 'success' => true]
                     : [...$result, 'error' => $error];
+            } catch (ValidationException $e) {
+                $results[] = [...$result, 'error' => 'Invalid preferences payload', 'errors' => $e->errors()];
             } catch (Throwable $e) {
                 report($e);
                 $results[] = [...$result, 'error' => 'Unable to apply sync operation'];

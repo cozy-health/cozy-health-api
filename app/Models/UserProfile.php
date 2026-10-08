@@ -35,6 +35,7 @@ class UserProfile extends Model
   22 => 'marketing_notifications',
   23 => 'onboarding_completed_at',
   24 => 'client_updated_at',
+  25 => 'preferences',
 );
     protected $casts = array (
   'reduce_motion' => 'boolean',
@@ -50,6 +51,7 @@ class UserProfile extends Model
   'marketing_notifications' => 'boolean',
   'onboarding_completed_at' => 'datetime',
   'client_updated_at' => 'datetime',
+  'preferences' => 'array',
 );
     public function user() { return $this->belongsTo(User::class); }
 
