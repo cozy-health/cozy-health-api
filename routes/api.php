@@ -95,5 +95,12 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('auth/logout', [$controller, 'logout']);
         Route::get('me', [$controller, 'me']);
         Route::patch('me', [$controller, 'update']);
+        $clients = \App\Http\Controllers\Api\V1\Provider\ProviderClientController::class;
+        Route::get('clients', [$clients, 'index']);
+        Route::get('clients/{userId}', [$clients, 'show']);
+        Route::get('clients/{userId}/moods', [$clients, 'moods']);
+        Route::get('clients/{userId}/journals', [$clients, 'journals']);
+        Route::get('clients/{userId}/quizzes', [$clients, 'quizzes']);
+        Route::get('clients/{userId}/consents', [$clients, 'consents']);
     });
 });
