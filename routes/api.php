@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\InsightsController;
+use App\Http\Controllers\Api\V1\AffirmationController;
 use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
@@ -34,6 +35,7 @@ Route::prefix('v1')->group(function () {
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->middleware('throttle:60,1');
+    Route::get('/affirmations/today', [AffirmationController::class, 'today'])->middleware('throttle:60,1');
     Route::prefix('/insights')->group(function () {
         Route::get('/weekly', [InsightsController::class, 'weekly'])->middleware('throttle:60,1');
         Route::get('/triggers', [InsightsController::class, 'triggers'])->middleware('throttle:60,1');
