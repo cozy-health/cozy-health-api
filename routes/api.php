@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
+    Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'show'])->middleware('throttle:120,1');
     Route::post('admin/queue/test-email', function (\App\Http\Requests\TestEmailRequest $request) {
         \App\Jobs\SendTestEmail::dispatch($request->validated('email'));
         return response()->json(['message' => 'Test email queued.'], 202);
