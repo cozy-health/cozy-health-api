@@ -50,7 +50,7 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,1');
 });
 
-Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsurePatient::class])->prefix('v1')->group(function () {
     Route::post('auth/email-verification/resend', [\App\Http\Controllers\Api\V1\EmailVerificationController::class, 'resend'])->middleware('throttle:verification-email');
     Route::post('auth/email-verification/verify', [\App\Http\Controllers\Api\V1\EmailVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::get('dashboard', [DashboardController::class, 'show'])->middleware('throttle:60,1');
@@ -99,7 +99,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::apiResource('notifications', NotificationController::class);
     Route::get('subscription', [SubscriptionController::class, 'show']);
-    Route::post('sync/batch', [SyncController::class, 'batch']);
+    Route::post('sync/batch', [SyncController::class, 'batch'])->middleware('throttle:60,1');
 });
 
 
@@ -125,7 +125,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('clients/{userId}/consents', [$clients, 'consents']);
         $notes = \App\Http\Controllers\Api\V1\Provider\ProviderNotesController::class;
         Route::get('clients/{userId}/notes', [$notes, 'index']);
-        Route::post('clients/{userId}/notes', [$notes, 'store']);
+        Route::post('clients/{userId}/notes', [$notes, 'store'])->middleware('throttle:30,1');
         Route::delete('clients/{userId}/notes/{noteId}', [$notes, 'destroy']);
         Route::get('access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'provider']);
         $resources = \App\Http\Controllers\Api\V1\Provider\ProviderResourceController::class;
@@ -135,7 +135,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::delete('resources/{resourceId}', [$resources, 'destroy']);
         $assignments = \App\Http\Controllers\Api\V1\Provider\ProviderAssignmentController::class;
         Route::get('clients/{userId}/resources', [$assignments, 'index']);
-        Route::post('clients/{userId}/resources', [$assignments, 'store']);
+        Route::post('clients/{userId}/resources', [$assignments, 'store'])->middleware('throttle:30,1');
         Route::delete('clients/{userId}/resources/{assignmentId}', [$assignments, 'destroy']);
         $reports = \App\Http\Controllers\Api\V1\Provider\ProviderReportController::class;
         Route::get('reports', [$reports, 'index']);

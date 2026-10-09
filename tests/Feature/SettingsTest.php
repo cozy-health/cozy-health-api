@@ -23,7 +23,8 @@ it('lets admins update settings and keeps crisis data accessible', function () {
     $this->putJson('/admin/settings/maintenance_mode', ['value' => true])->assertOk();
     $this->getJson('/api/v1/config')->assertJsonPath('maintenance_mode', true);
     $this->getJson('/up')->assertJsonPath('maintenance_mode', true);
-    \App\Models\SafetyPlan::create(['id' => (string) \Illuminate\Support\Str::uuid(), 'user_id' => $user->id]);
+    $patient = User::factory()->create(); Sanctum::actingAs($patient);
+    \App\Models\SafetyPlan::create(['id' => (string) \Illuminate\Support\Str::uuid(), 'user_id' => $patient->id]);
     $this->getJson('/api/v1/safety-plan')->assertOk();
 });
 
