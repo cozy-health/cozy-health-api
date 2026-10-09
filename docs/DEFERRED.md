@@ -77,3 +77,9 @@ Deferring MySQL verification does not disable the fail-closed connector. Product
 | MySQL TLS enforcement | Code supports strict CA verification (12.2). Production runs with DB_TLS_ENFORCE=false temporarily. Configure Railway's CA + set DB_TLS_ENFORCE=true during Phase 24 launch prep. | Phase 24 |
 
 Owner explicitly approved the temporary opt-out on 2026-10-09 for API and worker.
+
+## Phase 12.5 dependency audit
+
+| Item | Work remaining | Scheduled for |
+|---|---|---|
+| Dashboard lint dependency: braces GHSA-vfj7-8cjw-p6xm | Latest Next 16.4.0 lint tooling still depends on vulnerable braces through micromatch/fast-glob. No patched braces release is available. npm suggests downgrading eslint-config-next to 14.2.35; preserve the supported Next 16 toolchain and revisit upstream fix. Five affected packages represent this one advisory. | Upstream fix / before launch |

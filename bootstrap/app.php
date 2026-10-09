@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Do not trust forwarded host values for URL generation.
         $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
         $middleware->append(\App\Http\Middleware\RequireHttps::class);
+        $middleware->append(\App\Http\Middleware\HideDebugEndpoints::class);
         $middleware->alias(['role' => \App\Http\Middleware\RequireRole::class,
             'admin.analytics' => \App\Http\Middleware\AdminAnalyticsSession::class]);
         $middleware->api(append: [\App\Http\Middleware\RestrictAdminAnalyticsToken::class]);

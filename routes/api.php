@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::delete('me/sessions/{id}', [$sessions, 'destroy'])->middleware('throttle:30,1');
     Route::delete('me/sessions', [$sessions, 'destroyAll'])->middleware('throttle:30,1');
     Route::post('me/password', [$sessions, 'password'])->middleware('throttle:5,1');
+    Route::post('me/device-security', \App\Http\Controllers\DeviceSecurityController::class)->middleware('throttle:10,60');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
     Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
