@@ -1,5 +1,14 @@
 # Deferred work
 
+## Phase 12 owner decisions — 2026-10-09
+
+- Historical `.env` credentials from commit `685d679` are verified dead by the
+  owner. Do not rotate them. History cleanup/reuse follow-up is recorded here
+  only; no credentials changed and no Git history was rewritten.
+- Physical-device capture, proxy/rotation and signed iOS/device checks are
+  deferred to Phase 24 (Store Prep). Unsigned iOS compilation for 12.1 passed
+  GitHub CI on 2026-10-09; Android CI and Railway deployments also succeeded.
+
 Phase 2's shipped API, schema, parser and deployment fixes are complete. Keep
 unused mobile methods in place for future feature wiring; no deletion is planned.
 

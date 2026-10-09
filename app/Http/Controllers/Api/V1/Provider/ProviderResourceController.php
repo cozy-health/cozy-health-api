@@ -63,6 +63,6 @@ class ProviderResourceController extends Controller
             'type' => [$patch ? 'sometimes' : 'required', 'required', 'string', 'max:100'],
             'duration_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10080'],
             'description' => ['sometimes', 'nullable', 'string', 'max:10000'],
-            'url' => ['sometimes', 'nullable', 'url:http,https', 'max:255']];
+            'url' => ['sometimes', 'nullable', 'url:https', 'max:255']];
     }
 }

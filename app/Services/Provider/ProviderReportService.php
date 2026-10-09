@@ -73,7 +73,7 @@ class ProviderReportService
                     'from' => $from, 'to' => $to, 'summary' => $summary, 'generatedAt' => $generatedAt])
                     ->setPaper('a4')->setOptions(['isRemoteEnabled' => false, 'isPhpEnabled' => false, 'isJavascriptEnabled' => false]);
                 $path = 'provider-reports/'.$provider->id.'/'.Str::uuid().'.pdf';
-                if (! Storage::disk('local')->put($path, $pdf->output())) {
+                if (! Storage::disk('local')->put($path, app(EncryptedReportStorage::class)->encrypt($pdf->output()))) {
                     throw new \RuntimeException('Unable to save provider report.');
                 }
                 $report = ProviderReport::create(['provider_id' => $provider->id, 'user_id' => $user->id, 'type' => $type,

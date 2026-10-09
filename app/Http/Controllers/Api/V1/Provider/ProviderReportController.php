@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Provider\ProviderAudit;
 use App\Services\Provider\ProviderClientAccess;
 use App\Services\Provider\ProviderReportService;
+use App\Services\Provider\EncryptedReportStorage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +78,7 @@ class ProviderReportController extends Controller
             $disk = Storage::disk('local');
             abort_unless($disk->exists($report->file_path), 404);
             // Read bytes while the consent/link lock is held; do not defer reading to a stream.
-            $bytes = $disk->get($report->file_path);
+            $bytes = app(EncryptedReportStorage::class)->decrypt($disk->get($report->file_path));
             ProviderAudit::record($request, $link, 'download', 'report', (string) $report->id);
 
             return response($bytes)->header('Content-Type', 'application/pdf')

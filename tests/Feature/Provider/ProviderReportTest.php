@@ -46,7 +46,9 @@ class ProviderReportTest extends ProviderDataTestCase
         $report = $this->generate($provider, $user);
         $stored = ProviderReport::findOrFail($report['id']);
         Storage::disk('local')->assertExists($stored->file_path);
-        $this->assertStringStartsWith('%PDF-', Storage::disk('local')->get($stored->file_path));
+        $ciphertext = Storage::disk('local')->get($stored->file_path);
+        $this->assertStringStartsWith(\App\Services\Provider\EncryptedReportStorage::PREFIX, $ciphertext);
+        $this->assertStringStartsWith('%PDF-', app(\App\Services\Provider\EncryptedReportStorage::class)->decrypt($ciphertext));
         $this->assertStringStartsWith('provider-reports/'.$provider->id.'/', $stored->file_path);
         $this->assertArrayNotHasKey('file_path', $report);
         $this->assertStringContainsString('Jane', $this->html());

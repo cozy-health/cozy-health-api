@@ -17,10 +17,14 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            'require_tls' => env('DB_REQUIRE_TLS', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
             'options' => [
                 PDO::ATTR_TIMEOUT => (int) env('DB_CONNECTION_TIMEOUT', 5),
                 PDO::ATTR_PERSISTENT => false,
-            ],
+            ] + (env('MYSQL_SSL_CA') ? [
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_SSL_CA'),
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true,
+            ] : []),
         ],
     ],
     'migrations' => ['table' => 'migrations', 'update_date_on_publish' => true],
