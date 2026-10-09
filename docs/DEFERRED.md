@@ -24,6 +24,11 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 
 ## Deferred pending dependencies
 
+| Item | Work remaining | Scheduled for |
+|---|---|---|
+| Consent audit evidence | Audit log records that consent changed but not the selected data type/new value or consent wording version. Compliance value; not a blocker for MVP or PD-7. | Before public launch or if a legal reviewer requests it |
+| PDF cleanup on account deletion | Reports cascade at DB level but files remain in storage until retention pruning. Add immediate file cleanup in deletion flow. | Before public launch |
+
 | Item | Dependency | When |
 |---|---|---|
 | Mobile cache merge and detail-fetch fallback | Requires a mobile-repo session and a compatible shipped release. Track raw JSON key presence before parsing, preserve absent fields, honor explicit nulls, and mark/fetch incomplete records | Phase 2.5; must precede backend SELECT * removal |
