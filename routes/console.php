@@ -5,17 +5,6 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('analytics:prune --older-than=14months')->daily()->withoutOverlapping();
 
-Artisan::command('user:make-admin {email}', function () {
-    $user = \App\Models\User::where('email', $this->argument('email'))->first();
-    if (! $user) {
-        $this->error('No active user found for that email.');
-        return 1;
-    }
-    $user->forceFill(['role' => 'admin'])->save();
-    $this->info('Admin role assigned.');
-    return 0;
-})->purpose('Grant an existing active user the administrator role');
-
 Artisan::command('settings:set {key} {value}', function () {
     $raw = $this->argument('value');
     $value = in_array($raw, ['true', 'false', 'null'], true) ? json_decode($raw, true) : $raw;
