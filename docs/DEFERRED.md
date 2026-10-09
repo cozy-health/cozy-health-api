@@ -59,3 +59,16 @@ outside MVP scope; schedule them if the feature is adopted.
 | Item | Resolution | Status |
 |---|---|---|
 | Composer disable-tls was true | Fixed global Composer config on 2026-10-07: disable-tls=false and secure-http=true | Done |
+
+## Phase 12.2 deployment requirements (owner-approved deferral)
+
+No temporary Railway SSH key is authorized. Historical credentials are confirmed dead; do not rotate or rewrite history.
+
+| Item | Work remaining | Scheduled for |
+|---|---|---|
+| MySQL CA/TLS verification | Production has no trusted CA configured. Rejects connection without CA. Configure during Phase 24 launch prep. | Phase 24 |
+| Next rotation pin | Leaf pin verified (expires Dec 26, 2026). Next-rotation pin not yet available. Add before Phase 24. | Phase 24 |
+| Railway AES-256 storage evidence | Private network is WireGuard-encrypted. Volume-level AES-256 evidence not obtained. | Phase 24 |
+| Optional git history cleanup post-launch | Historical credentials confirmed dead. Optional cleanup only; no rotation or history rewrite authorized. | Post-launch |
+
+Deferring MySQL verification does not disable the fail-closed connector. Production DB access requires a trusted CA or an explicitly owner-approved temporary deployment opt-out. `/up` alone does not verify database access.
