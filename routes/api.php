@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
+    Route::get('admin/health/queue-depth', \App\Http\Controllers\AdminQueueHealthController::class)
+        ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::post('admin/auth/login', [\App\Http\Controllers\AdminAuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('admin/metrics/{metric}', [\App\Http\Controllers\AdminMetricsController::class, 'show'])
         ->where('metric', 'overview|usage|retention|safety')->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);

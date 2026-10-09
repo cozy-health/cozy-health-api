@@ -21,6 +21,10 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 | PD-6 pilot access and storage | Approve/enforce registration/verification policy; provision durable private report storage; check production APP_ENV=staging label; configure branded domain and test 3+ approved pilots. | Before external provider onboarding |
 | Timezone-aware reminder scheduling | Interpret reminder times in users.timezone; no scheduling job exists yet | Phase 18 (Notifications) |
 | Crisis detector / persistence audit | Reported test-account journal entries containing "I want to kill myself ," have is_crisis_flagged=false while similar entries are flagged. Investigate detection, save/sync paths and legacy records; punctuation is a hypothesis, not a confirmed cause | Phase 14 (clinician review) or a standalone crisis audit |
+| Forgot-password rate limit tune | Currently 3/min per IP and 3/hour per email. Consider 5/min or 5/5min for the IP limit after measuring legitimate retries and delivery delays; review the email cooldown separately and retain abuse protection. | After Phase 12 |
+| Queue worker service | Railway service cozy-health-queue-worker runs `php artisan queue:work --queue=high,default,email --tries=3 --timeout=90`. If it crashes, email jobs accumulate. Monitor queue depth and failed jobs; see docs/QUEUE_WORKER.md. | Ongoing ops |
+| Queue worker health check | Connect alerting to the authenticated queue-depth endpoint: warn when depth > 100 or oldest job > 1 hour. Queue depth alone does not establish worker liveness. | Before beta |
+| Email delivery smoke test | Weekly: request one reset email for an internal account and confirm inbox delivery. Track SMTP failures and Brevo delivery/bounce events. | Ongoing ops |
 
 ## Deferred pending dependencies
 
