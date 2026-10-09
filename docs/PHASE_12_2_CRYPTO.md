@@ -146,3 +146,8 @@ References: [Railway staff storage explanation](https://station.railway.com/ques
 [Hive cipher](https://pub.dev/documentation/hive/latest/hive/HiveAesCipher-class.html),
 [Android cleartext guidance](https://developer.android.com/privacy-and-security/risks/cleartext-communications),
 [Apple ATS](https://developer.apple.com/documentation/Security/preventing-insecure-network-connections).
+
+
+## Superseding owner rollout decision — 2026-10-09
+
+Source deployment is authorized with DB_TLS_ENFORCE=false explicitly configured on API and worker. This restores pre-12.2 DB connection behavior; strict CA verification remains the default and is required during Phase 24. Earlier pre-push CA gates above are superseded by this temporary opt-out. MySQL TLS-only configuration is unverified. No SSH key, production PDF migration, rotation or history rewrite is authorized. See CRYPTO.md.

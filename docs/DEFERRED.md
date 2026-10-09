@@ -72,3 +72,8 @@ No temporary Railway SSH key is authorized. Historical credentials are confirmed
 | Optional git history cleanup post-launch | Historical credentials confirmed dead. Optional cleanup only; no rotation or history rewrite authorized. | Post-launch |
 
 Deferring MySQL verification does not disable the fail-closed connector. Production DB access requires a trusted CA or an explicitly owner-approved temporary deployment opt-out. `/up` alone does not verify database access.
+| Item | Work remaining | Scheduled for |
+|---|---|---|
+| MySQL TLS enforcement | Code supports strict CA verification (12.2). Production runs with DB_TLS_ENFORCE=false temporarily. Configure Railway's CA + set DB_TLS_ENFORCE=true during Phase 24 launch prep. | Phase 24 |
+
+Owner explicitly approved the temporary opt-out on 2026-10-09 for API and worker.

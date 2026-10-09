@@ -83,4 +83,37 @@ class CryptoSecurityTest extends TestCase
         $this->expectException(\RuntimeException::class);
         (new \App\Database\TlsMySqlConnector)->connect(['require_tls' => true, 'options' => []]);
     }
+
+    public function test_mysql_tls_opt_out_disables_enforcement_and_ca_options_but_defaults_to_strict(): void
+    {
+        $keys = ['APP_ENV', 'DB_TLS_ENFORCE', 'DB_REQUIRE_TLS', 'MYSQL_SSL_CA'];
+        $original = [];
+        foreach ($keys as $key) {
+            $original[$key] = [$_ENV[$key] ?? null, $_SERVER[$key] ?? null, getenv($key)];
+        }
+        try {
+            $_ENV['APP_ENV'] = $_SERVER['APP_ENV'] = 'production';
+            $_ENV['MYSQL_SSL_CA'] = $_SERVER['MYSQL_SSL_CA'] = '/missing/ca.pem';
+            foreach (['DB_REQUIRE_TLS', 'DB_TLS_ENFORCE'] as $key) {
+                unset($_ENV[$key], $_SERVER[$key]);
+                putenv($key);
+            }
+            $strict = (require base_path('config/database.php'))['connections']['mysql'];
+            $this->assertTrue($strict['require_tls']);
+            $this->assertTrue($strict['options'][\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT]);
+            $_ENV['DB_TLS_ENFORCE'] = $_SERVER['DB_TLS_ENFORCE'] = 'false';
+            $legacy = (require base_path('config/database.php'))['connections']['mysql'];
+            $this->assertFalse($legacy['require_tls']);
+            $this->assertArrayNotHasKey(\PDO::MYSQL_ATTR_SSL_CA, $legacy['options']);
+            $_ENV['DB_TLS_ENFORCE'] = $_SERVER['DB_TLS_ENFORCE'] = 'true';
+            $restored = (require base_path('config/database.php'))['connections']['mysql'];
+            $this->assertTrue($restored['require_tls']);
+        } finally {
+            foreach ($original as $key => [$env, $server, $process]) {
+                if ($env === null) { unset($_ENV[$key]); } else { $_ENV[$key] = $env; }
+                if ($server === null) { unset($_SERVER[$key]); } else { $_SERVER[$key] = $server; }
+                putenv($process === false ? $key : $key.'='.$process);
+            }
+        }
+    }
 }
