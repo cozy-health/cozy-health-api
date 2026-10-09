@@ -8,6 +8,10 @@ Schedule::command('analytics:prune --older-than=14months')->daily()->withoutOver
 Artisan::command('settings:set {key} {value}', function () {
     $raw = $this->argument('value');
     $value = in_array($raw, ['true', 'false', 'null'], true) ? json_decode($raw, true) : $raw;
+    if (in_array($this->argument('key'), ['consent.documents', 'consent.provider_documents'])) {
+        try { $value = json_decode($raw, true, flags: JSON_THROW_ON_ERROR); }
+        catch (\JsonException $e) { $this->error('Supply a valid JSON document object.'); return 1; }
+    }
     try {
         app(\App\Services\SettingsService::class)->set($this->argument('key'), $value);
     } catch (\Illuminate\Validation\ValidationException $e) {

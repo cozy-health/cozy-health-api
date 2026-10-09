@@ -83,3 +83,9 @@ Owner explicitly approved the temporary opt-out on 2026-10-09 for API and worker
 | Item | Work remaining | Scheduled for |
 |---|---|---|
 | Dashboard lint dependency: braces GHSA-vfj7-8cjw-p6xm | Latest Next 16.4.0 lint tooling still depends on vulnerable braces through micromatch/fast-glob. No patched braces release is available. npm suggests downgrading eslint-config-next to 14.2.35; preserve the supported Next 16 toolchain and revisit upstream fix. Five affected packages represent this one advisory. | Upstream fix / before launch |
+
+## Phase 12.7 consent rollout
+
+| Item | Work remaining | Scheduled for |
+|---|---|---|
+| Consent enforcement blocking mode | 12.7 implements consent records + version checks with soft (skippable) enforcement. Flip to blocking after Phase 13 when real Privacy Policy + ToS are published. Server-side flag: consent.enforce_blocking. | Phase 13 |

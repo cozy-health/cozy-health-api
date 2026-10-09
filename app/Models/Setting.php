@@ -14,6 +14,8 @@ class Setting extends Model
         'min_app_version' => '1.0.0', 'latest_app_version' => '1.0.0',
         'update_ios_url' => null, 'update_android_url' => null,
         'maintenance_mode' => false, 'maintenance_message' => null,
+        'consent.enforce_blocking' => false,
+        'consent.documents' => null, 'consent.provider_documents' => null,
     ];
     protected static function booted(): void
     {

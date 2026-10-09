@@ -71,6 +71,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsurePatient::class])->
     Route::post('me/device-security', \App\Http\Controllers\DeviceSecurityController::class)->middleware('throttle:10,60');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
+    Route::get('me/consents', [\App\Http\Controllers\DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
+    Route::post('me/consents', [\App\Http\Controllers\DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
     Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
     Route::get('me/provider-access-log', [\App\Http\Controllers\Api\V1\Provider\ProviderAccessLogController::class, 'patient']);
     Route::get('me/resources', [\App\Http\Controllers\Api\V1\Provider\ProviderAssignmentController::class, 'patientIndex']);
@@ -115,6 +117,9 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('auth/logout', [$controller, 'logout']);
         Route::post('auth/revoke-refresh', [\App\Http\Controllers\AuthSessionController::class, 'revokeRefresh'])->middleware('throttle:30,1');
         Route::get('me', [$controller, 'me']);
+        Route::get('consent-config', [\App\Http\Controllers\DocumentConsentController::class, 'configuration'])->middleware('throttle:60,1');
+        Route::get('me/consents', [\App\Http\Controllers\DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
+        Route::post('me/consents', [\App\Http\Controllers\DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
         Route::patch('me', [$controller, 'update']);
         $clients = \App\Http\Controllers\Api\V1\Provider\ProviderClientController::class;
         Route::get('clients', [$clients, 'index']);

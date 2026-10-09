@@ -17,6 +17,7 @@ class AppConfigService
             'flags' => array_replace(self::DEFAULT_FLAGS, FeatureFlag::pluck('enabled', 'key')->all()),
             ...array_replace(\App\Models\Setting::DEFAULTS, \App\Models\Setting::pluck('value', 'key')->all()),
         ]);
-        return [...$config, 'server_time' => now()->toIso8601String()];
+        unset($config['consent.enforce_blocking'], $config['consent.documents'], $config['consent.provider_documents']);
+        return [...$config, 'consent' => app(DocumentConsentService::class)->configuration(), 'server_time' => now()->toIso8601String()];
     }
 }
