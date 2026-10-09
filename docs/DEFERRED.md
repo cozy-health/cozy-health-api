@@ -25,6 +25,7 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 | Queue worker service | Railway service cozy-health-queue-worker runs `php artisan queue:work --queue=high,default,email --tries=3 --timeout=90`. If it crashes, email jobs accumulate. Monitor queue depth and failed jobs; see docs/QUEUE_WORKER.md. | Ongoing ops |
 | Queue worker health check | Connect alerting to the authenticated queue-depth endpoint: warn when depth > 100 or oldest job > 1 hour. Queue depth alone does not establish worker liveness. | Before beta |
 | Email delivery smoke test | Weekly: request one reset email for an internal account and confirm inbox delivery. Track SMTP failures and Brevo delivery/bounce events. | Ongoing ops |
+| Email deliverability tuning | SMTP processing is verified; inbox/spam placement is not. Verify cozyhealth.org SPF/DKIM/DMARC and Gmail/Outlook/Yahoo/ProtonMail delivery. If test messages land in spam, escalate tuning to P1 for Phase 13 or Phase 24. | Before beta |
 
 ## Deferred pending dependencies
 
