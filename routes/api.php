@@ -20,12 +20,14 @@ use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
     Route::post('admin/auth/login', [\App\Http\Controllers\AdminAuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::get('admin/metrics/{metric}', [\App\Http\Controllers\AdminMetricsController::class, 'show'])
+        ->where('metric', 'overview|usage|retention|safety')->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
     Route::middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1'])->prefix('admin/auth')->group(function () {
         Route::get('session', [\App\Http\Controllers\AdminAuthController::class, 'session']);
         Route::post('logout', [\App\Http\Controllers\AdminAuthController::class, 'logout']);
     });
     Route::get('admin/metrics/analytics', \App\Http\Controllers\AnalyticsMetricsController::class)
-        ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
+        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
     Route::put('admin/settings/{key}', [\App\Http\Controllers\AdminSettingsController::class, 'update'])
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'show'])->middleware('throttle:120,1');

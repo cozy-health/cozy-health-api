@@ -55,21 +55,27 @@ it('protects analytics metrics and validates range', function () {
     $user = User::factory()->create(); Sanctum::actingAs($user);
     $this->getJson('/admin/metrics/analytics')->assertForbidden();
     $user->forceFill(['role' => 'admin'])->save();
+    app('auth')->forgetGuards();
+    $this->withToken($user->createToken('cozy-admin-dashboard', ['admin:metrics'], now()->addMinutes(30))->plainTextToken);
     $this->getJson('/admin/metrics/analytics?range=1y')->assertUnprocessable();
 });
 
 it('suppresses small counts and populations', function () {
     $user = User::factory()->create(); $user->forceFill(['role' => 'admin'])->save(); Sanctum::actingAs($user);
+    app('auth')->forgetGuards();
+    $this->withToken($user->createToken('cozy-admin-dashboard', ['admin:metrics'], now()->addMinutes(30))->plainTextToken);
     for ($i = 0; $i < 10; $i++) { DB::table('analytics_events')->insert(['event' => 'mood_logged', 'created_at' => now()]); }
-    $this->getJson('/admin/metrics/analytics?range=7d')->assertOk()->assertJsonPath('active_users', '<5')->assertJsonPath('new_signups', '<5')->assertJsonPath('events.2.count', '<5');
+    $this->getJson('/admin/metrics/analytics?range=7d')->assertOk()->assertJsonPath('data.features.0.count', '<5')->assertJsonMissingPath('active_users')->assertJsonMissingPath('events');
 });
 
-it('returns aggregate counts and distinct session based active users', function () {
+it('does not publish anonymous event counts without distinct contributor proof', function () {
     $users = User::factory()->count(5)->create();
     foreach ($users as $user) { $user->createToken('test'); $user->createToken('another-device'); }
     $admin = $users->first(); $admin->forceFill(['role' => 'admin'])->save(); Sanctum::actingAs($admin);
+    app('auth')->forgetGuards();
+    $this->withToken($admin->createToken('cozy-admin-dashboard', ['admin:metrics'], now()->addMinutes(30))->plainTextToken);
     for ($i = 0; $i < 7; $i++) { DB::table('analytics_events')->insert(['event' => 'mood_logged', 'created_at' => now()]); }
-    $this->getJson('/admin/metrics/analytics')->assertOk()->assertJsonPath('active_users', 5)->assertJsonPath('new_signups', 5)->assertJsonPath('events.2.count', 7)->assertJsonPath('events.3.count', '<5');
+    $this->getJson('/admin/metrics/analytics')->assertOk()->assertJsonPath('data.features.0.count', '<5')->assertJsonPath('data.unavailable_features.0', 'app_opens')->assertJsonMissingPath('events');
 });
 
 it('prunes only records beyond fourteen months and rejects excessive retention', function () {
