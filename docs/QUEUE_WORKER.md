@@ -67,10 +67,11 @@ SMTP acceptance and a completed job do not prove inbox delivery. Check Brevo
 delivery/bounce events and ask the mailbox owner to confirm receipt. Do not put
 codes, passwords, job payloads or mail credentials in logs or reports.
 
-Forgot-password has both a 3/min per-IP limiter and a 3/hour per-email limiter.
-A one-minute wait only clears the IP limit; an exhausted email limit can take up
-to an hour. Follow the backend's `Retry-After` header and do not retry repeatedly
-while testing. Keep both protections enabled.
+Forgot-password now has a 5/min per-IP limiter and a 5/15min per-email limiter
+for consumer/admin and provider accounts. Follow the backend's `Retry-After`
+header; the admin reset page displays the remaining wait rounded up to minutes.
+Versioned email limiter keys avoid carrying the previous one-hour block into the
+new policy. Keep both protections enabled.
 
 ## Verification on 2026-10-09
 
@@ -86,3 +87,8 @@ the queue again reported `jobs=0` and `failed_jobs=0`. Both API and worker had
 one running replica, and API `/up` returned 200.
 Inbox receipt and completion of the password reset require mailbox-owner
 verification. No reset codes or passwords were accessed or recorded.
+
+The owner subsequently supplied a Gmail screenshot showing the queue-check
+message labeled Inbox. This verifies inbox placement for that message only;
+the screenshot does not establish which account is open or delivery of both
+accounts' reset emails.

@@ -45,14 +45,19 @@ it('validates authenticated webhook payloads', function () {
     $this->withToken(str_repeat('t', 32))->postJson('/webhooks/brevo', ['event' => 'spam'])->assertUnprocessable();
 });
 
-it('queues reset codes and applies the hourly limit across different ips', function () {
+it('limits reset email retries across ips and allows retries after fifteen minutes', function () {
+    $this->freezeTime();
     $user = User::factory()->create();
-    for ($i = 1; $i <= 3; $i++) {
+    for ($i = 1; $i <= 5; $i++) {
         $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.'.$i])->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk();
         $this->travel(61)->seconds();
     }
-    $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.4'])->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertTooManyRequests();
-    Mail::assertQueued(PasswordResetRequestMail::class, 3);
+    $blocked = $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.6'])->postJson('/api/v1/auth/forgot-password', ['email' => strtoupper($user->email)])->assertTooManyRequests();
+    expect((int) $blocked->headers->get('Retry-After'))->toBeGreaterThan(0)->toBeLessThanOrEqual(900);
+    Mail::assertQueued(PasswordResetRequestMail::class, 5);
+    $this->travel(15)->minutes();
+    $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.7'])->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])->assertOk();
+    Mail::assertQueued(PasswordResetRequestMail::class, 6);
 });
 
 it('does not send reset emails to hard bounced addresses', function () {

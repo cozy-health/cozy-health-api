@@ -46,7 +46,7 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/apple', [AuthController::class, 'appleSignIn'])
         ->middleware('throttle:10,1');
     Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword'])
-        ->middleware(['throttle:3,1', 'throttle:password-reset-email']);
+        ->middleware(['throttle:5,1', 'throttle:password-reset-email']);
     Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword'])
         ->middleware('throttle:5,1');
 });
@@ -101,7 +101,7 @@ Route::prefix('v1/provider')->group(function () {
     $controller = \App\Http\Controllers\Api\V1\Provider\ProviderAuthController::class;
     Route::post('auth/register', [$controller, 'register'])->middleware('throttle:5,1');
     Route::post('auth/login', [$controller, 'login'])->middleware('throttle:10,1');
-    Route::post('auth/forgot-password', [$controller, 'forgotPassword'])->middleware(['throttle:3,1', 'throttle:provider-password-reset-email']);
+    Route::post('auth/forgot-password', [$controller, 'forgotPassword'])->middleware(['throttle:5,1', 'throttle:provider-password-reset-email']);
     Route::post('auth/reset-password', [$controller, 'resetPassword'])->middleware('throttle:5,1');
     Route::middleware(['auth:provider', \App\Http\Middleware\EnsureActiveProvider::class])->group(function () use ($controller) {
         Route::post('auth/logout', [$controller, 'logout']);

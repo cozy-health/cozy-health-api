@@ -70,18 +70,18 @@ it('throttles register after 5 attempts', function () {
         ->assertTooManyRequests();
 });
 
-it('throttles forgot password after 3 attempts', function () {
-    for ($i = 0; $i < 3; $i++) {
+it('throttles forgot password after 5 attempts per ip', function () {
+    for ($i = 0; $i < 5; $i++) {
         $this->withHeader('Accept', 'application/json')
             ->postJson('/api/v1/auth/forgot-password', [
-                'email' => 'missing@example.com',
+                'email' => "missing-$i@example.com",
             ])
             ->assertOk();
     }
 
     $this->withHeader('Accept', 'application/json')
         ->postJson('/api/v1/auth/forgot-password', [
-            'email' => 'missing@example.com',
+            'email' => 'another-missing@example.com',
         ])
         ->assertTooManyRequests();
 });
