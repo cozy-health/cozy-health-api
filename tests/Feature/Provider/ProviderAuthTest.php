@@ -76,6 +76,23 @@ class ProviderAuthTest extends TestCase
         $this->withToken($response->json('data.token'))->getJson('/api/v1/provider/me')->assertOk();
     }
 
+    public function test_dashboard_token_expires_after_thirty_minutes(): void
+    {
+        $provider = $this->provider();
+        $this->freezeTime();
+        $response = $this->postJson('/api/v1/provider/auth/login', [
+            'email' => $provider->email, 'password' => 'password123',
+            'device_name' => 'cozy-provider-dashboard',
+        ])->assertOk();
+        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($response->json('data.token'));
+        $this->assertSame(now()->addMinutes(30)->timestamp, $token->expires_at->timestamp);
+        $this->withToken($response->json('data.token'))->getJson('/api/v1/provider/me')->assertOk();
+        $this->travel(31)->minutes();
+        // Sanctum must resolve the bearer token again rather than reusing the test guard.
+        app('auth')->forgetGuards();
+        $this->withToken($response->json('data.token'))->getJson('/api/v1/provider/me')->assertUnauthorized();
+    }
+
     public function test_provider_register_requires_unique_email(): void
     {
         $this->provider();

@@ -74,9 +74,12 @@ class ProviderAuthController extends Controller
             throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
         }
         abort_unless($provider->is_active, 403, 'This account has been disabled.');
+        $deviceName = $data['device_name'] ?? 'cozy-provider';
+        // Browser bridge sessions and their underlying credentials expire together.
+        $expiresAt = $deviceName === 'cozy-provider-dashboard' ? now()->addMinutes(30) : null;
         return $this->success([
             'provider' => $provider,
-            'token' => $provider->createToken($data['device_name'] ?? 'cozy-provider')->plainTextToken,
+            'token' => $provider->createToken($deviceName, ['*'], $expiresAt)->plainTextToken,
         ], 'Logged in successfully.');
     }
 
