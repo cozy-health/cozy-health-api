@@ -11,3 +11,18 @@
 /storage/logs/*
 /storage/framework/cache/*
 /storage/framework/sessions/*
+
+# Temporary files and generated outputs
+.env.*
+!.env.example
+analyze.txt
+analyze_*.txt
+*.log
+build/
+.dart_tool/
+.next/
+node_modules/
+.DS_Store
+Thumbs.db
+scratch/
+tmp/
