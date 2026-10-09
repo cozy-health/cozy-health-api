@@ -23,7 +23,7 @@ test('test_demo_account_can_log_in', function () {
     expect($this->demoUser->is_active)->toBeTrue();
     expect($this->demoUser->bypassesPaywall())->toBeTrue();
     expect($this->demoUser->bypassesTwoFactorAuthentication())->toBeTrue();
-    expect($this->demoUser->tokens()->first()->expires_at)->toBeNull();
+    expect($this->demoUser->tokens()->first()->expires_at->timestamp)->toBe(now()->addHour()->timestamp);
 });
 
 test('test_demo_account_has_full_data', function () {

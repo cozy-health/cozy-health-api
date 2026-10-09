@@ -32,7 +32,7 @@ class ProviderAuthTest extends TestCase
     {
         return Provider::create([...[
             'name' => 'Dr Avery', 'email' => 'avery@example.com',
-            'password_hash' => 'password123', 'is_active' => true,
+            'password_hash' => 'Fixture7!Strong', 'is_active' => true,
         ], ...$attributes]);
     }
 
@@ -40,7 +40,7 @@ class ProviderAuthTest extends TestCase
     {
         return [...[
             'name' => 'Dr Avery', 'email' => 'avery@example.com',
-            'password' => 'password123', 'password_confirmation' => 'password123',
+            'password' => 'Fixture7!Strong', 'password_confirmation' => 'Fixture7!Strong',
         ], ...$attributes];
     }
 
@@ -56,7 +56,7 @@ class ProviderAuthTest extends TestCase
     {
         return [...[
             'email' => 'avery@example.com', 'token' => '123456',
-            'password' => 'new-password123', 'password_confirmation' => 'new-password123',
+            'password' => 'new-Fixture7!Strong', 'password_confirmation' => 'new-Fixture7!Strong',
         ], ...$attributes];
     }
 
@@ -71,7 +71,7 @@ class ProviderAuthTest extends TestCase
             ->assertJsonMissingPath('data.provider.password_hash')
             ->assertJsonMissingPath('data.provider.remember_token');
         $provider = Provider::firstOrFail();
-        $this->assertTrue(Hash::check('password123', $provider->password_hash));
+        $this->assertTrue(Hash::check('Fixture7!Strong', $provider->password_hash));
         $this->assertDatabaseHas('personal_access_tokens', ['tokenable_type' => Provider::class, 'tokenable_id' => $provider->id]);
         $this->withToken($response->json('data.token'))->getJson('/api/v1/provider/me')->assertOk();
     }
@@ -81,7 +81,7 @@ class ProviderAuthTest extends TestCase
         $provider = $this->provider();
         $this->freezeTime();
         $response = $this->postJson('/api/v1/provider/auth/login', [
-            'email' => $provider->email, 'password' => 'password123',
+            'email' => $provider->email, 'password' => 'Fixture7!Strong',
             'device_name' => 'cozy-provider-dashboard',
         ])->assertOk();
         $token = \Laravel\Sanctum\PersonalAccessToken::findToken($response->json('data.token'));
@@ -115,7 +115,7 @@ class ProviderAuthTest extends TestCase
     public function test_provider_can_login(): void
     {
         $provider = $this->provider();
-        $this->postJson('/api/v1/provider/auth/login', ['email' => 'AVERY@example.com', 'password' => 'password123', 'device_name' => 'office'])
+        $this->postJson('/api/v1/provider/auth/login', ['email' => 'AVERY@example.com', 'password' => 'Fixture7!Strong', 'device_name' => 'office'])
             ->assertOk()->assertJsonPath('data.provider.id', $provider->id)->assertJsonStructure(['success', 'message', 'data' => ['provider', 'token']]);
         $this->assertDatabaseHas('personal_access_tokens', ['tokenable_type' => Provider::class, 'name' => 'office']);
     }
@@ -130,14 +130,14 @@ class ProviderAuthTest extends TestCase
     public function test_provider_login_rejects_disabled_account(): void
     {
         $this->provider(['is_active' => false]);
-        $this->postJson('/api/v1/provider/auth/login', ['email' => 'avery@example.com', 'password' => 'password123'])->assertForbidden();
+        $this->postJson('/api/v1/provider/auth/login', ['email' => 'avery@example.com', 'password' => 'Fixture7!Strong'])->assertForbidden();
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
     public function test_legacy_provider_without_password_cannot_login(): void
     {
         $this->provider(['password_hash' => null]);
-        $this->postJson('/api/v1/provider/auth/login', ['email' => 'avery@example.com', 'password' => 'password123'])->assertUnprocessable();
+        $this->postJson('/api/v1/provider/auth/login', ['email' => 'avery@example.com', 'password' => 'Fixture7!Strong'])->assertUnprocessable();
     }
 
     public function test_provider_can_logout(): void
@@ -209,7 +209,7 @@ class ProviderAuthTest extends TestCase
         $this->resetCode($provider);
         $provider->createToken('office');
         $this->postJson('/api/v1/provider/auth/reset-password', $this->resetPayload())->assertOk();
-        $this->assertTrue(Hash::check('new-password123', $provider->fresh()->password_hash));
+        $this->assertTrue(Hash::check('new-Fixture7!Strong', $provider->fresh()->password_hash));
         $this->assertDatabaseCount('provider_password_reset_tokens', 0);
         $this->assertDatabaseCount('personal_access_tokens', 0);
         Mail::assertQueued(ProviderPasswordResetConfirmationMail::class);
@@ -221,7 +221,7 @@ class ProviderAuthTest extends TestCase
         $provider = $this->provider();
         $this->resetCode($provider, expired: true);
         $this->postJson('/api/v1/provider/auth/reset-password', $this->resetPayload())->assertStatus(400);
-        $this->assertTrue(Hash::check('password123', $provider->fresh()->password_hash));
+        $this->assertTrue(Hash::check('Fixture7!Strong', $provider->fresh()->password_hash));
     }
 
     public function test_wrong_reset_code_is_rejected(): void
@@ -229,7 +229,7 @@ class ProviderAuthTest extends TestCase
         $provider = $this->provider();
         $this->resetCode($provider);
         $this->postJson('/api/v1/provider/auth/reset-password', $this->resetPayload(['token' => '654321']))->assertStatus(400);
-        $this->assertTrue(Hash::check('password123', $provider->fresh()->password_hash));
+        $this->assertTrue(Hash::check('Fixture7!Strong', $provider->fresh()->password_hash));
     }
 
     public function test_reset_requires_password_confirmation(): void

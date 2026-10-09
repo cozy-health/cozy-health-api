@@ -24,7 +24,8 @@ class AccountController extends Controller
 
         DB::transaction(function () use ($user) {
             $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
-            $user->tokens()->delete();
+            app(\App\Services\AuthSessions::class)->revoke($user);
+            DB::table('known_devices')->where('owner_type', $user->getMorphClass())->where('owner_id', $user->id)->delete();
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
             DB::table('notifications')->where('notifiable_type', $user->getMorphClass())
                 ->where('notifiable_id', $user->id)->delete();

@@ -18,14 +18,14 @@ class SetAdminPassword extends Command
         if (! $user) { $this->error('No active admin account exists for that email.'); return self::FAILURE; }
         $password = $this->secret('New password');
         $confirmation = $this->secret('Confirm password');
-        if (! is_string($password) || strlen($password) < 12 || strlen($password) > 255 || $password !== $confirmation) {
+        if (! is_string($password) || strlen($password) < 12 || strlen($password) > 255 || $password !== $confirmation || \Illuminate\Support\Facades\Validator::make(['password' => $password], ['password' => [new \App\Rules\StrongPassword]])->fails()) {
             $this->error('Passwords must match and contain 12 to 255 characters.'); return self::FAILURE;
         }
         $updated = DB::transaction(function () use ($user, $password) {
             $current = User::whereKey($user->id)->where('role', 'admin')->where('is_active', true)->where('is_demo', false)->lockForUpdate()->first();
             if (! $current) return false;
             $current->forceFill(['password' => $password])->save();
-            $current->tokens()->delete();
+            app(\App\Services\AuthSessions::class)->revoke($current);
             return true;
         }, 3);
         if (! $updated) { $this->error('Admin authorization changed. No password was updated.'); return self::FAILURE; }

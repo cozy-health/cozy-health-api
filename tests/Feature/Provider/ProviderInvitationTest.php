@@ -22,7 +22,7 @@ class ProviderInvitationTest extends TestCase
         $this->assertSame('invite@example.test', $link->provider_email);
         $this->assertDatabaseCount('provider_connections', 0);
         $this->postJson('/api/v1/provider/auth/register', ['name' => 'Invited Provider',
-            'email' => 'INVITE@example.test', 'password' => 'test-password', 'password_confirmation' => 'test-password'])
+            'email' => 'INVITE@example.test', 'password' => 'test-password7', 'password_confirmation' => 'test-password7'])
             ->assertCreated();
         $link->refresh();
         $this->assertNotNull($link->provider_id);

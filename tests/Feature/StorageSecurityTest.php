@@ -43,7 +43,7 @@ class StorageSecurityTest extends TestCase
     {
         $provider = Provider::create([
             'name' => 'Fixture provider', 'email' => 'provider@example.test',
-            'password_hash' => 'password123', 'is_active' => true,
+            'password_hash' => 'Fixture7!Strong', 'is_active' => true,
         ]);
         $this->assertEncryptedMail(new ProviderPasswordResetMail($provider, '123456'));
     }

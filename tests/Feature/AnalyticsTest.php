@@ -28,8 +28,8 @@ it('defaults analytics off and stores only the event name and timestamp when ena
 
 it('emits anonymous registration and login events on successful requests', function () {
     FeatureFlag::where('key', 'analytics')->first()->update(['enabled' => true]);
-    $this->postJson('/api/v1/auth/register', ['name' => 'Private Name', 'email' => 'private@example.org', 'password' => 'password123', 'password_confirmation' => 'password123'])->assertCreated();
-    $this->postJson('/api/v1/auth/login', ['email' => 'private@example.org', 'password' => 'password123'])->assertOk();
+    $this->postJson('/api/v1/auth/register', ['name' => 'Private Name', 'email' => 'private@example.org', 'password' => 'Fixture7!Strong', 'password_confirmation' => 'Fixture7!Strong'])->assertCreated();
+    $this->postJson('/api/v1/auth/login', ['email' => 'private@example.org', 'password' => 'Fixture7!Strong'])->assertOk();
     $this->assertDatabaseHas('analytics_events', ['event' => 'user_registered']);
     $this->assertDatabaseHas('analytics_events', ['event' => 'user_logged_in']);
     expect(json_encode(DB::table('analytics_events')->get()))->not->toContain('Private Name')->not->toContain('private@example.org');

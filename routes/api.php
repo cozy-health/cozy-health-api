@@ -19,9 +19,10 @@ use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\ProviderController;
 
 Route::prefix('v1')->group(function () {
+    Route::post('auth/refresh', [\App\Http\Controllers\AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     Route::get('admin/health/queue-depth', \App\Http\Controllers\AdminQueueHealthController::class)
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
-    Route::post('admin/auth/login', [\App\Http\Controllers\AdminAuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('admin/auth/login', [\App\Http\Controllers\AdminAuthController::class, 'login'])->middleware(['throttle:10,1', \App\Http\Middleware\LoginLockout::class]);
     Route::get('admin/metrics/{metric}', [\App\Http\Controllers\AdminMetricsController::class, 'show'])
         ->where('metric', 'overview|usage|retention|safety')->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
     Route::middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1'])->prefix('admin/auth')->group(function () {
@@ -40,11 +41,9 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register'])
         ->middleware('throttle:5,1');
     Route::post('auth/login', [AuthController::class, 'login'])
-        ->middleware('throttle:10,1');
-    Route::post('auth/google', [AuthController::class, 'googleSignIn'])
-        ->middleware('throttle:10,1');
-    Route::post('auth/apple', [AuthController::class, 'appleSignIn'])
-        ->middleware('throttle:10,1');
+        ->middleware(['throttle:10,1', \App\Http\Middleware\LoginLockout::class]);
+    Route::post('auth/google', [AuthController::class, 'googleSignIn'])->middleware('throttle:10,1');
+    Route::post('auth/apple', [AuthController::class, 'appleSignIn'])->middleware('throttle:10,1');
     Route::post('auth/forgot-password', [PasswordResetController::class, 'forgotPassword'])
         ->middleware(['throttle:5,1', 'throttle:password-reset-email']);
     Route::post('auth/reset-password', [PasswordResetController::class, 'resetPassword'])
@@ -62,6 +61,13 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
         Route::get('/sleep-mood', [InsightsController::class, 'sleepMood'])->middleware('throttle:60,1');
     });
     Route::post('auth/logout', [AuthController::class, 'logout']);
+    $sessions = \App\Http\Controllers\AuthSessionController::class;
+    Route::post('auth/revoke-refresh', [$sessions, 'revokeRefresh'])->middleware('throttle:30,1');
+    Route::post('auth/logout-all', [$sessions, 'destroyAll'])->middleware('throttle:30,1');
+    Route::get('me/sessions', [$sessions, 'index'])->middleware('throttle:30,1');
+    Route::delete('me/sessions/{id}', [$sessions, 'destroy'])->middleware('throttle:30,1');
+    Route::delete('me/sessions', [$sessions, 'destroyAll'])->middleware('throttle:30,1');
+    Route::post('me/password', [$sessions, 'password'])->middleware('throttle:5,1');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [\App\Http\Controllers\Api\V1\ProfileController::class, 'show']);
     Route::get('me/provider/links', [\App\Http\Controllers\Api\V1\Provider\PatientConsentController::class, 'index']);
@@ -98,13 +104,15 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
 
 // Provider accounts use their own model-scoped Sanctum guard. Patient linking routes above are unchanged.
 Route::prefix('v1/provider')->group(function () {
+    Route::post('auth/refresh', [\App\Http\Controllers\AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     $controller = \App\Http\Controllers\Api\V1\Provider\ProviderAuthController::class;
     Route::post('auth/register', [$controller, 'register'])->middleware('throttle:5,1');
-    Route::post('auth/login', [$controller, 'login'])->middleware('throttle:10,1');
+    Route::post('auth/login', [$controller, 'login'])->middleware(['throttle:10,1', \App\Http\Middleware\LoginLockout::class]);
     Route::post('auth/forgot-password', [$controller, 'forgotPassword'])->middleware(['throttle:5,1', 'throttle:provider-password-reset-email']);
     Route::post('auth/reset-password', [$controller, 'resetPassword'])->middleware('throttle:5,1');
     Route::middleware(['auth:provider', \App\Http\Middleware\EnsureActiveProvider::class])->group(function () use ($controller) {
         Route::post('auth/logout', [$controller, 'logout']);
+        Route::post('auth/revoke-refresh', [\App\Http\Controllers\AuthSessionController::class, 'revokeRefresh'])->middleware('throttle:30,1');
         Route::get('me', [$controller, 'me']);
         Route::patch('me', [$controller, 'update']);
         $clients = \App\Http\Controllers\Api\V1\Provider\ProviderClientController::class;

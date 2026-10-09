@@ -18,7 +18,7 @@ function timezoneTestUser(array $attributes = []): User
     return User::create([
         'name' => 'Timezone User',
         'email' => 'timezone@example.com',
-        'password' => 'password123',
+        'password' => 'Fixture7!Strong',
         ...$attributes,
     ]);
 }
@@ -27,7 +27,7 @@ it('defaults to UTC on registration and me', function () {
     Mail::fake();
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'Timezone User', 'email' => 'timezone@example.com',
-        'password' => 'password123', 'password_confirmation' => 'password123',
+        'password' => 'Fixture7!Strong', 'password_confirmation' => 'Fixture7!Strong',
     ])->assertCreated()->assertJsonPath('data.user.timezone', 'UTC');
 
     $this->withToken($response->json('data.token'))->getJson('/api/v1/me')
@@ -67,7 +67,7 @@ it('rejects invalid and null timezones on both update routes', function () {
 
 it('includes stored timezone on login', function () {
     timezoneTestUser(['timezone' => 'Africa/Lagos']);
-    $this->postJson('/api/v1/auth/login', ['email' => 'timezone@example.com', 'password' => 'password123'])
+    $this->postJson('/api/v1/auth/login', ['email' => 'timezone@example.com', 'password' => 'Fixture7!Strong'])
         ->assertOk()->assertJsonPath('data.user.timezone', 'Africa/Lagos');
 });
 

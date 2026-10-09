@@ -56,8 +56,8 @@ class AdminProvisioningTest extends TestCase
     {
         $user = User::factory()->create(); $user->forceFill(['role' => 'admin'])->save();
         $user->createToken('cozy-admin-dashboard', ['admin:metrics'], now()->addMinutes(30));
-        $this->artisan('user:admin-password', ['email' => $user->email])->expectsQuestion('New password', 'fixture-private-password')->expectsQuestion('Confirm password', 'fixture-private-password')->assertSuccessful();
-        $this->assertTrue(Hash::check('fixture-private-password', $user->fresh()->password));
+        $this->artisan('user:admin-password', ['email' => $user->email])->expectsQuestion('New password', 'fixture-private-password7')->expectsQuestion('Confirm password', 'fixture-private-password7')->assertSuccessful();
+        $this->assertTrue(Hash::check('fixture-private-password7', $user->fresh()->password));
         $this->assertSame(0, $user->tokens()->count());
     }
 }

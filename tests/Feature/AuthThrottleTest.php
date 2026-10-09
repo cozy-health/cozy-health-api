@@ -13,7 +13,7 @@ it('throttles login after 10 attempts', function () {
     for ($i = 0; $i < 10; $i++) {
         $this->withHeader('Accept', 'application/json')
             ->postJson('/api/v1/auth/login', [
-                'email' => 'missing@example.com',
+                'email' => "missing-$i@example.com",
                 'password' => 'wrong-password',
             ])
             ->assertStatus(422);
@@ -31,7 +31,7 @@ it('includes retry after header on login throttle responses', function () {
     for ($i = 0; $i < 10; $i++) {
         $this->withHeader('Accept', 'application/json')
             ->postJson('/api/v1/auth/login', [
-                'email' => 'missing@example.com',
+                'email' => "missing-$i@example.com",
                 'password' => 'wrong-password',
             ]);
     }
@@ -54,8 +54,8 @@ it('throttles register after 5 attempts', function () {
             ->postJson('/api/v1/auth/register', [
                 'name' => "Throttle User $i",
                 'email' => "throttle-$i@example.com",
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
+                'password' => 'Fixture7!Strong',
+                'password_confirmation' => 'Fixture7!Strong',
             ])
             ->assertCreated();
     }
@@ -64,8 +64,8 @@ it('throttles register after 5 attempts', function () {
         ->postJson('/api/v1/auth/register', [
             'name' => 'Throttle User 6',
             'email' => 'throttle-6@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Fixture7!Strong',
+            'password_confirmation' => 'Fixture7!Strong',
         ])
         ->assertTooManyRequests();
 });
@@ -92,7 +92,7 @@ it('throttles reset password after 5 attempts', function () {
             ->postJson('/api/v1/auth/reset-password', [
                 'email' => 'missing@example.com',
                 'token' => '123456',
-                'password' => 'password123',
+                'password' => 'Fixture7!Strong',
             ])
             ->assertStatus(400);
     }
@@ -101,7 +101,7 @@ it('throttles reset password after 5 attempts', function () {
         ->postJson('/api/v1/auth/reset-password', [
             'email' => 'missing@example.com',
             'token' => '123456',
-            'password' => 'password123',
+            'password' => 'Fixture7!Strong',
         ])
         ->assertTooManyRequests();
 });

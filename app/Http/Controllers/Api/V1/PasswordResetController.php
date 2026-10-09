@@ -49,39 +49,25 @@ class PasswordResetController extends Controller
     {
         $request->validated();
 
-        $resetRecord = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->first();
-
-        if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid or incorrect reset code.'
-            ], 400);
+        $result = DB::transaction(function () use ($request) {
+            $record = DB::table('password_reset_tokens')->where('email', $request->email)->lockForUpdate()->first();
+            if (! $record || ! Hash::check($request->token, $record->token)) {
+                return ['status' => 400, 'message' => 'Invalid or incorrect reset code.'];
+            }
+            if (now()->gte($record->expires_at)) {
+                return ['status' => 400, 'message' => 'This reset code has expired. Please request a new one.'];
+            }
+            $user = User::where('email', $request->email)->lockForUpdate()->first();
+            if (! $user) { return ['status' => 404, 'message' => 'User not found.']; }
+            $user->update(['password' => $request->password]);
+            app(\App\Services\AuthSessions::class)->revoke($user);
+            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            return ['user' => $user];
+        }, 3);
+        if (isset($result['status'])) {
+            return response()->json(['success' => false, 'message' => $result['message']], $result['status']);
         }
-
-        if (Carbon::parse($resetRecord->expires_at)->isPast()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This reset code has expired. Please request a new one.'
-            ], 400);
-        }
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found.'
-            ], 404);
-        }
-
-        // Update password
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        // Delete the token
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        $user = $result['user'];
 
         // Send confirmation email
         Mail::to($user->email)->send(new PasswordResetConfirmationMail($user));

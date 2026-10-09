@@ -14,7 +14,7 @@ class AdminAuthTest extends TestCase
 
     private function admin(array $attributes = []): User
     {
-        $user = User::factory()->create(['password' => 'password123', ...$attributes]);
+        $user = User::factory()->create(['password' => 'Fixture7!Strong', ...$attributes]);
         $user->forceFill(['role' => 'admin'])->save();
         return $user;
     }
@@ -23,7 +23,7 @@ class AdminAuthTest extends TestCase
     {
         $this->freezeTime();
         $admin = $this->admin();
-        $response = $this->postJson('/api/v1/admin/auth/login', ['email' => strtoupper($admin->email), 'password' => 'password123'])->assertOk();
+        $response = $this->postJson('/api/v1/admin/auth/login', ['email' => strtoupper($admin->email), 'password' => 'Fixture7!Strong'])->assertOk();
         $token = PersonalAccessToken::findToken($response->json('token'));
         $this->assertSame(['admin:metrics'], $token->abilities);
         $this->assertSame(now()->addMinutes(30)->timestamp, $token->expires_at->timestamp);
@@ -38,10 +38,10 @@ class AdminAuthTest extends TestCase
 
     public function test_patient_provider_disabled_demo_and_wrong_password_cannot_sign_in(): void
     {
-        $patient = User::factory()->create(['password' => 'password123']);
-        $provider = Provider::create(['name' => 'Test', 'email' => 'provider@example.test', 'password_hash' => 'password123']);
+        $patient = User::factory()->create(['password' => 'Fixture7!Strong']);
+        $provider = Provider::create(['name' => 'Test', 'email' => 'provider@example.test', 'password_hash' => 'Fixture7!Strong']);
         foreach ([$patient, $provider, $this->admin(['is_active' => false]), $this->admin(['is_demo' => true])] as $account) {
-            $this->postJson('/api/v1/admin/auth/login', ['email' => $account->email, 'password' => 'password123'])->assertUnprocessable();
+            $this->postJson('/api/v1/admin/auth/login', ['email' => $account->email, 'password' => 'Fixture7!Strong'])->assertUnprocessable();
         }
         $admin = $this->admin();
         $this->postJson('/api/v1/admin/auth/login', ['email' => $admin->email, 'password' => 'wrong'])->assertUnprocessable();
@@ -76,11 +76,11 @@ class AdminAuthTest extends TestCase
 
     public function test_login_is_throttled_and_public_registration_cannot_assign_role(): void
     {
-        for ($i = 0; $i < 10; $i++) $this->postJson('/api/v1/admin/auth/login', ['email' => 'unknown@example.test', 'password' => 'wrong'])->assertUnprocessable();
+        for ($i = 0; $i < 10; $i++) $this->postJson('/api/v1/admin/auth/login', ['email' => 'unknown'.$i.'@example.test', 'password' => 'wrong'])->assertUnprocessable();
         $this->postJson('/api/v1/admin/auth/login', ['email' => 'unknown@example.test', 'password' => 'wrong'])->assertStatus(429);
         \Illuminate\Support\Facades\Mail::fake();
         \Illuminate\Support\Facades\Cache::flush();
-        $this->postJson('/api/v1/auth/register', ['name' => 'Test', 'email' => 'role@example.test', 'password' => 'password123', 'password_confirmation' => 'password123', 'role' => 'admin'])->assertCreated();
+        $this->postJson('/api/v1/auth/register', ['name' => 'Test', 'email' => 'role@example.test', 'password' => 'Fixture7!Strong', 'password_confirmation' => 'Fixture7!Strong', 'role' => 'admin'])->assertCreated();
         $this->assertSame('user', User::where('email', 'role@example.test')->first()->role);
     }
 }

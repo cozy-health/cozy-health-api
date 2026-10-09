@@ -61,11 +61,11 @@ class AuthController extends Controller
         }
 
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered');
-        $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
+        $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
 
         return $this->success([
             'user' => $u,
-            'token' => $token,
+            ...$pair,
         ], 'Account created successfully.', 201);
     }
 
@@ -87,11 +87,11 @@ class AuthController extends Controller
         }
 
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
-        $token = $u->createToken($r->input('device_name', 'cozy-mobile'))->plainTextToken;
+        $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
 
         return $this->success([
             'user' => $u,
-            'token' => $token,
+            ...$pair,
         ], 'Logged in successfully.');
     }
 
@@ -188,11 +188,11 @@ class AuthController extends Controller
 
         if ($created) { app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered'); }
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
-        $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
+        $pair = app(\App\Services\AuthSessions::class)->issue($user, $request);
 
         return $this->success([
             'user' => $user,
-            'token' => $token,
+            ...$pair,
         ], 'Logged in successfully.');
     }
 
@@ -301,17 +301,17 @@ class AuthController extends Controller
 
         if ($created) { app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered'); }
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
-        $token = $user->createToken($request->input('device_name', 'cozy-mobile'))->plainTextToken;
+        $pair = app(\App\Services\AuthSessions::class)->issue($user, $request);
 
         return $this->success([
             'user' => $user,
-            'token' => $token,
+            ...$pair,
         ], 'Logged in successfully.');
     }
 
     public function logout()
     {
-        request()->user()->currentAccessToken()?->delete();
+        app(\App\Services\AuthSessions::class)->revokeOne(request()->user(), request()->user()->currentAccessToken()->id);
 
         return $this->success(null, 'Logged out successfully.');
     }

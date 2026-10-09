@@ -36,7 +36,7 @@ class ProviderAuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', 'unique:providers,email'],
-            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+            'password' => ['required', 'confirmed', new \App\Rules\StrongPassword],
             'practice' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'required_with:license_state', 'string', 'max:255', Rule::unique('providers')->where('license_state', $request->input('license_state'))],
             'license_state' => ['nullable', 'required_with:license_number', 'string', 'max:255'],
@@ -57,7 +57,7 @@ class ProviderAuthController extends Controller
         });
         return $this->success([
             'provider' => $provider->refresh(),
-            'token' => $provider->createToken('cozy-provider')->plainTextToken,
+            ...app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider'),
         ], 'Account created successfully.', 201);
     }
 
@@ -76,16 +76,16 @@ class ProviderAuthController extends Controller
         abort_unless($provider->is_active, 403, 'This account has been disabled.');
         $deviceName = $data['device_name'] ?? 'cozy-provider';
         // Browser bridge sessions and their underlying credentials expire together.
-        $expiresAt = $deviceName === 'cozy-provider-dashboard' ? now()->addMinutes(30) : null;
+        $expiresAt = $deviceName === 'cozy-provider-dashboard' ? now()->addMinutes(30) : now()->addMinutes(60);
         return $this->success([
             'provider' => $provider,
-            'token' => $provider->createToken($deviceName, ['*'], $expiresAt)->plainTextToken,
+            ...app(\App\Services\AuthSessions::class)->issue($provider, $request, $deviceName),
         ], 'Logged in successfully.');
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()?->delete();
+        app(\App\Services\AuthSessions::class)->revokeOne($request->user(), $request->user()->currentAccessToken()->id);
         return $this->success(null, 'Logged out successfully.');
     }
 
@@ -127,7 +127,7 @@ class ProviderAuthController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email', 'max:190'],
             'token' => ['required', 'string', 'regex:/^[0-9]{6}$/'],
-            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+            'password' => ['required', 'confirmed', new \App\Rules\StrongPassword],
         ]);
         $provider = DB::transaction(function () use ($data) {
             $record = DB::table('provider_password_reset_tokens')->where('email', $data['email'])->lockForUpdate()->first();
@@ -136,7 +136,7 @@ class ProviderAuthController extends Controller
                 return null;
             }
             $provider->update(['password_hash' => $data['password']]);
-            $provider->tokens()->delete();
+            app(\App\Services\AuthSessions::class)->revoke($provider);
             DB::table('provider_password_reset_tokens')->where('email', $data['email'])->delete();
             return $provider;
         });
