@@ -97,6 +97,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsurePatient::class])->
     Route::delete('provider', [ProviderController::class, 'destroy']);
     Route::apiResource('quiz-attempts', QuizController::class);
     Route::get('quiz-results', [QuizController::class, 'index']);
+    Route::get('content/saved', [ContentController::class, 'index'])->middleware('throttle:60,1');
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->middleware('throttle:60,1');
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::apiResource('notifications', NotificationController::class);

@@ -2,6 +2,13 @@
 namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 class NotificationController extends ApiController {
+    public function unreadCount(Request $request) {
+        $count = \App\Models\AppNotification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->count();
+
+        return $this->success(['unread_count' => $count]);
+    }
     public function index(\App\Http\Requests\PaginationRequest $request) {
         $entries = \App\Models\AppNotification::orderBy('client_created_at', 'desc')->paginate($request->input('per_page', 20));
         return $this->success($entries);
