@@ -21,7 +21,7 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 | Phase 2.3 SELECT * removal | Resume after Phase 2.5 ships and is verified on device. Preserve raw key presence before fromJson defaults; retain absent cached fields, clear explicit nulls, and fetch details for incomplete list records. Journal bodies and profile/notification/subscription projections share this prerequisite | After Phase 2.5 (mobile cache merge and detail-fetch fallback) |
 | Subscription endpoints | Implement packages, activation, cancellation, receipt verification and restore; retain existing mobile methods | Phase 12 (Payments) |
 | Chat message endpoints and relationship audit | Implement conversation message reads/writes and audit relationship loading when the message-list route exists; retain mobile methods | Phase 17 (LLM) |
-| Content save/unsave and saved-article HTTP relationship audit | Saved-content read route restored in the first Phase 16 batch on 2026-10-10, with account-isolation/pagination tests and mobile restore wiring. Implement save/unsave and audit relationships for the complete catalog; retain mobile methods | Phase 16 contracts / Phase 20 (Content Feed) |
+| Content feed integration | Phase 16 catalog/search/bookmark contracts and saved-content reads are implemented with account isolation and cache compatibility tests. Wire the real feed/search/body display and provision licensed, clinically approved content; retain mobile methods | Phase 20 (Content Feed) |
 | Dashboard, insights and daily affirmations | Build endpoints together with mobile wiring. Use user-local day/week/month boundaries converted to UTC for queries and local-midnight affirmation refresh | Phase 4.5 |
 | PD-3 iPhone smoke test | Consent toggles and access log on a real device remain pending. Batch device checks at the end of PD-7 with the full provider flow; an active provider link is needed to test consent. | End of PD-7; after PD-5 or when the first real provider link exists |
 | Provider verification code delivery | Backend generates codes but sends no email/SMS. Dashboard auth works, but mobile-to-provider linking needs delivery; mobile says "code sent", which is inaccurate. | Before any real provider uses the link flow |
@@ -47,7 +47,7 @@ unused mobile methods in place for future feature wiring; no deletion is planned
 |---|---|---|
 | Mobile cache merge and detail-fetch fallback | Requires a mobile-repo session and a compatible shipped release. Track raw JSON key presence before parsing, preserve absent fields, honor explicit nulls, and mark/fetch incomplete records | Phase 2.5; must precede backend SELECT * removal |
 | Quiz covering/index plan optimization | Validate against representative production quiz data and actual query predicates/order. Prior test-data index choices alone do not justify a covering index | Phase 19 (Quiz System), after production data is available |
-| Community and content-article relationship audits | CommunityPostController and ContentArticleController do not exist; inspect actual relationships once their endpoints are implemented | With the corresponding feature endpoints |
+| Community release and integration | Phase 16 ArticleController and CommunityController contracts exist and are tested. Image moderation/EXIF removal, staffed moderation, approved guidelines/retention and later feature UI remain open; community stays disabled by default. See PHASE16_ENDPOINTS.md | Phases 21–22; deployment verification remains Phase 16 |
 
 ## Post-MVP / v2.0
 

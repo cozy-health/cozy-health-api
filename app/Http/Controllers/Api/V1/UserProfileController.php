@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\NotificationPreferencesRequest;
+use App\Http\Requests\UserDisplayPreferencesRequest;
+use App\Http\Requests\UserProfileRequest;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -46,7 +49,7 @@ class UserProfileController extends Controller
         return response()->json(['data' => $this->profileData($request, $this->getOrCreateProfile($request))]);
     }
 
-    public function update(\App\Http\Requests\UserProfileRequest $request)
+    public function update(UserProfileRequest $request)
     {
         $profile = $this->getOrCreateProfile($request);
 
@@ -56,13 +59,17 @@ class UserProfileController extends Controller
             $request->user()->update(['timezone' => $validated['timezone']]);
             unset($validated['timezone']);
         }
+        if (array_key_exists('country_code', $validated)) {
+            $request->user()->forceFill(['country_code' => $validated['country_code']])->save();
+            unset($validated['country_code']);
+        }
 
         $profile->update($validated);
 
         return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Profile updated.']);
     }
 
-    public function updatePreferences(\App\Http\Requests\UserDisplayPreferencesRequest $request)
+    public function updatePreferences(UserDisplayPreferencesRequest $request)
     {
         $profile = $this->getOrCreateProfile($request);
 
@@ -73,7 +80,7 @@ class UserProfileController extends Controller
         return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Preferences updated.']);
     }
 
-    public function updateNotificationPreferences(\App\Http\Requests\NotificationPreferencesRequest $request)
+    public function updateNotificationPreferences(NotificationPreferencesRequest $request)
     {
         $profile = $this->getOrCreateProfile($request);
 
@@ -84,8 +91,16 @@ class UserProfileController extends Controller
         return response()->json(['data' => $this->profileData($request, $profile), 'message' => 'Notification preferences updated.']);
     }
 
+    public function notificationPreferences(Request $request)
+    {
+        return response()->json(['data' => $this->getOrCreateProfile($request)->only([
+            'notifications_master', 'daily_checkin_enabled', 'daily_checkin_time',
+            'journal_reminder_enabled', 'comments_notifications', 'achievements_notifications', 'marketing_notifications',
+        ])]);
+    }
+
     private function profileData(Request $request, UserProfile $profile): array
     {
-        return [...$profile->toArray(), 'timezone' => $request->user()->timezone ?? 'UTC'];
+        return [...$profile->toArray(), 'timezone' => $request->user()->timezone ?? 'UTC', 'country_code' => $request->user()->country_code];
     }
 }

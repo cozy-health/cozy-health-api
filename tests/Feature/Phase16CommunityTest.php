@@ -1,0 +1,183 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\FeatureFlag;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+class Phase16CommunityTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['community.release_ready' => true, 'community.guidelines_version' => 'test-v1']);
+        FeatureFlag::updateOrCreate(['key' => 'community'], ['enabled' => true]);
+    }
+
+    private function login(?User $user = null): User
+    {
+        $user ??= User::factory()->create();
+        app('auth')->forgetGuards();
+        $this->withToken($user->createToken('device')->plainTextToken);
+
+        return $user;
+    }
+
+    private function createPost(array $data = []): string
+    {
+        return $this->postJson('/api/v1/community/posts', [...[
+            'body' => 'A fixture post', 'guidelines_accepted' => true, 'guidelines_version' => 'test-v1',
+        ], ...$data])->assertOk()->json('data.id');
+    }
+
+    public function test_feed_detail_and_comments_hide_anonymous_identity(): void
+    {
+        $owner = $this->login();
+        $id = $this->createPost(['is_anonymous' => true]);
+        $this->postJson("/api/v1/community/posts/$id/comments", ['body' => 'Fixture comment', 'is_anonymous' => true])->assertOk();
+        $this->login();
+        $this->getJson("/api/v1/community/posts/$id")->assertOk()->assertJsonPath('data.author.id', null)
+            ->assertJsonPath('data.author.name', 'Anonymous')->assertJsonMissingPath('data.user_id')->assertJsonMissingPath('data.crisis_support_recommended');
+        $this->getJson("/api/v1/community/posts/$id/comments")->assertOk()->assertJsonPath('data.data.0.author.id', null);
+        $this->getJson('/api/v1/community/posts')->assertOk()->assertJsonPath('data.total', 1)->assertJsonMissing(['author_name' => $owner->name]);
+    }
+
+    public function test_only_owner_can_edit_or_delete_and_edits_enter_review(): void
+    {
+        $owner = $this->login();
+        $id = $this->createPost();
+        $this->login();
+        $this->patchJson("/api/v1/community/posts/$id", ['body' => 'Changed'])->assertNotFound();
+        $this->deleteJson("/api/v1/community/posts/$id")->assertNotFound();
+        $this->login($owner);
+        $this->patchJson("/api/v1/community/posts/$id", ['body' => 'Changed'])->assertOk()->assertJsonPath('data.status', 'pending');
+        $this->assertDatabaseHas('community_reports', ['target_id' => $id, 'reason' => 'edit_review']);
+        $this->login();
+        $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+        $this->login($owner);
+        $this->deleteJson("/api/v1/community/posts/$id")->assertOk();
+        $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+    }
+
+    public function test_blocks_hide_posts_and_comments_in_both_directions(): void
+    {
+        $a = $this->login();
+        $aPost = $this->createPost();
+        $b = $this->login();
+        $bPost = $this->createPost();
+        $this->postJson("/api/v1/community/posts/$aPost/comments", ['body' => 'From B'])->assertOk();
+        $this->login($a);
+        $this->postJson('/api/v1/community/users/'.$b->id.'/block')->assertOk();
+        $this->getJson('/api/v1/community/posts')->assertJsonPath('data.total', 1);
+        $this->getJson("/api/v1/community/posts/$bPost")->assertNotFound();
+        $this->getJson("/api/v1/community/posts/$aPost/comments")->assertJsonPath('data.total', 0);
+        $this->getJson('/api/v1/community/blocked')->assertJsonPath('data.data.0.id', $b->id);
+        $this->login($b);
+        $this->getJson("/api/v1/community/posts/$aPost")->assertNotFound();
+        $this->getJson('/api/v1/community/posts')->assertJsonPath('data.total', 1);
+        $this->login($a);
+        $this->deleteJson('/api/v1/community/users/'.$b->id.'/block')->assertOk();
+        $this->getJson('/api/v1/community/posts')->assertJsonPath('data.total', 2);
+        $this->postJson('/api/v1/community/users/'.$a->id.'/block')->assertUnprocessable();
+        $this->postJson('/api/v1/community/users/0'.$a->id.'/block')->assertUnprocessable();
+    }
+
+    public function test_reports_are_persistent_idempotent_and_have_a_moderation_deadline(): void
+    {
+        $this->login();
+        $id = $this->createPost();
+        $comment = $this->postJson("/api/v1/community/posts/$id/comments", ['body' => 'Fixture'])->assertOk()->json('data.id');
+        $this->login();
+        $this->postJson("/api/v1/community/posts/$id/report", ['reason' => 'spam'])->assertStatus(202);
+        $this->postJson("/api/v1/community/posts/$id/report", ['reason' => 'spam'])->assertStatus(202);
+        $this->postJson("/api/v1/community/comments/$comment/report", ['reason' => 'harassment'])->assertStatus(202);
+        $this->assertDatabaseCount('community_reports', 2);
+        $report = DB::table('community_reports')->where('target_id', $id)->first();
+        $this->assertNotNull($report->due_at);
+        $this->assertSame('pending', $report->status);
+        $this->assertStringContainsString('A fixture post', $report->snapshot);
+    }
+
+    public function test_group_posts_require_membership_and_leave_removes_access(): void
+    {
+        $this->login();
+        $group = DB::table('community_groups')->insertGetId(['name' => 'Fixture group', 'description' => 'Fixture', 'is_active' => true]);
+        $this->getJson("/api/v1/community/groups/$group/posts")->assertNotFound();
+        $this->postJson("/api/v1/community/groups/$group/join")->assertOk();
+        $this->postJson("/api/v1/community/groups/$group/join")->assertOk();
+        $this->assertDatabaseCount('community_memberships', 1);
+        $id = $this->createPost(['group_id' => $group]);
+        $this->getJson("/api/v1/community/groups/$group/posts")->assertOk()->assertJsonPath('data.total', 1);
+        $this->getJson('/api/v1/community/groups')->assertJsonPath('data.data.0.joined', true);
+        $this->deleteJson("/api/v1/community/groups/$group/leave")->assertOk();
+        $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+    }
+
+    public function test_comment_parent_must_be_visible_and_belong_to_same_post(): void
+    {
+        $owner = $this->login();
+        $a = $this->createPost();
+        $b = $this->createPost();
+        $comment = $this->postJson("/api/v1/community/posts/$a/comments", ['body' => 'Parent'])->assertOk()->json('data.id');
+        $this->postJson("/api/v1/community/posts/$b/comments", ['body' => 'Reply', 'parent_id' => $comment])->assertNotFound();
+        $this->postJson("/api/v1/community/posts/$a/comments", ['body' => 'Reply', 'parent_id' => $comment])->assertOk();
+        $this->login();
+        $this->deleteJson("/api/v1/community/comments/$comment")->assertNotFound();
+        $this->login($owner);
+        $this->deleteJson("/api/v1/community/comments/$comment")->assertOk();
+    }
+
+    public function test_crisis_signal_is_only_returned_to_author_and_enters_review(): void
+    {
+        $owner = $this->login();
+        $id = $this->createPost(['body' => 'I want to kill myself,']);
+        $this->getJson("/api/v1/community/posts/$id")->assertJsonPath('data.crisis_support_recommended', true);
+        $this->assertDatabaseHas('community_reports', ['target_id' => $id, 'reason' => 'safety']);
+        $this->login();
+        $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+        $this->getJson('/api/v1/community/posts')->assertJsonPath('data.total', 0);
+    }
+
+    public function test_community_is_unavailable_without_release_readiness_and_posts_require_guidelines(): void
+    {
+        $this->login();
+        $this->postJson('/api/v1/community/posts', ['body' => 'Fixture'])->assertUnprocessable();
+        config(['community.release_ready' => false]);
+        $this->getJson('/api/v1/community/posts')->assertStatus(503);
+        $this->assertDatabaseCount('community_posts', 0);
+        config(['community.release_ready' => true]);
+        FeatureFlag::where('key', 'community')->delete();
+        $this->getJson('/api/v1/community/posts')->assertStatus(503);
+    }
+
+    public function test_images_are_not_saved_when_moderation_is_unavailable(): void
+    {
+        $this->login();
+        $id = $this->createPost();
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->create('unsafe.txt', 1)])->assertUnprocessable();
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->createWithContent('fixture.png', $png)])->assertStatus(503);
+    }
+
+    public function test_account_deletion_scrubs_moderation_snapshots_and_cascades_owned_content(): void
+    {
+        $owner = $this->login();
+        $id = $this->createPost(['body' => 'Private fixture text']);
+        $reporter = $this->login();
+        $this->postJson("/api/v1/community/posts/$id/report", ['reason' => 'other', 'details' => 'Private report details'])->assertStatus(202);
+        $this->login($owner);
+        $this->deleteJson('/api/v1/account')->assertOk();
+        $this->assertDatabaseMissing('community_posts', ['id' => $id]);
+        $report = DB::table('community_reports')->where('target_id', $id)->first();
+        $this->assertSame(['account_deleted' => true], json_decode($report->snapshot, true));
+        $this->assertNull($report->details);
+        $this->assertSame('pending', $report->status);
+        $this->assertSame($reporter->id, (int) $report->reporter_id);
+    }
+}
