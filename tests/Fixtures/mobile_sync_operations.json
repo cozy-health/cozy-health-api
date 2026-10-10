@@ -1,0 +1,178 @@
+[
+  {
+    "client_operation_id": "contract-mood_entry",
+    "type": "mood_entry",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "mood": "calm",
+      "intensity": 5,
+      "body_sensations": [
+        "Relaxed"
+      ],
+      "triggers": [
+        "Work"
+      ],
+      "note": "Synthetic mood",
+      "is_crisis_flagged": false,
+      "client_created_at": "2026-10-10T12:00:00.000Z",
+      "client_updated_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-journal_entry",
+    "type": "journal_entry",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "type": "free",
+      "body": "Synthetic journal",
+      "word_count": 2,
+      "is_draft": false,
+      "is_crisis_flagged": false,
+      "client_created_at": "2026-10-10T12:00:00.000Z",
+      "client_updated_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-chat_conversation",
+    "type": "chat_conversation",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "title": null,
+      "message_count": 1,
+      "is_archived": false,
+      "client_updated_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-chat_message",
+    "type": "chat_message",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "conversation_id": "00000000-0000-4000-8000-000000000003",
+      "role": "user",
+      "content": "Synthetic message",
+      "status": "sent",
+      "is_crisis_flagged": false,
+      "client_created_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-safety_plan",
+    "type": "safety_plan",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "is_complete": false,
+      "last_updated_at": "2026-10-10T12:00:00.000Z",
+      "warning_signs": [
+        "Synthetic warning"
+      ]
+    }
+  },
+  {
+    "client_operation_id": "contract-user_profile",
+    "type": "user_profile",
+    "action": "upsert",
+    "data": {
+      "id": "42",
+      "name": "Synthetic user",
+      "email": "synthetic@example.test",
+      "theme": "system",
+      "accent_color": "lavender",
+      "language": "en",
+      "reduce_motion": false,
+      "high_contrast": false,
+      "haptics_enabled": true,
+      "text_size": 1.0,
+      "show_stats": true,
+      "show_username": true,
+      "notifications_master": true,
+      "daily_checkin_enabled": true,
+      "daily_checkin_time": "20:00",
+      "journal_reminder_enabled": true,
+      "comments_notifications": true,
+      "achievements_notifications": true,
+      "marketing_notifications": false,
+      "client_updated_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-user_preferences",
+    "type": "user_preferences",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "focus_areas": [
+        "Sleep"
+      ],
+      "current_challenges": [
+        "Work"
+      ],
+      "check_in_frequency": "Daily",
+      "attribution": null,
+      "completed_at": "2026-10-10T12:00:00.000Z",
+      "skipped": false
+    }
+  },
+  {
+    "client_operation_id": "contract-quiz_attempt",
+    "type": "quiz_attempt",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "quiz_slug": "synthetic-quiz",
+      "quiz_title": "Synthetic quiz",
+      "answers": [
+        1,
+        2
+      ],
+      "score": 3,
+      "is_crisis_flagged": false,
+      "completed_at": "2026-10-10T12:00:00.000Z",
+      "interpretation": "Synthetic result",
+      "assessment_id": "synthetic-quiz",
+      "total_score": 3,
+      "severity_label": ""
+    }
+  },
+  {
+    "client_operation_id": "contract-saved_article",
+    "type": "saved_article",
+    "action": "upsert",
+    "data": {
+      "id": "saved_00000000-0000-4000-8000-000000000009",
+      "article_id": "00000000-0000-4000-8000-000000000009",
+      "title": "Synthetic article",
+      "excerpt": "Synthetic excerpt",
+      "image_url": "",
+      "saved_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-app_notification",
+    "type": "app_notification",
+    "action": "upsert",
+    "data": {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "type": "system",
+      "title": "Synthetic notification",
+      "body": "Synthetic body",
+      "is_read": false,
+      "client_created_at": "2026-10-10T12:00:00.000Z"
+    }
+  },
+  {
+    "client_operation_id": "contract-subscription",
+    "type": "subscription",
+    "action": "upsert",
+    "data": {
+      "id": "sub_123456789",
+      "plan": "free",
+      "status": "inactive"
+    }
+  }
+]

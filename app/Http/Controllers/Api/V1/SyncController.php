@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Requests\SyncBatchRequest;
 use App\Models\AppNotification;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
@@ -12,11 +13,11 @@ use App\Models\SafetyPlan;
 use App\Models\SavedArticle;
 use App\Models\SubscriptionStatus;
 use App\Models\UserProfile;
+use App\Services\SyncRecordWriter;
 use App\Services\UserPreferencesSync;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class SyncController extends ApiController
 {
@@ -35,7 +36,7 @@ class SyncController extends ApiController
         'subscription_status' => SubscriptionStatus::class,
     ];
 
-    public function batch(\App\Http\Requests\SyncBatchRequest $request)
+    public function batch(SyncBatchRequest $request)
     {
         $request->validated();
         $results = [];
@@ -57,21 +58,21 @@ class SyncController extends ApiController
 
             if (! is_string($type) || ! is_string($action) || ! is_array($data)
                 || ! is_scalar($id) || (string) $id === '') {
-                $results[] = [...$result, 'error' => 'Invalid operation format'];
+                $results[] = [...$result, 'error' => 'Invalid operation format', 'error_code' => 'invalid_payload'];
 
                 continue;
             }
 
             $modelClass = self::MODELS[$type] ?? null;
             if ($modelClass === null) {
-                $results[] = [...$result, 'error' => 'Unknown type'];
+                $results[] = [...$result, 'error' => 'Unknown type', 'error_code' => 'unknown_type'];
 
                 continue;
             }
 
             $isCancellation = $action === 'cancel' && $modelClass === SubscriptionStatus::class;
             if (! in_array($action, ['upsert', 'delete'], true) && ! $isCancellation) {
-                $results[] = [...$result, 'error' => 'Unknown action'];
+                $results[] = [...$result, 'error' => 'Unknown action', 'error_code' => 'unknown_action'];
 
                 continue;
             }
@@ -100,15 +101,11 @@ class SyncController extends ApiController
                     // Explicit ownership constraint also protects deletes and cancellations.
                     $query = $modelClass::where('user_id', $request->user()->id);
                     if ($action === 'upsert') {
-                        $record = $query->updateOrCreate(['id' => $data['id']], $data);
-                        $event = ['mood_entry' => 'mood_logged', 'journal_entry' => 'journal_created', 'quiz_attempt' => 'quiz_completed'][$type] ?? null;
-                        if ($record->wasRecentlyCreated && $event && ! ($data['is_deleted'] ?? false)) {
-                            app(\App\Services\Analytics\AnalyticsService::class)->track($event);
-                        }
+                        return app(SyncRecordWriter::class)->upsert($modelClass, $type, $request->user(), $data);
                     } elseif ($action === 'delete') {
-                        $query->where('id', $data['id'])->delete();
+                        app(SyncRecordWriter::class)->delete($modelClass, $type, $request->user(), $data['id']);
                     } elseif ($isCancellation) {
-                        $subscription = $query->where('id', $data['id'])->first();
+                        $subscription = $query->first();
                         if (! $subscription) {
                             return 'Subscription not found';
                         }
@@ -122,12 +119,12 @@ class SyncController extends ApiController
                 });
                 $results[] = $error === null
                     ? [...$result, 'success' => true]
-                    : [...$result, 'error' => $error];
+                    : [...$result, 'error' => $error, 'error_code' => $error === 'Conversation not found' ? 'dependency_missing' : $error];
             } catch (ValidationException $e) {
-                $results[] = [...$result, 'error' => $type === 'user_preferences' ? 'Invalid preferences payload' : 'Invalid sync payload', 'errors' => $e->errors()];
+                $results[] = [...$result, 'error' => $type === 'user_preferences' ? 'Invalid preferences payload' : 'Invalid sync payload', 'error_code' => 'invalid_payload', 'errors' => $e->errors()];
             } catch (Throwable $e) {
                 report($e);
-                $results[] = [...$result, 'error' => 'Unable to apply sync operation'];
+                $results[] = [...$result, 'error' => 'Unable to apply sync operation', 'error_code' => 'database'];
             }
         }
 
