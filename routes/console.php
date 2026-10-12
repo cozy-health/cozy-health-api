@@ -22,6 +22,15 @@ Artisan::command('push:status', function () {
     }
 });
 
+Artisan::command('push:credentials-check', function () {
+    if (! app(\App\Services\Push\FcmSender::class)->verifyCredentials()) {
+        $this->error('FCM validation failed. Check the project, credential, API access and network. No notification was sent.');
+        return 1;
+    }
+    $this->info('FCM HTTP v1 authorization and validation passed. No notification was sent.');
+    return 0;
+});
+
 Schedule::command('analytics:prune --older-than=14months')->daily()->withoutOverlapping();
 
 Artisan::command('settings:set {key} {value}', function () {

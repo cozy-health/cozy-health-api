@@ -46,6 +46,10 @@ Never put service-account JSON, private keys or registration/cleanup tokens in s
 
 `php artisan push:status` reports aggregate reminder and attempt counts without account IDs, tokens or payloads.
 
+`php artisan push:credentials-check` uses FCM HTTP v1 with `validate_only=true`. It verifies authorization and message validation without delivering a notification, creating an inbox record or consuming a reminder allowance. A successful check does not establish real-device delivery.
+
+Firebase projects are `cozy-health-dev-2026` and `cozy-health-prod-2026`, owned through the authorized Cozy Health Google account. The existing Railway environment uses the production project; its API and dedicated worker receive the same sender credential. Sender service accounts have the FCM API Admin role rather than project Owner. Server keys are stored only in hosting secrets and secure local provisioning storage, never mobile configuration or source control. Remote payloads reference the bundled Cozy sound; Android uses `gentle_reminders_v2` so existing channel configuration does not prevent the new sound.
+
 For Railway's existing dedicated worker, set `RUN_QUEUE_WORKER=false` on the API; the API runs the single scheduler while the queue service retains its worker start command. Standalone Docker deployments default to running both.
 
 `php artisan ops:status --verify` checks a recent scheduler heartbeat and prints only aggregate/non-sensitive readiness information. `php artisan ops:queue-probe --wait=20` queues a harmless database/default job and waits for a shared-cache acknowledgement. It sends no push or email and uses no account data. Both services must share their database, cache and cache prefix. A missing acknowledgement is a failed runtime check, not proof of a worker outage; inspect queue configuration and logs.
