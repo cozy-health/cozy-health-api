@@ -2,6 +2,11 @@
 set -eu
 
 export PORT="${PORT:-8080}"
+export RUN_QUEUE_WORKER="${RUN_QUEUE_WORKER:-true}"
+case "$RUN_QUEUE_WORKER" in
+    true|false) ;;
+    *) echo 'RUN_QUEUE_WORKER must be true or false' >&2; exit 1 ;;
+esac
 case "$PORT" in
     ''|*[!0-9]*) echo 'PORT must be a valid TCP port' >&2; exit 1 ;;
 esac

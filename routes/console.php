@@ -3,6 +3,25 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('ops:scheduler:last-tick', now()->toIso8601String(), now()->addMinutes(10)))
+    ->name('ops:heartbeat')->everyMinute()->withoutOverlapping();
+
+Schedule::call(fn () => app(\App\Services\Push\ReminderScheduler::class)->tick())->name('push:reminders')->everyMinute()->withoutOverlapping();
+
+Artisan::command('push:tick', function () {
+    app(\App\Services\Push\ReminderScheduler::class)->tick();
+    $this->info('Reminder scheduling completed; sending remains subject to configuration and consent.');
+});
+
+Artisan::command('push:status', function () {
+    $this->info('Push dispatch: '.(config('push.enabled') ? 'enabled' : 'disabled'));
+    $this->info('iOS dispatch: '.(config('push.ios_enabled') ? 'enabled' : 'disabled'));
+    foreach (['push_reminders', 'push_attempts'] as $table) {
+        $counts = \Illuminate\Support\Facades\DB::table($table)->select('status')->selectRaw('count(*) as total')->groupBy('status')->orderBy('status')->get();
+        $this->table([$table.' status', 'Count'], $counts->map(fn ($row) => [$row->status, $row->total])->all());
+    }
+});
+
 Schedule::command('analytics:prune --older-than=14months')->daily()->withoutOverlapping();
 
 Artisan::command('settings:set {key} {value}', function () {

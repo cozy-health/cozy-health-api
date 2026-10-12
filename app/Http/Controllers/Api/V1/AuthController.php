@@ -311,6 +311,10 @@ class AuthController extends Controller
 
     public function logout()
     {
+        request()->validate(['device_id' => 'sometimes|string|max:128']);
+        if (request()->filled('device_id')) {
+            \App\Models\PushDevice::where('user_id', request()->user()->id)->where('device_id', request()->input('device_id'))->delete();
+        }
         app(\App\Services\AuthSessions::class)->revokeOne(request()->user(), request()->user()->currentAccessToken()->id);
 
         return $this->success(null, 'Logged out successfully.');

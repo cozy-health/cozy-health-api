@@ -27,6 +27,10 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
+        static::deleting(function (User $user) {
+            \App\Models\PushDevice::where('user_id', $user->id)->delete();
+            \App\Models\PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
+        });
         static::updating(function (User $user) {
             if ($user->getOriginal('is_demo') && $user->isDirty('email')) {
                 throw ValidationException::withMessages(['email' => ['The demo account email cannot be changed.']]);

@@ -10,6 +10,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(\App\Services\Push\PushSender::class, \App\Services\Push\FcmSender::class);
         $this->app->bind('db.connector.mysql', \App\Database\TlsMySqlConnector::class);
     }
 

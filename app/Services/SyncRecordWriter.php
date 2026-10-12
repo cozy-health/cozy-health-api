@@ -14,6 +14,15 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if ($type === 'user_profile') {
+            \Illuminate\Support\Facades\Validator::make($data, [
+                ...\App\Services\Push\ReminderSettings::rules(),
+                'notifications_master' => 'sometimes|boolean',
+                'daily_checkin_enabled' => 'sometimes|boolean',
+                'daily_checkin_time' => 'sometimes|date_format:H:i',
+                'journal_reminder_enabled' => 'sometimes|boolean',
+            ])->validate();
+        }
         $query = $modelClass::where('user_id', $user->id);
         $softDeletes = in_array(SoftDeletes::class, class_uses_recursive($modelClass), true);
         if ($softDeletes) {

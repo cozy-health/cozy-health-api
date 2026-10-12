@@ -51,6 +51,7 @@ use App\Jobs\SendTestEmail;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::post('notifications/cleanup', [PushDeviceController::class, 'cleanup'])->middleware('throttle:30,1');
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     Route::get('admin/health/queue-depth', AdminQueueHealthController::class)
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);

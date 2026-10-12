@@ -36,6 +36,8 @@ class UserProfile extends Model
   23 => 'onboarding_completed_at',
   24 => 'client_updated_at',
   25 => 'preferences',
+  26 => 'push_consent',
+  27 => 'reminder_settings',
 );
     protected $casts = array (
   'reduce_motion' => 'boolean',
@@ -52,12 +54,18 @@ class UserProfile extends Model
   'onboarding_completed_at' => 'datetime',
   'client_updated_at' => 'datetime',
   'preferences' => 'array',
+  'push_consent' => 'boolean',
+  'reminder_settings' => 'array',
 );
     public function user() { return $this->belongsTo(User::class); }
 
     protected static function booted()
     {
         static::saving(function (UserProfile $profile) {
+            if ($profile->isDirty('reminder_settings') && $profile->reminder_settings !== null) {
+                $profile->reminder_settings = array_replace(\App\Services\Push\ReminderSettings::defaults(),
+                    $profile->getOriginal('reminder_settings') ?? [], $profile->reminder_settings);
+            }
             if (! $profile->isDirty('email')) {
                 return;
             }
@@ -66,6 +74,12 @@ class UserProfile extends Model
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'email' => ['The demo account email cannot be changed.'],
                 ]);
+            }
+        });
+        static::saved(function (UserProfile $profile) {
+            if (! $profile->push_consent || ! $profile->notifications_master) {
+                \App\Models\PushReminder::where('user_id', $profile->user_id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
+                \App\Models\PushDevice::where('user_id', $profile->user_id)->delete();
             }
         });
         static::addGlobalScope('user', function ($query) {

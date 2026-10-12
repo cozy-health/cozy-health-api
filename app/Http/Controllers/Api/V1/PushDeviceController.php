@@ -32,12 +32,13 @@ class PushDeviceController extends ApiController
             if ($existing && ($existing->user_id !== $request->user()->id || $existing->device_id !== $data['device_id'])) {
                 return $this->error('This token is already registered. Unregister it before reassignment.', 'TOKEN_IN_USE', [], 409);
             }
+            $cleanup = bin2hex(random_bytes(32));
             $device = PushDevice::updateOrCreate(
                 ['user_id' => $request->user()->id, 'device_id' => $data['device_id']],
-                [...$data, 'token_hash' => $hash, 'expires_at' => now()->addDays(90)],
+                [...$data, 'token_hash' => $hash, 'cleanup_hash' => hash('sha256', $cleanup), 'expires_at' => now()->addDays(90)],
             );
 
-            return $this->success($device);
+            return $this->success([...$device->toArray(), 'cleanup_token' => $cleanup]);
         });
     }
 
@@ -46,5 +47,13 @@ class PushDeviceController extends ApiController
         PushDevice::where('user_id', $request->user()->id)->where('device_id', $deviceId)->delete();
 
         return response()->json(['message' => 'Device unregistered.']);
+    }
+
+    // Revocation-only capability survives an expired login. It grants no account/data access.
+    public function cleanup(Request $request)
+    {
+        $data = $request->validate(['device_id' => 'required|string|max:128', 'cleanup_token' => 'required|string|size:64|regex:/^[a-f0-9]+$/']);
+        PushDevice::where('device_id', $data['device_id'])->where('cleanup_hash', hash('sha256', $data['cleanup_token']))->delete();
+        return response()->json(['message' => 'Registration cleanup completed.']);
     }
 }

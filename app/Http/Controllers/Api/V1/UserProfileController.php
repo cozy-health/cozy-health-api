@@ -96,6 +96,7 @@ class UserProfileController extends Controller
         return response()->json(['data' => $this->getOrCreateProfile($request)->only([
             'notifications_master', 'daily_checkin_enabled', 'daily_checkin_time',
             'journal_reminder_enabled', 'comments_notifications', 'achievements_notifications', 'marketing_notifications',
+            'push_consent', 'reminder_settings',
         ])]);
     }
 
