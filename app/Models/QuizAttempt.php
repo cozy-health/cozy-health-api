@@ -22,6 +22,11 @@ class QuizAttempt extends Model
   8 => 'completed_at',
   9 => 'is_deleted',
   10 => 'client_created_at',
+  11 => 'definition_version',
+  12 => 'result_snapshot',
+  13 => 'maximum_score',
+  14 => 'validated_at',
+  15 => 'disclaimer_accepted_at',
 );
     protected $casts = array (
   'answers' => 'array',
@@ -29,6 +34,11 @@ class QuizAttempt extends Model
   'is_deleted' => 'boolean',
   'completed_at' => 'datetime',
   'client_created_at' => 'datetime',
+  'result_snapshot' => 'array',
+  'validated_at' => 'datetime',
+  'disclaimer_accepted_at' => 'datetime',
+  'score' => 'integer',
+  'maximum_score' => 'integer',
 );
     public function user() { return $this->belongsTo(User::class); }
 

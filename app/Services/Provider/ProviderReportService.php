@@ -37,6 +37,7 @@ class ProviderReportService
                 $start = $from->copy()->utc();
                 $end = $to->copy()->utc();
                 $summary = ['moods' => null, 'journals' => null, 'quizzes' => null, 'notes' => null];
+                $quizSnapshot = [];
                 if ($flags['moods']) {
                     $moods = MoodEntry::withoutGlobalScope('user')->where('user_id', $user->id)->where('is_deleted', false)
                         ->whereBetween(DB::raw('COALESCE(client_created_at, created_at)'), [$start, $end])
@@ -61,7 +62,9 @@ class ProviderReportService
                     $summary['journals'] = ['count' => array_sum($types), 'types' => $types];
                 }
                 if ($flags['quizzes']) {
+                    $quizSnapshot = app(\App\Services\QuizSharingService::class)->providerQuery($provider->id, $user->id, $link->id)->pluck('revision', 'quiz_attempt_id')->all();
                     $summary['quizzes'] = QuizAttempt::withoutGlobalScope('user')->where('user_id', $user->id)->where('is_deleted', false)
+                        ->whereNotNull('validated_at')->whereIn('id', array_keys($quizSnapshot))
                         ->whereBetween('completed_at', [$start, $end])->orderBy('completed_at')->get(['quiz_slug', 'score', 'interpretation', 'completed_at']);
                 }
                 if ($flags['notes']) {
@@ -78,7 +81,7 @@ class ProviderReportService
                 }
                 $report = ProviderReport::create(['provider_id' => $provider->id, 'user_id' => $user->id, 'type' => $type,
                     'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), 'file_path' => $path,
-                    'generated_at' => $generatedAt, 'link_id' => $link->id, 'link_verified_at' => $link->verified_at, 'consent_snapshot' => $flags]);
+                    'generated_at' => $generatedAt, 'link_id' => $link->id, 'link_verified_at' => $link->verified_at, 'consent_snapshot' => $flags, 'quiz_share_snapshot' => $quizSnapshot]);
                 ProviderAudit::record(request(), $link, 'create', 'report', (string) $report->id);
 
                 return $report;
@@ -102,6 +105,14 @@ class ProviderReportService
             }
         }
 
+        if ($report->consent_snapshot['quizzes'] ?? false) {
+            if (! Provider::whereKey($link->provider_id)->where('is_active', true)->where('is_verified', true)->exists()) return false;
+            if (! is_array($report->quiz_share_snapshot)) return false;
+            foreach ($report->quiz_share_snapshot as $id => $revision) {
+                $grant = app(\App\Services\QuizSharingService::class)->providerQuery($link->provider_id, $link->user_id, $link->id)->where('quiz_attempt_id', $id)->lockForUpdate()->first();
+                if (! $grant || (int) $grant->revision !== (int) $revision || ! QuizAttempt::withoutGlobalScope('user')->whereKey($id)->where('is_deleted', false)->exists()) return false;
+            }
+        }
         return true;
     }
 }

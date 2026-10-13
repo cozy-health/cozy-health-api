@@ -55,6 +55,10 @@ class UserProfileController extends Controller
 
         $validated = $request->validated();
 
+        if (array_key_exists('username', $validated)) {
+            $validated['username'] = app(\App\Services\UsernameService::class)->validate($request->user(), $validated['username']);
+        }
+
         if (array_key_exists('timezone', $validated)) {
             $request->user()->update(['timezone' => $validated['timezone']]);
             unset($validated['timezone']);

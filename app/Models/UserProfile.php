@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserProfile extends Model
 {
+    protected $hidden = ['username_key'];
     protected $table = 'user_profiles';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -65,6 +66,11 @@ class UserProfile extends Model
             if ($profile->isDirty('reminder_settings') && $profile->reminder_settings !== null) {
                 $profile->reminder_settings = array_replace(\App\Services\Push\ReminderSettings::defaults(),
                     $profile->getOriginal('reminder_settings') ?? [], $profile->reminder_settings);
+            }
+            if ($profile->isDirty('username')) {
+                $owner = $profile->user()->firstOrFail();
+                $profile->username = app(\App\Services\UsernameService::class)->validate($owner, $profile->username);
+                $profile->username_key = $profile->username === null ? null : strtolower(trim($profile->username));
             }
             if (! $profile->isDirty('email')) {
                 return;

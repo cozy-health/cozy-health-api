@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::call(function () {
+    \Illuminate\Support\Facades\DB::table('quiz_invitations')->whereNull('accepted_at')->where('expires_at', '<', now()->subDays(7))->delete();
+    \App\Models\QuizSession::where('expires_at', '<', now()->subDays(7))->whereNotIn('id', \App\Models\QuizAttempt::withTrashed()->select('id'))->delete();
+})->name('quiz:cleanup')->daily()->withoutOverlapping();
+
 Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('ops:scheduler:last-tick', now()->toIso8601String(), now()->addMinutes(10)))
     ->name('ops:heartbeat')->everyMinute()->withoutOverlapping();
 

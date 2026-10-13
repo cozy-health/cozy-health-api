@@ -98,8 +98,11 @@ class ReminderScheduler
             $last = PushReminder::where('user_id', $user->id)->whereNotNull('dispatched_at')->max('dispatched_at');
             $actual = PushReminder::where('user_id', $user->id)->max('send_started_at');
             if ($actual && (! $last || $actual > $last)) $last = $actual;
+            $share = ShareDeliveryWindow::latest($user->id);
+            if ($share && (! $last || $share > $last)) $last = $share;
             $count = PushReminder::where('user_id', $user->id)->where('dispatched_at', '>=', $now->startOfDay()->utc())
                 ->where('dispatched_at', '<', $now->addDay()->startOfDay()->utc())->count();
+            $count += ShareDeliveryWindow::count($user->id, $now->startOfDay()->utc(), $now->addDay()->startOfDay()->utc());
             foreach (ReminderSettings::CATEGORIES as $category) {
                 $reminder = PushReminder::where('user_id', $user->id)->where('category', $category)->where('local_date', $date)
                     ->whereIn('status', ['queued', 'deferred'])->first();

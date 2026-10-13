@@ -19,16 +19,20 @@ beforeEach(function () {
     $this->operation = fn (string $type) => collect($this->operations)->firstWhere('type', $type);
 });
 
-it('persists all eleven real mobile serializer payloads including legacy bookmarks and null conversation titles', function () {
+it('persists compatible payloads and rejects an unknown unversioned quiz without trusting its score', function () {
     $profile = UserProfile::create(['id' => (string) Str::uuid(), 'user_id' => $this->syncUser->id,
         'name' => 'Before', 'email' => $this->syncUser->email]);
     $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk()->assertJsonCount(11, 'data.results');
     foreach ($this->operations as $index => $operation) {
+        if ($operation['type'] === 'quiz_attempt') {
+            $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'invalid_payload');
+            continue;
+        }
         $response->assertJsonPath("data.results.$index.success", true)
             ->assertJsonPath("data.results.$index.client_operation_id", $operation['client_operation_id']);
     }
     foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
-        'user_profiles', 'quiz_attempts', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
+        'user_profiles', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
     $this->assertDatabaseHas('user_profiles', ['id' => $profile->id, 'name' => 'Synthetic user']);
@@ -44,11 +48,12 @@ it('retries all mobile payloads without duplicating singleton or bookmarked reco
     for ($retry = 0; $retry < 2; $retry++) {
         $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk();
         foreach ($this->operations as $index => $operation) {
+            if ($operation['type'] === 'quiz_attempt') { $response->assertJsonPath("data.results.$index.success", false); continue; }
             $response->assertJsonPath("data.results.$index.success", true);
         }
     }
     foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
-        'user_profiles', 'quiz_attempts', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
+        'user_profiles', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
 });

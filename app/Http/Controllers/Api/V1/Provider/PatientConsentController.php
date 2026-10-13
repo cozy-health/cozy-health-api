@@ -28,6 +28,9 @@ class PatientConsentController extends Controller
 
         return DB::transaction(function () use ($request, $linkId, $data) {
             $link = $request->user()->providerClientLinks()->active()->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            if ($data['consent_type'] === 'quizzes' && ! $data['value']) {
+                DB::table('quiz_shares')->where('link_id', $link->id)->whereNull('revoked_at')->update(['revoked_at' => now(), 'updated_at' => now()]);
+            }
             $link->update(['consent_'.$data['consent_type'] => $data['value']]);
             ProviderAudit::record($request, $link, 'consent_updated', 'consent', (string) $link->id);
 
@@ -39,6 +42,7 @@ class PatientConsentController extends Controller
     {
         return DB::transaction(function () use ($request, $linkId) {
             $link = $request->user()->providerClientLinks()->whereNull('revoked_at')->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            DB::table('quiz_shares')->where('link_id', $link->id)->whereNull('revoked_at')->update(['revoked_at' => now(), 'updated_at' => now()]);
             $link->update(['revoked_at' => now()]);
             ProviderAudit::record($request, $link, 'revoked', 'client', (string) $link->id);
 

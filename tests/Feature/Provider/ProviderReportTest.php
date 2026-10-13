@@ -74,7 +74,9 @@ class ProviderReportTest extends ProviderDataTestCase
         }
         $link->update(['consent_moods' => true, 'consent_quizzes' => true, 'consent_notes' => true]);
         MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'happy', 'intensity' => 4, 'triggers' => ['Work', 'Work', 'Sleep'], 'client_created_at' => now()]);
-        QuizAttempt::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'quiz_slug' => 'wellbeing', 'quiz_title' => 'Wellbeing', 'answers' => [], 'score' => 8, 'interpretation' => 'Quiz interpretation', 'completed_at' => now()]);
+        $quiz = QuizAttempt::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'quiz_slug' => 'wellbeing', 'quiz_title' => 'Wellbeing', 'answers' => [], 'score' => 8, 'interpretation' => 'Quiz interpretation', 'completed_at' => now(), 'validated_at' => now()]);
+        \Illuminate\Support\Facades\DB::table('quiz_shares')->insert(['quiz_attempt_id' => $quiz->id, 'provider_id' => $provider->id,
+            'user_id' => $user->id, 'link_id' => $link->id, 'consented_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         $provider->notes()->create(['user_id' => $user->id, 'body' => 'Own provider note']);
         $this->provider()->notes()->create(['user_id' => $user->id, 'body' => 'Other provider secret']);
         $this->generate($provider, $user);

@@ -40,6 +40,8 @@ class SendPushAttempt implements ShouldQueue
             elseif (! $reminder->send_started_at && $reminder->dispatched_at->lt($now->subMinutes(15))) $status = 'expired';
             if (! $status) {
                 $lastSend = PushReminder::where('user_id', $user->id)->where('id', '!=', $reminder->id)->max('send_started_at');
+                $share = \App\Services\Push\ShareDeliveryWindow::latest($user->id);
+                if ($share && (! $lastSend || $share > $lastSend)) $lastSend = $share;
                 if ($lastSend && CarbonImmutable::parse($lastSend, 'UTC')->addHours(2)->gt($now)) $status = 'expired';
             }
             if ($status) { DB::table('push_attempts')->where('id', $attempt->id)->update(['status' => $status, 'updated_at' => now()]); return null; }

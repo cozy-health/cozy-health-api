@@ -104,6 +104,7 @@ class ProviderController extends Controller
         DB::transaction(function () {
             $link = request()->user()->providerConnection()->lockForUpdate()->first();
             if ($link) {
+                DB::table('quiz_shares')->where('link_id', $link->id)->whereNull('revoked_at')->update(['revoked_at' => now(), 'updated_at' => now()]);
                 $link->update(['revoked_at' => now()]);
                 ProviderAudit::record(request(), $link, 'revoked', 'client', (string) $link->id);
             }

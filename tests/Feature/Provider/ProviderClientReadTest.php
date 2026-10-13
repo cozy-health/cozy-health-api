@@ -124,6 +124,10 @@ class ProviderClientReadTest extends ProviderDataTestCase
         MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'sad', 'intensity' => 2, 'is_deleted' => true]);
         $quiz = QuizAttempt::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'quiz_slug' => 'phq-9',
             'quiz_title' => 'Private title', 'answers' => ['private'], 'score' => 3, 'interpretation' => 'minimal', 'completed_at' => now()]);
+        $quiz->update(['validated_at' => now()]);
+        $link = \App\Models\ProviderClientLink::where('provider_id', $provider->id)->where('user_id', $user->id)->firstOrFail();
+        \Illuminate\Support\Facades\DB::table('quiz_shares')->insert(['quiz_attempt_id' => $quiz->id, 'provider_id' => $provider->id,
+            'user_id' => $user->id, 'link_id' => $link->id, 'consented_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         $this->asProvider($provider)->getJson("/api/v1/provider/clients/{$user->id}/moods?per_page=1&from=2026-10-01&to=2026-10-01")
             ->assertOk()->assertJsonPath('total', 2)->assertJsonCount(1, 'data');
         $this->getJson("/api/v1/provider/clients/{$user->id}/moods?from=2026-09-01&to=2026-09-02")

@@ -117,11 +117,22 @@ class SyncController extends ApiController
 
                     return null;
                 });
+                if ($error === null && $type === 'quiz_attempt' && $action === 'upsert') {
+                    $result['record'] = QuizAttempt::whereKey($data['id'])->first()?->toArray();
+                }
                 $results[] = $error === null
                     ? [...$result, 'success' => true]
                     : [...$result, 'error' => $error, 'error_code' => $error === 'Conversation not found' ? 'dependency_missing' : $error];
             } catch (ValidationException $e) {
                 $results[] = [...$result, 'error' => $type === 'user_preferences' ? 'Invalid preferences payload' : 'Invalid sync payload', 'error_code' => 'invalid_payload', 'errors' => $e->errors()];
+            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+                $code = match ($e->getStatusCode()) {
+                    503 => 'feature_paused', 429 => 'rate_limited', 409 => 'conflict',
+                    410 => 'gone', 404 => 'definition_unavailable', default => 'invalid_payload',
+                };
+                $results[] = [...$result, 'error' => 'Assessment could not be validated', 'error_code' => $code];
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $results[] = [...$result, 'error' => 'Definition unavailable', 'error_code' => 'definition_unavailable'];
             } catch (Throwable $e) {
                 report($e);
                 $results[] = [...$result, 'error' => 'Unable to apply sync operation', 'error_code' => 'database'];

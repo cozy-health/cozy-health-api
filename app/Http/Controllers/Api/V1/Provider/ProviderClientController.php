@@ -84,6 +84,7 @@ class ProviderClientController extends Controller
                     ->selectRaw("CASE WHEN voice_url IS NOT NULL AND voice_url <> '' THEN 1 ELSE 0 END AS has_voice"),
                 'quizzes' => QuizAttempt::withoutGlobalScope('user')->select(['id', 'quiz_slug', 'score', 'interpretation', 'completed_at']),
             };
+            if ($type === 'quizzes') app(\App\Services\QuizSharingService::class)->filterProvider($query, $link);
             $query->where('user_id', $link->user_id)->where('is_deleted', false);
             $timestamp = $type === 'quizzes' ? 'completed_at' : DB::raw('COALESCE(client_created_at, created_at)');
             if ($request->filled('from')) {

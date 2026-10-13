@@ -14,6 +14,14 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if ($type === 'quiz_attempt') {
+            if (empty($data['definition_version'])) app(AssessmentService::class)->submitLegacy($user, $data);
+            else app(AssessmentService::class)->submit($user, $data);
+            return null;
+        }
+        if ($type === 'user_profile' && array_key_exists('username', $data)) {
+            $data['username'] = app(UsernameService::class)->validate($user, $data['username']);
+        }
         if ($type === 'user_profile') {
             \Illuminate\Support\Facades\Validator::make($data, [
                 ...\App\Services\Push\ReminderSettings::rules(),
@@ -88,6 +96,10 @@ class SyncRecordWriter
 
     public function delete(string $modelClass, string $type, User $user, string $id): void
     {
+        if ($type === 'quiz_attempt') {
+            app(QuizSharingService::class)->deleteAttempt($user->id, $id);
+            return;
+        }
         $query = $modelClass::where('user_id', $user->id);
         if ($type === 'saved_article') {
             $query->where(fn ($query) => $query->where('id', $id)->orWhere('article_id', $id));

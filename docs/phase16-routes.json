@@ -48,6 +48,6 @@
   ["POST", "quizzes/1/submit", "QuizCatalogController@submit"],
   ["GET", "quizzes/attempts", "QuizCatalogController@attempts"],
   ["GET", "quizzes/attempts/fixture", "QuizCatalogController@attempt"],
-  ["POST", "quizzes/attempts/fixture/share", "QuizCatalogController@share"],
+  ["POST", "quizzes/attempts/fixture/share", "QuizSharingController@provider"],
   ["GET", "crisis/resources", "CrisisResourceController"]
 ]

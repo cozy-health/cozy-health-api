@@ -12,6 +12,7 @@
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/testing/
+/storage/app/private/
 
 # Temporary files and generated outputs
 .env.*
