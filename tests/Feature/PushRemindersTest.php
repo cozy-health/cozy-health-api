@@ -115,6 +115,33 @@ class PushRemindersTest extends TestCase
         $this->assertDatabaseHas('push_attempts', ['status' => 'unknown']);
     }
 
+    public function test_late_retry_moves_the_actual_send_time_and_defers_another_category(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 12)->setTime(8, 0));
+        $user = $this->account(['quiet_enabled' => false, 'journal_days' => [1], 'journal_time' => '09:00']);
+        $this->app->bind(PushSender::class, fn () => new class implements PushSender {
+            public function send(PushDevice $device, AppNotification $notification): string { return 'transient'; }
+        });
+        $scheduler = app(ReminderScheduler::class);
+        $scheduler->schedule($user);
+        $attempt = DB::table('push_attempts')->first();
+        $this->travel(2)->hours();
+        $this->app->bind(PushSender::class, fn () => new class implements PushSender {
+            public function send(PushDevice $device, AppNotification $notification): string { return 'accepted'; }
+        });
+        (new \App\Jobs\SendPushAttempt($attempt->id))->handle(app(PushSender::class), $scheduler);
+        $mood = PushReminder::where('category', 'mood')->first();
+        $this->assertSame(now()->utc()->toDateTimeString(), $mood->send_started_at->toDateTimeString());
+        $scheduler->schedule($user);
+        $this->assertDatabaseCount('app_notifications', 1);
+        $journal = PushReminder::where('category', 'journal')->first();
+        $this->assertSame('deferred', $journal->status);
+        $this->assertSame(now()->addHours(2)->utc()->toDateTimeString(), $journal->eligible_at->toDateTimeString());
+        $this->travel(2)->hours();
+        $scheduler->schedule($user);
+        $this->assertDatabaseCount('app_notifications', 2);
+    }
+
     public function test_cleanup_capability_survives_logout_and_cannot_revoke_a_rotated_registration(): void
     {
         $user = $this->account();

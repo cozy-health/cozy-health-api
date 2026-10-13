@@ -19,17 +19,21 @@ class SendPushAttempt implements ShouldQueue
 
     public function handle(PushSender $sender, ReminderScheduler $scheduler): void
     {
-        $work = DB::transaction(function () use ($scheduler) {
+        // Resolve ownership before the transaction's consistent-read snapshot starts.
+        $ownerId = DB::table('push_attempts')->join('push_reminders', 'push_reminders.id', '=', 'push_attempts.reminder_id')
+            ->where('push_attempts.id', $this->attemptId)->value('push_reminders.user_id');
+        if (! $ownerId) return;
+        $work = DB::transaction(function () use ($scheduler, $ownerId) {
+            // Match the scheduler's lock order. Reads after this lock see the previous worker's commit.
+            $user = User::whereKey($ownerId)->lockForUpdate()->first();
             $attempt = DB::table('push_attempts')->where('id', $this->attemptId)->lockForUpdate()->first();
             if (! $attempt || ! in_array($attempt->status, ['queued', 'transient']) || ($attempt->retry_at && CarbonImmutable::parse($attempt->retry_at)->isFuture())) return null;
             $reminder = PushReminder::find($attempt->reminder_id);
-            $user = User::find($reminder?->user_id);
-            if ($user) $user = User::whereKey($user->id)->lockForUpdate()->first();
             $profile = UserProfile::withoutGlobalScope('user')->where('user_id', $user?->id)->first();
             $device = $scheduler->devices($user?->id ?? 0)->whereKey($attempt->device_id)->first();
             $now = CarbonImmutable::now($user?->timezone ?? 'UTC');
             $status = null;
-            if (! $scheduler->enabled() || ! $reminder || ! $user || ! $profile || ! $device
+            if (! $scheduler->enabled() || ! $reminder || ! $user || $reminder->user_id !== $user->id || ! $profile || ! $device
                 || ! $scheduler->eligible($user, $profile, $reminder->category, $now)) $status = 'cancelled';
             elseif ($reminder->expires_at->lte($now) || $reminder->dispatch_date !== $now->toDateString()) $status = 'expired';
             elseif ($scheduler->afterQuiet($now, ReminderSettings::for($profile))->gt($now)) $status = 'expired';
@@ -40,9 +44,10 @@ class SendPushAttempt implements ShouldQueue
             }
             if ($status) { DB::table('push_attempts')->where('id', $attempt->id)->update(['status' => $status, 'updated_at' => now()]); return null; }
             DB::table('push_attempts')->where('id', $attempt->id)->update(['status' => 'sending', 'attempts' => $attempt->attempts + 1, 'updated_at' => now()]);
-            if (! $reminder->send_started_at) $reminder->update(['send_started_at' => $now->utc()]);
+            // Include delayed retries and later device attempts in the elapsed-spacing reservation.
+            $reminder->update(['send_started_at' => $now->utc()]);
             return [$attempt, $device, AppNotification::withoutGlobalScope('user')->find($reminder->id)];
-        });
+        }, 3);
         if (! $work) return;
         [$attempt, $device, $notification] = $work;
         $status = $notification ? $sender->send($device, $notification) : 'failed';
