@@ -18,13 +18,16 @@ class AdminAuthController extends Controller
             throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
         }
         $expires = now()->addMinutes(30);
-        return response()->json(['token' => $user->createToken('cozy-admin-dashboard', ['admin:metrics'], $expires)->plainTextToken,
+        $management = $request->input('session_mode') === 'management-v1';
+        $abilities = $management ? ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email'] : ['admin:metrics'];
+        return response()->json(['token' => $user->createToken($management ? 'cozy-admin-management-v1' : 'cozy-admin-dashboard', $abilities, $expires)->plainTextToken,
             'expires_at' => $expires->toIso8601String()])->header('Cache-Control', 'private, no-store');
     }
 
-    public function session()
+    public function session(Request $request)
     {
-        return response()->json(['role' => 'admin'])->header('Cache-Control', 'private, no-store');
+        $management = $request->user()->currentAccessToken()->name === 'cozy-admin-management-v1';
+        return response()->json(['role' => 'admin', ...($management ? ['name' => $request->user()->name, 'capabilities' => $request->user()->currentAccessToken()->abilities] : [])])->header('Cache-Control', 'private, no-store');
     }
 
     public function logout(Request $request)

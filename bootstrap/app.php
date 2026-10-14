@@ -18,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\RequireHttps::class);
         $middleware->append(\App\Http\Middleware\HideDebugEndpoints::class);
         $middleware->alias(['role' => \App\Http\Middleware\RequireRole::class,
-            'admin.analytics' => \App\Http\Middleware\AdminAnalyticsSession::class]);
+            'admin.analytics' => \App\Http\Middleware\AdminAnalyticsSession::class,
+            'admin.manage' => \App\Http\Middleware\AdminManagementSession::class]);
         $middleware->api(append: [\App\Http\Middleware\RestrictAdminAnalyticsToken::class]);
         $middleware->appendToPriorityList(\Illuminate\Auth\Middleware\Authenticate::class, \App\Http\Middleware\RestrictAdminAnalyticsToken::class);
         $middleware->redirectGuestsTo(fn () => null);

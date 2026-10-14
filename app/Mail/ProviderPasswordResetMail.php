@@ -10,11 +10,12 @@ use Illuminate\Queue\SerializesModels;
 
 class ProviderPasswordResetMail extends Mailable implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
+    use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;
 
     public function __construct(public Provider $user, public string $token)
     {
-        $this->onQueue('email');
+        $this->initializeDelivery(); $this->onQueue('email');
     }
 
     public function build()

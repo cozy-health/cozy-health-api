@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class WelcomeMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue
 {
+    use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;
 
     public $user;
@@ -19,7 +20,7 @@ class WelcomeMail extends Mailable implements \Illuminate\Contracts\Queue\Should
      */
     public function __construct(User $user)
     {
-        $this->onQueue('email');
+        $this->initializeDelivery(); $this->onQueue('email');
         $this->user = $user;
     }
 

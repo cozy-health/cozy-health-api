@@ -11,6 +11,7 @@ class MoodEntry extends Model
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = array (
+  'expression_slug',
   0 => 'id',
   1 => 'user_id',
   2 => 'mood',

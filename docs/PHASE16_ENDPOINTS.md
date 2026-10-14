@@ -37,7 +37,7 @@ Article publication requires approval, a nonempty license and a publication time
 
 The mobile SavedArticle Hive adapter now persists slug/category/read time/body, while retaining the six existing fields and type ID. New and legacy cache reopening tests pass. The saved-content reader keeps pagination/account/merge guards and now bounds page counts. Direct save/unsave methods use canonical bookmark paths; unsave also removes its local record. Five unused activity endpoint constants were removed after confirming they have no references. Payment/future repository methods were retained as required by the deferred-work notes.
 
-This does not replace the existing static article screens/catalog. Real feed/search rendering and cached-body display remain Phase 20 work. Clinician-reviewed, licensed articles must be provisioned separately.
+This does not replace the existing static article screens/catalog. Real feed/search rendering and cached-body display remain Phase 20 work. Rights-cleared articles with documented provenance and non-diagnostic wording must be provisioned separately. Clinician sign-off is no longer required (owner decision, 2026-10-14).
 
 ## Quiz contracts
 
@@ -49,7 +49,7 @@ This does not replace the existing static article screens/catalog. Real feed/sea
 - A repeated submission of identical answers returns the original result; changed answers on a completed session return 409. Deleted results cannot be recreated by retrying a completed session. Expired unsubmitted sessions return 410.
 - `POST /quizzes/attempts/{id}/share` takes `provider_id` and `consent: true`. It requires an active, verified provider link, an active/verified provider, existing `consent_quizzes`, and ownership of the result. It records sharing intent and a provider access audit event. It does not silently grant broad consent or send to an arbitrary email address.
 
-No clinical questions, scoring bands or clinical advice were seeded as approved. The owner/clinician must approve the Phase 19 instruments and copy. Generic response/error handling exists; the actual quiz UI, consent/disclaimer presentation, offline definition/version protocol, PDF export and validated offline sync scoring remain Phase 19 work. Legacy synced attempts are still accepted by the existing sync contract; the new server-scored route does not retroactively certify their client-generated scores.
+No clinical questions, scoring bands or clinical advice were seeded as approved. The owner must approve Phase 19 instruments and copy, preserving permissions and non-diagnostic disclaimers; clinician sign-off is no longer required. Generic response/error handling exists; the actual quiz UI, consent/disclaimer presentation, offline definition/version protocol, PDF export and validated offline sync scoring remain Phase 19 work. Legacy synced attempts are still accepted by the existing sync contract; the new server-scored route does not retroactively certify their client-generated scores.
 
 ## Community contracts and release gates
 

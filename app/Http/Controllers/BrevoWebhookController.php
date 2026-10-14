@@ -10,6 +10,20 @@ class BrevoWebhookController extends Controller
     public function __invoke(BrevoWebhookRequest $request)
     {
         $data = $request->validated();
+        $delivery = match (strtolower($data['event'])) {
+            'delivered' => 'delivered', 'hardbounce', 'hard_bounce', 'softbounce', 'soft_bounce' => 'bounced',
+            'blocked', 'spam', 'complaint', 'unsubscribe', 'unsubscribed', 'invalid_email' => 'suppressed', default => null,
+        };
+        if ($delivery) \App\Services\EmailDeliveryTracking::safely(function () use ($data, $delivery) {
+            $messageKey = \App\Services\EmailDeliveryTracking::key($data['message-id']);
+            $key = \App\Services\EmailDeliveryTracking::key($data['message-id'].'|'.$data['event'].'|'.$data['date']);
+            $sent = DB::table('email_delivery_logs')->where('message_key', $messageKey)->first();
+            DB::table('email_delivery_logs')->insertOrIgnore(['id' => (string) \Illuminate\Support\Str::uuid(),
+                'event' => $sent?->event ?? 'provider-event', 'status' => $delivery, 'message_key' => $messageKey, 'provider_event_key' => $key,
+                'created_at' => \Carbon\Carbon::parse($data['date'])->utc(), 'updated_at' => now()]);
+            $priority = ['queued' => 0, 'sending' => 0, 'sent' => 1, 'delivered' => 2, 'bounced' => 3, 'suppressed' => 4, 'failed' => 1];
+            if ($sent && ($priority[$delivery] ?? 0) >= ($priority[$sent->status] ?? 0)) DB::table('email_delivery_logs')->where('id', $sent->id)->update(['status' => $delivery, 'updated_at' => now()]);
+        });
         $event = match (strtolower($data['event'])) {
             'hardbounce', 'hard_bounce', 'invalid_email' => 'hard_bounce',
             'softbounce', 'soft_bounce' => 'soft_bounce',

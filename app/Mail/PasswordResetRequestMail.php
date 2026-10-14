@@ -9,6 +9,7 @@ use Illuminate\Queue\SerializesModels;
 
 class PasswordResetRequestMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
+    use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;
 
     public $user;
@@ -16,7 +17,7 @@ class PasswordResetRequestMail extends Mailable implements \Illuminate\Contracts
 
     public function __construct(User $user, $token)
     {
-        $this->onQueue('email');
+        $this->initializeDelivery(); $this->onQueue('email');
         $this->user = $user;
         $this->token = $token;
     }

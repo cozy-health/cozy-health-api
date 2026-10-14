@@ -10,11 +10,12 @@ use Illuminate\Queue\SerializesModels;
 
 class ProviderPasswordResetConfirmationMail extends Mailable implements ShouldQueue
 {
+    use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;
 
     public function __construct(public Provider $user)
     {
-        $this->onQueue('email');
+        $this->initializeDelivery(); $this->onQueue('email');
     }
 
     public function build()

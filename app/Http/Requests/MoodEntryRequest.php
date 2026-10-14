@@ -8,6 +8,7 @@ class MoodEntryRequest extends ApiFormRequest
         return [
             'id' => ['required', 'uuid'], 'mood' => ['required', 'string', 'max:20'],
             'intensity' => ['required', 'integer', 'min:0', 'max:10'],
+            'expression_slug' => ['sometimes', 'nullable', 'string', 'max:100'],
             'body_sensations' => ['sometimes', 'nullable', 'array'], 'body_sensations.*' => ['string', 'max:255'],
             'triggers' => ['sometimes', 'nullable', 'array'], 'triggers.*' => ['string', 'max:255'],
             'custom_trigger' => ['sometimes', 'nullable', 'string', 'max:255'],

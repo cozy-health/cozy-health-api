@@ -51,6 +51,43 @@ use App\Jobs\SendTestEmail;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1'])->prefix('admin')->group(function () {
+        Route::middleware('admin.manage:content')->group(function () {
+            Route::get('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'index'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::post('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'store'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::put('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'update'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::delete('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'archive'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::get('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'index']);
+            Route::post('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'store']);
+            Route::put('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'update'])->whereNumber('id');
+            Route::post('quizzes/{id}/publish', [\App\Http\Controllers\AdminQuizController::class, 'publish'])->whereNumber('id');
+            Route::delete('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'archive'])->whereNumber('id');
+        });
+        Route::middleware('admin.manage:users')->group(function () {
+            Route::get('users', [\App\Http\Controllers\AdminUsersController::class, 'index']);
+            Route::put('users/{id}', [\App\Http\Controllers\AdminUsersController::class, 'update'])->whereNumber('id');
+            Route::delete('users/{id}', [\App\Http\Controllers\AdminUsersController::class, 'destroy'])->whereNumber('id');
+        });
+        Route::middleware('admin.manage:moderation')->group(function () {
+            Route::get('community/{kind}', [\App\Http\Controllers\AdminCommunityController::class, 'index'])->where('kind', 'posts|comments|members');
+            Route::put('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'update'])->where('kind', 'posts|comments')->whereUuid('id');
+            Route::delete('community/members/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'removeMember'])->whereNumber('id');
+            Route::get('reports', [\App\Http\Controllers\AdminOperationsController::class, 'reports']);
+            Route::get('reports/{id}/target', [\App\Http\Controllers\AdminOperationsController::class, 'target'])->whereNumber('id');
+            Route::put('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'review'])->whereNumber('id');
+            Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
+            Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
+        });
+        Route::get('subscriptions', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptions'])->middleware('admin.manage:subscriptions');
+        Route::get('subscriptions/history', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptionHistory'])->middleware('admin.manage:subscriptions');
+        Route::middleware('admin.manage:email')->group(function () {
+            Route::get('emails', [\App\Http\Controllers\AdminEmailController::class, 'index']);
+            Route::get('emails/{event}/preview', [\App\Http\Controllers\AdminEmailController::class, 'preview']);
+            Route::post('emails/test', [\App\Http\Controllers\AdminEmailController::class, 'test'])->middleware('throttle:admin-email-test');
+        });
+    });
+    Route::get('admin/metrics/insights', \App\Http\Controllers\AdminInsightsController::class)
+        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
     Route::post('notifications/cleanup', [PushDeviceController::class, 'cleanup'])->middleware('throttle:30,1');
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     Route::get('admin/health/queue-depth', AdminQueueHealthController::class)
@@ -85,6 +122,10 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
+    Route::get('wellness/catalog', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'catalog'])->middleware('throttle:60,1');
+    Route::get('wellness/challenges', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'challenges'])->middleware('throttle:60,1');
+    Route::post('wellness/challenges/{id}/enroll', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'enroll'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::post('wellness/challenges/{id}/complete', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'complete'])->whereNumber('id')->middleware('throttle:30,1');
     Route::post('auth/email-verification/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:verification-email');
     Route::post('auth/email-verification/verify', [EmailVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::get('dashboard', [DashboardController::class, 'show'])->middleware('throttle:60,1');
