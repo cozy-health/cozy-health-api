@@ -8,15 +8,15 @@ class ProviderClientLink extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['provider_id', 'user_id', 'provider_email', 'provider_name', 'provider_phone', 'verification_code', 'verification_expires_at', 'verified_at', 'consent_moods', 'consent_journals', 'consent_quizzes', 'consent_notes', 'linked_at', 'revoked_at'];
+    protected $fillable = ['verification_actor', 'invitation_code_lookup', 'invitation_sent_at', 'provider_acknowledged_at', 'provider_id', 'user_id', 'provider_email', 'provider_name', 'provider_phone', 'verification_code', 'verification_expires_at', 'verified_at', 'consent_moods', 'consent_journals', 'consent_quizzes', 'consent_notes', 'linked_at', 'revoked_at'];
 
-    protected $hidden = ['verification_code', 'verification_expires_at', 'legacy_connection_id'];
+    protected $hidden = ['verification_code', 'verification_expires_at', 'invitation_code_lookup', 'legacy_connection_id'];
 
     protected $attributes = ['consent_moods' => false, 'consent_journals' => false, 'consent_quizzes' => false, 'consent_notes' => false];
 
     protected function casts(): array
     {
-        return ['consent_moods' => 'boolean', 'consent_journals' => 'boolean', 'consent_quizzes' => 'boolean', 'consent_notes' => 'boolean', 'linked_at' => 'datetime', 'revoked_at' => 'datetime', 'verified_at' => 'datetime', 'verification_expires_at' => 'datetime'];
+        return ['invitation_sent_at' => 'datetime', 'provider_acknowledged_at' => 'datetime', 'consent_moods' => 'boolean', 'consent_journals' => 'boolean', 'consent_quizzes' => 'boolean', 'consent_notes' => 'boolean', 'linked_at' => 'datetime', 'revoked_at' => 'datetime', 'verified_at' => 'datetime', 'verification_expires_at' => 'datetime'];
     }
 
     protected static function booted(): void

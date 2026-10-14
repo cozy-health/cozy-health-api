@@ -15,7 +15,19 @@ class ProviderLinkMigrationTest extends TestCase
 
     private function migration(): object
     {
+        // Roll back dependent schema before exercising the historical consolidation.
+        if (Schema::hasColumn('provider_client_links', 'verification_actor')) {
+            (require database_path('migrations/2026_10_15_000000_add_provider_invitation_redemption.php'))->down();
+        }
         return require database_path('migrations/2026_10_09_000002_consolidate_provider_client_links.php');
+    }
+
+    protected function tearDown(): void
+    {
+        if (Schema::hasColumn('provider_client_links', 'provider_email') && ! Schema::hasColumn('provider_client_links', 'verification_actor')) {
+            (require database_path('migrations/2026_10_15_000000_add_provider_invitation_redemption.php'))->up();
+        }
+        parent::tearDown();
     }
 
     public function test_copy_preserves_verified_pending_and_email_only_links_and_rollback(): void

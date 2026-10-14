@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProviderRequestRequest;
 use App\Http\Requests\ProviderVerifyRequest;
+use App\Mail\ProviderInvitationMail;
+use App\Services\Provider\InvitationCode;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Provider;
 use App\Models\ProviderClientLink;
 use App\Services\Analytics\AnalyticsService;
@@ -31,7 +34,7 @@ class ProviderController extends Controller
         $code = (string) random_int(100000, 999999);
         $provider = Provider::whereRaw('LOWER(email) = ?', [$email])->first();
         abort_if($provider && ! $provider->is_active, 422, 'This provider is unavailable.');
-        $connection = DB::transaction(function () use ($r, $email, $provider, $validated, $code) {
+        $connection = DB::transaction(function () use ($r, $email, $provider, $validated, &$code) {
             // Serialize requests for a patient, including retries of a revoked invitation.
             $r->user()->newQuery()->whereKey($r->user()->id)->lockForUpdate()->firstOrFail();
             $existing = ProviderClientLink::where('user_id', $r->user()->id)
@@ -44,6 +47,12 @@ class ProviderController extends Controller
             if ($existing && ! $existing->revoked_at && $existing->verified_at) {
                 return $existing;
             }
+            if (($validated['verification_actor'] ?? 'patient') === 'provider') {
+                abort_if($existing?->invitation_sent_at?->gt(now()->subMinute()), 429, 'Wait one minute before sending another invitation.');
+            }
+            while ($existing?->verification_code && Hash::check($code, $existing->verification_code)) {
+                $code = (string) random_int(100000, 999999);
+            }
             $connection = $existing ?? new ProviderClientLink(['user_id' => $r->user()->id]);
             $connection->fill([
                 'provider_id' => $provider?->id,
@@ -51,24 +60,43 @@ class ProviderController extends Controller
                 'provider_name' => $validated['provider_name'] ?? $provider?->name,
                 'provider_phone' => $validated['provider_phone'] ?? $provider?->phone,
                 'verification_code' => Hash::make($code),
+                'verification_actor' => $validated['verification_actor'] ?? 'patient',
+                'invitation_code_lookup' => ($validated['verification_actor'] ?? 'patient') === 'provider' ? InvitationCode::lookup($email, $code) : null,
+                'invitation_sent_at' => ($validated['verification_actor'] ?? 'patient') === 'provider' ? now() : null,
+                'provider_acknowledged_at' => null,
                 'verification_expires_at' => now()->addMinutes(15),
                 'verified_at' => null,
                 'revoked_at' => null, 'linked_at' => now(),
                 'consent_moods' => false, 'consent_journals' => false,
                 'consent_quizzes' => false, 'consent_notes' => false,
-            ])->save();
+            ]);
+            if ($connection->verification_actor === 'provider') {
+                foreach (['moods', 'journals', 'quizzes', 'notes'] as $type) {
+                    $connection->{'consent_'.$type} = (bool) ($validated['consent_flags'][$type] ?? false);
+                }
+            }
+            $connection->save();
 
             return $connection;
         });
+        if ($connection->verification_actor === 'provider' && ! $connection->verified_at) {
+            try {
+                Mail::to($email)->queue(new ProviderInvitationMail($connection->id, $code));
+            } catch (\Throwable $exception) {
+                ProviderClientLink::whereKey($connection->id)->where('invitation_code_lookup', InvitationCode::lookup($email, $code))->update(['invitation_sent_at' => null]);
+                // Avoid logging a queued mailable or exception payload that could contain the code.
+                abort(503, 'The invitation email could not be queued. Please try again.');
+            }
+        }
         $data = ['expires_in_minutes' => 15];
-        if (app()->isLocal() && $connection->verification_code && Hash::check($code, $connection->verification_code)) {
+        if ($connection->verification_actor !== 'provider' && app()->isLocal() && $connection->verification_code && Hash::check($code, $connection->verification_code)) {
             $data['development_code'] = $code;
         }
 
         // Preserve the existing success envelope and add the fields mobile reads.
         return response()->json([
             'success' => true,
-            'message' => 'Verification code created.',
+            'message' => $connection->verified_at ? 'Provider already connected.' : ($connection->verification_actor === 'provider' ? 'Invitation email queued.' : 'Verification code created.'),
             'data' => $data,
             'status' => $connection->verified_at ? 'verified' : 'pending',
             ...$this->providerPayload($connection->load('provider')),
@@ -80,6 +108,7 @@ class ProviderController extends Controller
         $connection = DB::transaction(function () use ($r) {
             $connection = $r->user()->providerConnection()->lockForUpdate()->first();
             abort_unless($connection && $connection->verification_code, 422, 'No verification request was found.');
+            abort_if($connection->verification_actor === 'provider', 422, 'Your provider must confirm this invitation in their dashboard.');
             abort_if($connection->verification_expires_at?->isPast(), 422, 'The verification code has expired.');
             abort_unless(Hash::check($r->code, $connection->verification_code), 422, 'The verification code is invalid.');
             $connection->update(['verification_code' => null, 'verification_expires_at' => null,

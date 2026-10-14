@@ -173,8 +173,8 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::patch('user/preferences', [UserProfileController::class, 'updatePreferences']);
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
     Route::get('provider', [ProviderController::class, 'show']);
-    Route::post('provider/request', [ProviderController::class, 'requestCode']);
-    Route::post('provider/verify', [ProviderController::class, 'verify']);
+    Route::post('provider/request', [ProviderController::class, 'requestCode'])->middleware('throttle:5,1');
+    Route::post('provider/verify', [ProviderController::class, 'verify'])->middleware('throttle:10,1');
     Route::delete('provider', [ProviderController::class, 'destroy']);
     Route::apiResource('quiz-attempts', QuizController::class);
     Route::prefix('quizzes')->middleware('throttle:60,1')->group(function () {
@@ -258,6 +258,8 @@ Route::prefix('v1/provider')->group(function () {
     Route::post('auth/reset-password', [$controller, 'resetPassword'])->middleware('throttle:5,1');
     Route::middleware(['auth:provider', EnsureActiveProvider::class])->group(function () use ($controller) {
         Route::post('auth/logout', [$controller, 'logout']);
+        Route::post('invitations/preview', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'preview'])->middleware('throttle:provider-invitation-code');
+        Route::post('invitations/connect', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'connect'])->middleware('throttle:provider-invitation-code');
         Route::post('auth/revoke-refresh', [AuthSessionController::class, 'revokeRefresh'])->middleware('throttle:30,1');
         Route::get('me', [$controller, 'me']);
         Route::get('consent-config', [DocumentConsentController::class, 'configuration'])->middleware('throttle:60,1');

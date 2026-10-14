@@ -17,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \App\Services\EmailDeliveryTracking::register();
+        \Illuminate\Support\Facades\RateLimiter::for('provider-invitation-code', fn ($request) =>
+            \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by('provider-invitation:'.$request->user()->id));
         \Illuminate\Support\Facades\RateLimiter::for('admin-email-test', fn ($request) =>
             \Illuminate\Cache\RateLimiting\Limit::perHour(3)->by('admin-email-test:'.$request->user()->id));
         \App\Models\SubscriptionStatus::updated(function ($subscription) {
