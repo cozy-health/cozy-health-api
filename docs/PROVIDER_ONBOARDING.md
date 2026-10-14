@@ -39,3 +39,9 @@ Production mail embeds the Cozy logo as an inline CID attachment. Admin email pr
 Generate the synthetic registered/new-provider HTML and text previews with `php docs/tools/preview-provider-invitation.php`. This command does not query patient records or send mail. Previews and browser screenshots at 320px and 800px are in `docs/validation/provider-invitation-email/`.
 
 Validation: 584 API tests passed (3963 assertions), including email content, escaped names, inline logo attachment, queue encryption, stale invitation suppression, synthetic previews, and delivery tracking. Browser previews have no horizontal overflow. Actual SMTP delivery and Gmail/Outlook rendering remain staging deployment checks.
+
+## Provider welcome email
+
+New provider registrations queue a dedicated HTML/plain-text welcome email after account and session creation. The email uses the Cozy logo and exact brand colors, links to the configured provider portal, and explains empty rosters and patient invitation redemption. It contains no password, authentication token, or patient information. Queue failure is logged without preventing registration. Existing providers do not receive retrospective emails.
+
+The provider-welcome event is available in admin email delivery tracking and synthetic previews. Queued payloads are encrypted and dispatch after commit. Browser previews at 320px and 800px are stored under docs/validation/provider-welcome; no real emails were sent during validation.

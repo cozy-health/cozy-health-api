@@ -6,6 +6,7 @@ class AdminEmailRegistry
 {
     public const EVENTS = [
         'welcome' => ['WelcomeMail', 'Account registration'],
+        'provider-welcome' => ['ProviderWelcomeMail', 'Provider account registration'],
         'verification' => ['VerifyEmailMail', 'Email verification request'],
         'password-reset' => ['PasswordResetRequestMail', 'Patient password reset request'],
         'password-confirmation' => ['PasswordResetConfirmationMail', 'Patient password changed'],
@@ -27,6 +28,7 @@ class AdminEmailRegistry
         $provider = new Provider(['name' => 'Preview Provider', 'email' => 'preview@example.test']);
         return match ($event) {
             'welcome' => new \App\Mail\WelcomeMail($user),
+            'provider-welcome' => new \App\Mail\ProviderWelcomeMail($provider, true),
             'verification' => new \App\Mail\VerifyEmailMail('000000'),
             'password-reset' => new \App\Mail\PasswordResetRequestMail($user, '000000'),
             'password-confirmation' => new \App\Mail\PasswordResetConfirmationMail($user),

@@ -55,9 +55,15 @@ class ProviderAuthController extends Controller
             }
             return $provider;
         });
+        $session = app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider');
+        try {
+            Mail::to($provider->email)->send(new \App\Mail\ProviderWelcomeMail($provider));
+        } catch (\Throwable) {
+            \Log::warning('Provider welcome email could not be queued.');
+        }
         return $this->success([
             'provider' => $provider->refresh(),
-            ...app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider'),
+            ...$session,
         ], 'Account created successfully.', 201);
     }
 
