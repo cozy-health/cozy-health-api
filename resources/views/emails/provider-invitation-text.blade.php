@@ -1,11 +1,26 @@
-You have a Cozy patient invitation.
+You have a Cozy patient invitation
 
-A patient has chosen to connect with this provider email address.
-Sign in or create your provider account using this same email address, then choose Add patient.
+@if($providerName)Hello {!! $providerName !!},@else Hello,@endif
+
+{!! $patientName !!} has invited you to connect as their provider on Cozy.
 
 Connection code: {{ $code }}
 
-This code expires 15 minutes after the invitation was created. Use only the latest code.
-Provider portal: {{ $portalUrl }}
+@if($expiresAt)Expires {{ $expiresAt }}.
+@endif
+Codes are valid for 15 minutes after the invitation is created. Use only the latest code.
 
-You will review the patient's sharing choices before connecting. If you did not expect this invitation, you can ignore it.
+Open provider dashboard: {!! $portalUrl !!}
+
+How to connect:
+1. Sign in or create your provider account using {!! $recipientEmail ?: 'the email address receiving this invitation' !!}.
+2. Choose Add patient and enter the connection code above.
+3. Review the patient's sharing choices, then select Agree & connect.
+
+The patient controls which information is shared and can change or revoke access at any time.
+No wellness information is shared by this email.
+
+If you did not expect this invitation, you can ignore this email.
+
+Take care,
+The Cozy Health team

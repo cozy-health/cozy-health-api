@@ -29,3 +29,13 @@ No live migrations, emails, or deployments were performed during implementation.
 API tests cover registration with an empty roster, matching-email redemption including invitations before registration, hidden code fields, expiry, resend, cancellation, changed permissions, ambiguous codes, replay, all-private connections, revocation, and queue failure/retry. Existing API and legacy migration tests remain valid. Flutter tests cover pre-invitation permission choices, legacy pending screens, resend state, and consent controls. Dashboard browser fixtures exercise registration, secure cookies, empty rosters, preview, acknowledgements, changed scope, roster refresh, replay errors, and narrow layouts.
 
 Run the new browser fixture with `npm run test:provider-onboarding` and `PROVIDER_PLAYWRIGHT_PATH` pointing to an installed Playwright entrypoint. Fixtures are local and do not send real emails. Synthetic previews are stored under `docs/validation/provider-onboarding/`.
+
+## Provider invitation email
+
+The HTML and plain-text email show the current patient name, an optional registered-provider greeting, six-digit code, expiry in UTC, recipient account email, and provider portal link. Instructions cover registration, Add patient, permission review, and Agree & connect. The patient retains control over sharing and revocation. The subject stays generic; no wellness records appear in the email.
+
+Production mail embeds the Cozy logo as an inline CID attachment. Admin email previews use synthetic names and code 000000 with a data-URI logo. The provider-invitation event is included in the existing delivery registry; delivery logs do not store patient names, recipient addresses, or codes. Expired, replaced, consumed, revoked, or inactive-account invitations are suppressed before sending.
+
+Generate the synthetic registered/new-provider HTML and text previews with `php docs/tools/preview-provider-invitation.php`. This command does not query patient records or send mail. Previews and browser screenshots at 320px and 800px are in `docs/validation/provider-invitation-email/`.
+
+Validation: 584 API tests passed (3963 assertions), including email content, escaped names, inline logo attachment, queue encryption, stale invitation suppression, synthetic previews, and delivery tracking. Browser previews have no horizontal overflow. Actual SMTP delivery and Gmail/Outlook rendering remain staging deployment checks.
