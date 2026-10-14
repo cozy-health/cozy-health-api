@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'provider' => ['portal_url' => env('PROVIDER_PORTAL_URL', 'https://v0-provider-dashboard-component.vercel.app/provider')],
+    'provider' => ['portal_url' => env('PROVIDER_PORTAL_URL', 'https://v0-provider-dashboard-component-production.up.railway.app/provider')],
     'brevo' => ['webhook_token' => env('BREVO_WEBHOOK_TOKEN')],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
