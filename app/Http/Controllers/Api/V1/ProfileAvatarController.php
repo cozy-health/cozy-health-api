@@ -9,6 +9,7 @@ class ProfileAvatarController extends ApiController
 {
     private function checkOwner(Request $request): void
     {
+        $request->validate(['expected_user_id' => ['sometimes', 'nullable', 'integer', 'min:1']]);
         if ($request->filled('expected_user_id')) {
             abort_unless((string) $request->input('expected_user_id') === (string) $request->user()->id, 409, 'Your account changed. Please reopen your profile.');
         }

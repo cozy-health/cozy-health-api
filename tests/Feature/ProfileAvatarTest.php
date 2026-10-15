@@ -105,6 +105,7 @@ it('account deletion schedules photo cleanup without retaining a public URL', fu
 
 it('rejects an account changed while the picker was open', function () {
     Sanctum::actingAs($user = User::factory()->create());
+    $this->putJson('/api/v1/user/profile/avatar', ['preset_id' => 'open-peeps-01', 'expected_user_id' => []])->assertUnprocessable();
     $this->putJson('/api/v1/user/profile/avatar', ['preset_id' => 'open-peeps-01', 'expected_user_id' => $user->id + 1])->assertConflict();
     $this->getJson('/api/v1/user/profile/avatar')->assertJsonPath('data.avatar_url', null);
 });
@@ -116,6 +117,7 @@ it('failed storage writes preserve the active picture', function () {
     $disk->shouldReceive('put')->andThrow(new RuntimeException('Unavailable'));
     Storage::shouldReceive('disk')->with('avatar_test')->andReturn($disk);
     $this->postJson('/api/v1/user/profile/avatar', ['photo' => UploadedFile::fake()->image('photo.jpg')])->assertStatus(503);
+    expect(DB::table('avatar_photo_deletions')->count())->toBe(1);
     $this->getJson('/api/v1/user/profile/avatar')->assertJsonPath('data.avatar_url', 'asset:open-peeps-06');
 });
 

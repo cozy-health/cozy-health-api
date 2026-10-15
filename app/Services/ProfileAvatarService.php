@@ -61,6 +61,7 @@ class ProfileAvatarService
                 throw new \RuntimeException('Write failed');
             }
         } catch (\Throwable) {
+            self::queueDeletion($disk, $key);
             abort(503, 'Photo storage is unavailable. Your current picture has not changed.');
         }
         try {

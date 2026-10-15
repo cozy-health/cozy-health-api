@@ -15,6 +15,8 @@ return [
             'use_path_style_endpoint' => env('AVATAR_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'private',
             'throw' => true,
+            'http' => ['connect_timeout' => 5, 'timeout' => 15],
+            'retries' => 0,
         ],
     ],
     'links' => [public_path('storage') => storage_path('app/public')],
