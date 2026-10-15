@@ -11,7 +11,6 @@ class MoodEntry extends Model
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = array (
-  'expression_slug',
   0 => 'id',
   1 => 'user_id',
   2 => 'mood',
@@ -28,6 +27,7 @@ class MoodEntry extends Model
   13 => 'is_deleted',
   14 => 'client_created_at',
   15 => 'client_updated_at',
+  16 => 'expression_slug',
 );
     protected $casts = array (
   'body_sensations' => 'array',

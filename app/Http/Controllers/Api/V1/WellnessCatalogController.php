@@ -6,7 +6,7 @@ class WellnessCatalogController extends ApiController
 {
     public function catalog()
     {
-        $data = [];
+        $data = ['mood_recording_version' => 2];
         foreach (['moods' => 'feelings', 'expressions' => 'feeling_expressions', 'triggers' => 'feeling_causes', 'coping' => 'coping_mechanisms', 'packages' => 'subscription_packages'] as $key => $table) {
             $data[$key] = DB::table($table)->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
         }

@@ -89,7 +89,10 @@ class AdminManagementTest extends TestCase
         $body = ['name' => 'Rest', 'slug' => 'rest', 'description' => 'Rest each day', 'duration_days' => 2, 'tasks' => ['Take a pause', 'Walk gently'], 'is_active' => true, 'sort_order' => 0];
         $id = $this->postJson('/api/v1/admin/content/challenges', $body)->assertCreated()->json('data.id');
         $patient = User::factory()->create(); app('auth')->forgetGuards(); $this->withToken($patient->createToken('mobile')->plainTextToken);
-        $this->getJson('/api/v1/wellness/catalog')->assertOk()->assertJsonCount(9, 'data.moods');
+        $this->getJson('/api/v1/wellness/catalog')->assertOk()->assertJsonCount(6, 'data.moods')
+            ->assertJsonCount(72, 'data.expressions')->assertJsonCount(34, 'data.coping')
+            ->assertJsonPath('data.mood_recording_version', 2)
+            ->assertJsonPath('data.triggers.0.group_name', 'Work');
         $this->postJson('/api/v1/wellness/challenges/'.$id.'/enroll')->assertOk();
         $this->postJson('/api/v1/wellness/challenges/'.$id.'/enroll')->assertOk();
         $this->postJson('/api/v1/wellness/challenges/'.$id.'/complete', ['day' => 1])->assertOk();

@@ -34,7 +34,10 @@ class AdminContentController extends Controller
         if ($resource === 'expressions') $rules += ['feeling_id' => 'required|integer|exists:feelings,id', 'emoji' => 'nullable|string|max:20'];
         if ($resource === 'moods') $rules['slug'][] = 'max:20';
         if (in_array($resource, ['triggers', 'coping'], true)) $rules += ['icon' => 'nullable|string|max:100'];
-        if ($resource === 'triggers') unset($rules['description']);
+        if ($resource === 'triggers') {
+            unset($rules['description']);
+            $rules['group_name'] = 'nullable|string|max:100';
+        }
         if ($resource === 'challenges') $rules += ['duration_days' => 'required|integer|min:1|max:90', 'tasks' => 'required|array|min:1|max:90', 'tasks.*' => 'required|string|max:500'];
         if ($resource === 'packages') $rules += ['price' => 'required|numeric|min:0|max:99999999', 'currency' => 'required|in:NGN', 'duration' => 'required|in:monthly,yearly,custom', 'duration_days' => 'required|integer|min:1|max:3660', 'features' => 'required|array|max:50', 'features.*' => 'required|string|max:200'];
         return $rules;
