@@ -166,6 +166,10 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::get('journals', [JournalEntryController::class, 'index']);
     Route::apiResource('conversations', ChatController::class);
     Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->middleware('throttle:60,1');
+    Route::get('user/profile/avatar', [\App\Http\Controllers\Api\V1\ProfileAvatarController::class, 'show']);
+    Route::post('user/profile/avatar', [\App\Http\Controllers\Api\V1\ProfileAvatarController::class, 'upload'])->middleware('throttle:10,1');
+    Route::put('user/profile/avatar', [\App\Http\Controllers\Api\V1\ProfileAvatarController::class, 'preset']);
+    Route::delete('user/profile/avatar', [\App\Http\Controllers\Api\V1\ProfileAvatarController::class, 'destroy']);
     Route::get('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'show']);
     Route::put('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'store']);
     Route::delete('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'destroy']);

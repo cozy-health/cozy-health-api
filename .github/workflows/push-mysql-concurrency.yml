@@ -56,7 +56,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, mbstring, dom, curl, zip
+          extensions: pdo_mysql, mbstring, dom, curl, zip, gd
           coverage: none
       - name: Install isolated test dependencies
         run: |

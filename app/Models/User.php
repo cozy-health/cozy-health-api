@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Services\ProfileAvatarService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use HasApiTokens, HasFactory, Notifiable;
+    use SoftDeletes;
 
     protected $fillable = ['name', 'email', 'timezone', 'password', 'avatar_path', 'date_of_birth', 'gender', 'personalization', 'privacy_settings', 'is_active', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at'];
 
@@ -28,9 +30,13 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
-            \App\Models\NextOfKinContact::where('user_id', $user->id)->delete();
-            \App\Models\PushDevice::where('user_id', $user->id)->delete();
-            \App\Models\PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
+            $avatar = $user->profile()->first();
+            if ($avatar?->avatar_object_key) {
+                ProfileAvatarService::queueDeletion(config('avatars.disk'), $avatar->avatar_object_key);
+            }
+            NextOfKinContact::where('user_id', $user->id)->delete();
+            PushDevice::where('user_id', $user->id)->delete();
+            PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
         });
         static::updating(function (User $user) {
             if ($user->getOriginal('is_demo') && $user->isDirty('email')) {
@@ -70,10 +76,25 @@ class User extends Authenticatable
         return $this->hasMany(QuizResult::class);
     }
 
-    public function providerClientLinks() { return $this->hasMany(ProviderClientLink::class); }
-    public function providerAssignments() { return $this->hasMany(ProviderAssignment::class); }
-    public function providerNotes() { return $this->hasMany(ProviderNote::class); }
-    public function providerReports() { return $this->hasMany(ProviderReport::class); }
+    public function providerClientLinks()
+    {
+        return $this->hasMany(ProviderClientLink::class);
+    }
+
+    public function providerAssignments()
+    {
+        return $this->hasMany(ProviderAssignment::class);
+    }
+
+    public function providerNotes()
+    {
+        return $this->hasMany(ProviderNote::class);
+    }
+
+    public function providerReports()
+    {
+        return $this->hasMany(ProviderReport::class);
+    }
 
     public function providerConnection()
     {

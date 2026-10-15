@@ -3,8 +3,9 @@ FROM php:8.2-fpm-bookworm AS php-base
 RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update && apt-get install -y --no-install-recommends \
     nginx supervisor gettext-base git unzip curl \
-    libzip-dev libonig-dev libxml2-dev libcurl4-openssl-dev \
-    && docker-php-ext-install -j2 pdo_mysql mbstring dom xml curl zip opcache \
+    libzip-dev libonig-dev libxml2-dev libcurl4-openssl-dev libpng-dev libjpeg62-turbo-dev \
+    && docker-php-ext-configure gd --with-jpeg \
+    && docker-php-ext-install -j2 gd pdo_mysql mbstring dom xml curl zip opcache \
     && rm -rf /var/lib/apt/lists/*
 
 RUN { \
@@ -13,6 +14,8 @@ RUN { \
     echo 'opcache.memory_consumption=128'; \
     echo 'opcache.interned_strings_buffer=16'; \
     echo 'opcache.max_accelerated_files=10000'; \
+    echo 'upload_max_filesize=5M'; \
+    echo 'post_max_size=6M'; \
 } > /usr/local/etc/php/conf.d/opcache.ini
 
 FROM php-base AS vendor

@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Services\Analytics\AnalyticsService;
+use App\Services\Push\ReminderSettings;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -15,16 +17,21 @@ class SyncRecordWriter
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
         if ($type === 'quiz_attempt') {
-            if (empty($data['definition_version'])) app(AssessmentService::class)->submitLegacy($user, $data);
-            else app(AssessmentService::class)->submit($user, $data);
+            if (empty($data['definition_version'])) {
+                app(AssessmentService::class)->submitLegacy($user, $data);
+            } else {
+                app(AssessmentService::class)->submit($user, $data);
+            }
+
             return null;
         }
         if ($type === 'user_profile' && array_key_exists('username', $data)) {
             $data['username'] = app(UsernameService::class)->validate($user, $data['username']);
         }
         if ($type === 'user_profile') {
-            \Illuminate\Support\Facades\Validator::make($data, [
-                ...\App\Services\Push\ReminderSettings::rules(),
+            unset($data['avatar_url'], $data['avatar_preset_id'], $data['avatar_object_key'], $data['avatar_revision']);
+            Validator::make($data, [
+                ...ReminderSettings::rules(),
                 'notifications_master' => 'sometimes|boolean',
                 'daily_checkin_enabled' => 'sometimes|boolean',
                 'daily_checkin_time' => 'sometimes|date_format:H:i',
@@ -98,6 +105,7 @@ class SyncRecordWriter
     {
         if ($type === 'quiz_attempt') {
             app(QuizSharingService::class)->deleteAttempt($user->id, $id);
+
             return;
         }
         $query = $modelClass::where('user_id', $user->id);

@@ -66,3 +66,5 @@ Artisan::command('flags:set {key} {enabled}', function () {
     $this->info('Feature flag updated.');
     return 0;
 });
+
+\Illuminate\Support\Facades\Schedule::command('avatars:cleanup')->hourly()->withoutOverlapping();

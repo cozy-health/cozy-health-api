@@ -10,7 +10,7 @@ class UserProfileRequest extends ApiFormRequest
             'name' => 'sometimes|string|max:255',
             'username' => 'sometimes|nullable|string|max:50|unique:user_profiles,username,'.$this->user()->profile()->value('id'),
             'bio' => 'sometimes|nullable|string|max:150',
-            'avatar_url' => 'sometimes|nullable|string|max:500',
+
             'timezone' => ['sometimes', 'string', 'max:64', 'timezone'],
             'country_code' => ['sometimes', 'nullable', 'string', 'regex:/^[A-Z]{2}$/'],
             'country_code' => ['sometimes', 'nullable', 'string', 'regex:/^[A-Z]{2}$/'],
