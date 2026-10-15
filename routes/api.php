@@ -166,6 +166,9 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::get('journals', [JournalEntryController::class, 'index']);
     Route::apiResource('conversations', ChatController::class);
     Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->middleware('throttle:60,1');
+    Route::get('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'show']);
+    Route::put('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'store']);
+    Route::delete('next-of-kin', [\App\Http\Controllers\Api\V1\NextOfKinController::class, 'destroy']);
     Route::get('safety-plan', [SafetyPlanController::class, 'show']);
     Route::put('safety-plan', [SafetyPlanController::class, 'store']);
     Route::get('user/profile', [UserProfileController::class, 'show']);

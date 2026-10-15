@@ -22,6 +22,7 @@ use Throwable;
 class SyncController extends ApiController
 {
     private const MODELS = [
+        'next_of_kin' => \App\Models\NextOfKinContact::class,
         'mood_entry' => MoodEntry::class,
         'journal_entry' => JournalEntry::class,
         'chat_conversation' => ChatConversation::class,
@@ -88,6 +89,10 @@ class SyncController extends ApiController
 
             try {
                 $error = DB::transaction(function () use ($modelClass, $action, $data, $request, $isCancellation, $type) {
+                    if ($type === 'next_of_kin') {
+                        app(\App\Services\NextOfKinService::class)->apply($request->user(), $action, $data);
+                        return null;
+                    }
                     if ($type === 'user_preferences') {
                         app(UserPreferencesSync::class)->apply($request->user(), $action, $data);
 

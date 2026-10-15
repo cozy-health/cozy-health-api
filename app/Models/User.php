@@ -28,6 +28,7 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            \App\Models\NextOfKinContact::where('user_id', $user->id)->delete();
             \App\Models\PushDevice::where('user_id', $user->id)->delete();
             \App\Models\PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
         });
