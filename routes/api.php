@@ -154,6 +154,12 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('me/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
     Route::get('user/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
     Route::post('user/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
+
+    Route::get('provider-conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
+    Route::post('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
+    Route::post('provider-conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');
+    Route::get('provider-conversations/{linkId}/records', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'records'])->middleware('throttle:60,1');
     Route::get('me/provider/links', [PatientConsentController::class, 'index']);
     Route::get('me/provider-access-log', [ProviderAccessLogController::class, 'patient']);
     Route::get('me/resources', [ProviderAssignmentController::class, 'patientIndex']);
@@ -275,6 +281,11 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('me/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
         Route::post('me/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
         Route::patch('me', [$controller, 'update']);
+
+    Route::get('conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
+    Route::post('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
+    Route::post('conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');
         $clients = ProviderClientController::class;
         Route::get('quiz-shares', [\App\Http\Controllers\Api\V1\Provider\ProviderQuizSharingController::class, 'index']);
         Route::get('quiz-shares/{id}', [\App\Http\Controllers\Api\V1\Provider\ProviderQuizSharingController::class, 'show']);
