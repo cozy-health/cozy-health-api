@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Services\AdminAudit;
+use App\Services\{AdminAudit, AdminContentVersion};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class AdminCommunityController extends Controller
@@ -16,23 +16,35 @@ class AdminCommunityController extends Controller
             $query->orderBy('community_memberships.id');
         } else {
             $table = 'community_'.$kind;
-            $query = DB::table($table)->whereNull('deleted_at')->select('id', 'body', 'status', 'is_anonymous', 'created_at');
+            $query = DB::table($table)->whereNull('deleted_at')->select('id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at');
             if ($kind === 'posts') { $query->addSelect('group_id'); if (isset($data['group_id'])) $query->where('group_id', $data['group_id']); }
             else $query->addSelect('post_id');
             if (!empty($data['search'])) $query->where('body', 'like', '%'.$data['search'].'%');
             $query->orderByDesc('created_at');
         }
         AdminAudit::record($request->user()->id, 'review-list', 'community-'.$kind, 'list');
-        return response()->json(['data' => $query->paginate($data['per_page'] ?? 10)])->header('Cache-Control', 'private, no-store');
+        $rows = $query->paginate($data['per_page'] ?? 10);
+        if ($kind !== 'members') $rows->through(function ($row) { $row->version = AdminContentVersion::token($row); return $row; });
+        return response()->json(['data' => $rows])->header('Cache-Control', 'private, no-store');
     }
+    public function show(Request $request, string $kind, string $id)
+    {
+        abort_unless(in_array($kind, ['posts', 'comments'], true), 404);
+        $row = DB::table('community_'.$kind)->where('id', $id)->whereNull('deleted_at')->firstOrFail(['id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at']);
+        $row->version = AdminContentVersion::token($row);
+        AdminAudit::record($request->user()->id, 'review-content', 'community-'.$kind, $id);
+        return response()->json(['data' => $row])->header('Cache-Control', 'private, no-store');
+    }
+
     public function update(Request $request, string $kind, string $id)
     {
         abort_unless(in_array($kind, ['posts', 'comments'], true), 404);
-        $data = $request->validate(['status' => 'required|in:published,removed,pending']);
+        $data = $request->validate(['status' => 'required|in:published,removed,pending', 'expected_version' => 'required|string|size:64', 'confirm_republish' => 'sometimes|boolean']);
         DB::transaction(function () use ($request, $kind, $id, $data) {
             $table = 'community_'.$kind;
-            DB::table($table)->where('id', $id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
-            DB::table($table)->where('id', $id)->update([...$data, 'updated_at' => now()]);
+            $content = DB::table($table)->where('id', $id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
+            AdminContentVersion::check($content, $data, $data['status']);
+            DB::table($table)->where('id', $id)->update(['status' => $data['status'], 'updated_at' => now()]);
             AdminAudit::record($request->user()->id, 'moderate', 'community-'.$kind, $id, ['status']);
         });
         return response()->json(['message' => 'Moderation saved.']);

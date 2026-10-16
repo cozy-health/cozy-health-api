@@ -30,6 +30,7 @@ class AdminContentController extends Controller
         $table = $this->table($resource);
         $rules = [($resource === 'packages' ? 'package_name' : 'name') => 'required|string|max:100',
             'description' => 'nullable|string|max:5000', 'is_active' => 'required|boolean'];
+        if (in_array($resource, ['communities', 'challenges'], true)) $rules['description'] = 'required|string|max:5000';
         if ($resource !== 'communities') $rules += ['slug' => ['required', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'max:100', Rule::unique($table)->ignore($id)], 'sort_order' => 'required|integer|min:0|max:10000'];
         if ($resource === 'expressions') $rules += ['feeling_id' => 'required|integer|exists:feelings,id', 'emoji' => 'nullable|string|max:20'];
         if ($resource === 'moods') $rules['slug'][] = 'max:20';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Analytics\AdminMetrics;
+use App\Services\Analytics\PublishedComparison;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -18,14 +19,22 @@ class AdminMetricsController extends Controller
         $snapshot = $metrics->snapshot();
         $meta = array_intersect_key($snapshot, array_flip(['release', 'timezone', 'minimum_cohort', 'precision', 'window', 'activity_definition']));
         $payload = $metric === 'usage' ? ['range' => $data['range'] ?? '30d', 'features' => $snapshot['usage'][$data['range'] ?? '30d'], 'unavailable_features' => $snapshot['unavailable_features']] : $snapshot[$metric];
-        if ($metric === 'overview') $payload['operations'] = $this->health();
-        return response()->json(['meta' => $meta, 'data' => $payload])->header('Cache-Control', 'private, no-store');
+        if ($metric === 'overview') {
+            $payload['operations'] = $this->health();
+        }
+
+        return response()->json(['meta' => $meta, 'data' => $payload, ...($metric === 'usage' ? ['comparison' => app(PublishedComparison::class)->make('metrics', $snapshot, $data['range'] ?? '30d')] : [])])->header('Cache-Control', 'private, no-store');
     }
 
     private function health(): array
     {
         $db = 'down';
-        try { DB::select('SELECT 1'); $db = 'ok'; } catch (Throwable) {}
+        try {
+            DB::select('SELECT 1');
+            $db = 'ok';
+        } catch (Throwable) {
+        }
+
         return ['api' => 'ok', 'database' => $db, 'checked_at' => now('UTC')->toIso8601String(),
             'source' => 'Current API request and SELECT 1; no historical monitoring window.',
             'availability_history' => ['status' => 'unavailable'], 'latency_p95' => ['status' => 'unavailable'],

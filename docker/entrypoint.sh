@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 
+export DB_QUEUE="${DB_QUEUE:-default}"
 export PORT="${PORT:-8080}"
 export RUN_QUEUE_WORKER="${RUN_QUEUE_WORKER:-true}"
 case "$RUN_QUEUE_WORKER" in

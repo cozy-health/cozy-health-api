@@ -47,19 +47,6 @@ class AdminManagementTest extends TestCase
         $this->assertDatabaseHas('coping_mechanisms', ['id' => $id, 'is_active' => false]);
         $this->assertDatabaseHas('admin_audit_logs', ['action' => 'archive', 'resource' => 'coping']);
     }
-    public function test_users_edit_and_revocation_do_not_allow_admin_mutation(): void
-    {
-        $admin = $this->admin(); $patient = User::factory()->create();
-        $patient->createToken('mobile');
-        $this->putJson('/api/v1/admin/users/'.$patient->id, ['name' => 'Updated', 'email' => $patient->email, 'is_active' => false])->assertOk();
-        $this->assertSame(0, $patient->tokens()->count());
-        $this->putJson('/api/v1/admin/users/'.$admin->id, ['name' => 'Changed', 'email' => $admin->email, 'is_active' => false])->assertNotFound();
-        $this->deleteJson('/api/v1/admin/users/'.$patient->id, ['confirmation' => 'NO'])->assertUnprocessable();
-        Mail::fake();
-        $this->deleteJson('/api/v1/admin/users/'.$patient->id, ['confirmation' => 'DELETE'])->assertOk();
-        $this->assertDatabaseMissing('users', ['id' => $patient->id]);
-        $this->assertDatabaseHas('users', ['id' => $admin->id]);
-    }
     public function test_quiz_drafts_publish_and_revisions_preserve_live_definition(): void
     {
         $this->admin(); $definition = $this->definition();
@@ -75,6 +62,8 @@ class AdminManagementTest extends TestCase
         $this->assertSame($old, DB::table('quiz_definitions')->where('id', $version)->value('definition'));
         $this->deleteJson('/api/v1/admin/quizzes/'.$id)->assertOk();
         $this->assertDatabaseHas('quizzes', ['slug' => 'wellbeing', 'is_active' => false]);
+        $this->putJson('/api/v1/admin/quizzes/'.$id, ['title' => 'Wellbeing', 'definition' => $definition])->assertUnprocessable();
+        $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish')->assertConflict();
     }
     public function test_invalid_quiz_scoring_returns_validation_instead_of_server_failure(): void
     {
@@ -140,9 +129,10 @@ class AdminManagementTest extends TestCase
         $response = $this->getJson('/api/v1/admin/reports/'.$report.'/target')->assertOk()->assertJsonPath('data.is_anonymous', 1);
         $this->assertStringNotContainsString('user_id', $response->getContent());
         $this->getJson('/api/v1/admin/community/posts')->assertOk()->assertJsonMissingPath('data.data.0.user_id');
-        $this->putJson('/api/v1/admin/reports/'.$report, ['decision' => 'publish'])->assertOk();
+        $version = $this->getJson('/api/v1/admin/reports/'.$report)->assertOk()->json('data.target.version');
+        $this->putJson('/api/v1/admin/reports/'.$report, ['decision' => 'publish', 'expected_version' => $version])->assertOk();
         $this->assertDatabaseHas('community_posts', ['id' => $id, 'status' => 'published']);
-        $this->putJson('/api/v1/admin/reports/'.$report, ['decision' => 'remove'])->assertStatus(409);
+        $this->putJson('/api/v1/admin/reports/'.$report, ['decision' => 'remove', 'expected_version' => $version])->assertStatus(409);
     }
     public function test_provider_delivery_events_correlate_and_deduplicate_without_content(): void
     {

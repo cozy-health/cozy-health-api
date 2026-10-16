@@ -51,7 +51,8 @@ use App\Jobs\SendTestEmail;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1'])->prefix('admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1,admin-management-'])->prefix('admin')->group(function () {
+        Route::get('operations/summary', \App\Http\Controllers\AdminOverviewController::class)->middleware('admin.manage:metrics');
         Route::middleware('admin.manage:content')->group(function () {
             Route::get('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'index'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::post('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'store'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
@@ -65,14 +66,15 @@ Route::prefix('v1')->group(function () {
         });
         Route::middleware('admin.manage:users')->group(function () {
             Route::get('users', [\App\Http\Controllers\AdminUsersController::class, 'index']);
-            Route::put('users/{id}', [\App\Http\Controllers\AdminUsersController::class, 'update'])->whereNumber('id');
-            Route::delete('users/{id}', [\App\Http\Controllers\AdminUsersController::class, 'destroy'])->whereNumber('id');
         });
         Route::middleware('admin.manage:moderation')->group(function () {
             Route::get('community/{kind}', [\App\Http\Controllers\AdminCommunityController::class, 'index'])->where('kind', 'posts|comments|members');
+            Route::get('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'show'])->where('kind', 'posts|comments')->whereUuid('id');
             Route::put('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'update'])->where('kind', 'posts|comments')->whereUuid('id');
             Route::delete('community/members/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'removeMember'])->whereNumber('id');
             Route::get('reports', [\App\Http\Controllers\AdminOperationsController::class, 'reports']);
+            Route::get('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'reportDetail'])->whereNumber('id');
+            Route::get('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'supportDetail'])->whereNumber('id');
             Route::get('reports/{id}/target', [\App\Http\Controllers\AdminOperationsController::class, 'target'])->whereNumber('id');
             Route::put('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'review'])->whereNumber('id');
             Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
@@ -87,20 +89,20 @@ Route::prefix('v1')->group(function () {
         });
     });
     Route::get('admin/metrics/insights', \App\Http\Controllers\AdminInsightsController::class)
-        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
+        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1,admin-metrics-']);
     Route::post('notifications/cleanup', [PushDeviceController::class, 'cleanup'])->middleware('throttle:30,1');
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     Route::get('admin/health/queue-depth', AdminQueueHealthController::class)
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::post('admin/auth/login', [AdminAuthController::class, 'login'])->middleware(['throttle:10,1', LoginLockout::class]);
     Route::get('admin/metrics/{metric}', [AdminMetricsController::class, 'show'])
-        ->where('metric', 'overview|usage|retention|safety')->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
-    Route::middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1'])->prefix('admin/auth')->group(function () {
+        ->where('metric', 'overview|usage|retention|safety')->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1,admin-metrics-']);
+    Route::middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1,admin-session-'])->prefix('admin/auth')->group(function () {
         Route::get('session', [AdminAuthController::class, 'session']);
         Route::post('logout', [AdminAuthController::class, 'logout']);
     });
     Route::get('admin/metrics/analytics', AnalyticsMetricsController::class)
-        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1']);
+        ->middleware(['auth:sanctum', 'role:admin', 'admin.analytics', 'throttle:30,1,admin-metrics-']);
     Route::put('admin/settings/{key}', [AdminSettingsController::class, 'update'])
         ->middleware(['auth:sanctum', 'role:admin', 'throttle:30,1']);
     Route::get('config', [ConfigController::class, 'show'])->middleware('throttle:120,1');
