@@ -8,7 +8,7 @@ Schedule::call(function () {
     \App\Models\QuizSession::where('expires_at', '<', now()->subDays(7))->whereNotIn('id', \App\Models\QuizAttempt::withTrashed()->select('id'))->delete();
 })->name('quiz:cleanup')->daily()->withoutOverlapping();
 
-Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('ops:scheduler:last-tick', now()->toIso8601String(), now()->addMinutes(10)))
+Schedule::command('ops:heartbeat')
     ->name('ops:heartbeat')->everyMinute()->withoutOverlapping();
 
 Schedule::call(fn () => app(\App\Services\Push\ReminderScheduler::class)->tick())->name('push:reminders')->everyMinute()->withoutOverlapping();

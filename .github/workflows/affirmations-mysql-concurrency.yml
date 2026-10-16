@@ -9,6 +9,8 @@ on:
       - 'app/Http/Controllers/Api/V1/AffirmationController.php'
       - 'database/migrations/**'
       - 'database/seeders/AffirmationSeeder.php'
+      - 'app/Console/Commands/SchedulerHeartbeat.php'
+      - 'routes/console.php'
       - '.github/workflows/affirmations-mysql-concurrency.yml'
   workflow_dispatch:
 
@@ -68,3 +70,5 @@ jobs:
           echo "APP_KEY=$task_key" >> "$GITHUB_ENV"
       - name: Verify assignment and expiry under concurrent requests
         run: php tests/Concurrency/mysql_affirmations.php
+      - name: Verify repeated and concurrent scheduler heartbeats
+        run: php tests/Concurrency/mysql_heartbeat.php
