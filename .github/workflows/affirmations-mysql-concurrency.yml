@@ -4,6 +4,8 @@ on:
   push:
     branches: [develop, 'verify/**']
     paths:
+      - 'composer.json'
+      - 'composer.lock'
       - 'tests/Concurrency/**'
       - 'app/Services/AffirmationAssignmentService.php'
       - 'app/Http/Controllers/Api/V1/AffirmationController.php'

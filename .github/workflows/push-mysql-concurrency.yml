@@ -4,6 +4,8 @@ on:
   push:
     branches: [develop, 'verify/**']
     paths:
+      - 'composer.json'
+      - 'composer.lock'
       - 'tests/Concurrency/**'
       - 'app/Jobs/SendPushAttempt.php'
       - 'app/Services/Push/**'
