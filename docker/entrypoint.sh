@@ -27,7 +27,7 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 php artisan migrate --force
-php artisan db:seed --class=AffirmationSeeder --force || true
+php artisan db:seed --class=AffirmationSeeder --force
 
 if [ ! -e public/storage ] && [ ! -L public/storage ]; then
     php artisan storage:link
