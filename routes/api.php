@@ -187,6 +187,7 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::patch('user/profile', [UserProfileController::class, 'update']);
     Route::patch('user/preferences', [UserProfileController::class, 'updatePreferences']);
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
+    Route::delete('provider/invitations/{linkId}', [ProviderController::class, 'cancelInvitation'])->middleware('throttle:30,1');
     Route::get('provider', [ProviderController::class, 'show']);
     Route::post('provider/request', [ProviderController::class, 'requestCode'])->middleware('throttle:5,1');
     Route::post('provider/verify', [ProviderController::class, 'verify'])->middleware('throttle:10,1');

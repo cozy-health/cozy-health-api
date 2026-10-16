@@ -14,7 +14,7 @@ Open provider dashboard: {!! $portalUrl !!}
 
 How to connect:
 1. Sign in or create your provider account using {!! $recipientEmail ?: 'the email address receiving this invitation' !!}.
-2. Choose Add patient and enter the connection code above.
+2. Choose Accept patient invitation and enter the connection code above.
 3. Review the patient's sharing choices, then select Agree & connect.
 
 The patient controls which information is shared and can change or revoke access at any time.

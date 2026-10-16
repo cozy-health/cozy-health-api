@@ -6,15 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProviderRequestRequest;
 use App\Http\Requests\ProviderVerifyRequest;
 use App\Mail\ProviderInvitationMail;
-use App\Services\Provider\InvitationCode;
-use Illuminate\Support\Facades\Mail;
 use App\Models\Provider;
 use App\Models\ProviderClientLink;
 use App\Services\Analytics\AnalyticsService;
+use App\Services\Provider\InvitationCode;
 use App\Services\Provider\ProviderAudit;
 use App\Support\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class ProviderController extends Controller
 {
@@ -60,6 +61,7 @@ class ProviderController extends Controller
                 'provider_name' => $validated['provider_name'] ?? $provider?->name,
                 'provider_phone' => $validated['provider_phone'] ?? $provider?->phone,
                 'verification_code' => Hash::make($code),
+                'invitation_code_secret' => ($validated['verification_actor'] ?? 'patient') === 'provider' ? $code : null,
                 'verification_actor' => $validated['verification_actor'] ?? 'patient',
                 'invitation_code_lookup' => ($validated['verification_actor'] ?? 'patient') === 'provider' ? InvitationCode::lookup($email, $code) : null,
                 'invitation_sent_at' => ($validated['verification_actor'] ?? 'patient') === 'provider' ? now() : null,
@@ -128,6 +130,23 @@ class ProviderController extends Controller
         ]);
     }
 
+    public function cancelInvitation(Request $request, string $linkId)
+    {
+        return DB::transaction(function () use ($request, $linkId) {
+            $link = $request->user()->providerClientLinks()->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            abort_if($link->verified_at && ! $link->revoked_at, 409, 'This provider has already accepted. Refresh the connection before making changes.');
+            if (! $link->revoked_at) {
+                $link->update(['revoked_at' => now(), 'verification_code' => null,
+                    'invitation_code_lookup' => null, 'verification_expires_at' => null]);
+                if ($link->provider_id) {
+                    ProviderAudit::record($request, $link, 'invitation_cancelled', 'client', (string) $link->id);
+                }
+            }
+
+            return response()->json(['message' => 'Invitation cancelled.']);
+        });
+    }
+
     public function destroy()
     {
         DB::transaction(function () {
@@ -153,6 +172,12 @@ class ProviderController extends Controller
                 'provider_email' => $connection->provider_email,
                 'provider_phone' => $connection->provider_phone ?? $connection->provider?->phone,
                 'link_id' => $connection->id,
+                'invitation_portal_url' => config('services.provider.portal_url'),
+                'invitation_code' => $connection->verification_actor === 'provider'
+                    && ! $connection->verified_at && ! $connection->revoked_at && $connection->verification_expires_at?->isFuture()
+                    ? $connection->invitation_code_secret : null,
+                'invitation_expires_at' => $connection->verification_actor === 'provider' && ! $connection->verified_at && ! $connection->revoked_at
+                    ? $connection->verification_expires_at?->toIso8601String() : null,
                 'provider_verified' => (bool) $connection->provider?->is_verified,
                 'consent_flags' => $connection->consentFlags(),
             ],

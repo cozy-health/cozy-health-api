@@ -46,7 +46,7 @@ class ProviderWelcomeMailTest extends ProviderDataTestCase
     {
         config(['services.provider.portal_url' => 'https://portal.example.test/provider']);
         $mail = new ProviderWelcomeMail($this->provider(['name' => 'Dr. Avery & <Team>']));
-        foreach (['Dr. Avery & <Team>', 'Add patient', 'https://portal.example.test/provider', 'do not have any patients yet'] as $text) {
+        foreach (['Dr. Avery & <Team>', 'Accept patient invitation', 'https://portal.example.test/provider', 'do not have any patients yet'] as $text) {
             $mail->assertSeeInHtml($text);
             $mail->assertSeeInText($text);
         }

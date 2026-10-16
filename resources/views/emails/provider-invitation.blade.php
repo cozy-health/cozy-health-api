@@ -25,7 +25,7 @@
   <h2 style="margin:0 0 12px;font-size:17px;line-height:1.5">How to connect</h2>
   <ol style="margin:0 0 24px;padding-left:22px;font-size:14px;line-height:1.8">
     <li>Sign in or create your provider account using <strong style="overflow-wrap:anywhere">{{ $recipientEmail ?: 'the email address receiving this invitation' }}</strong>.</li>
-    <li>Choose <strong>Add patient</strong> and enter the connection code above.</li>
+    <li>Choose <strong>Accept patient invitation</strong> and enter the connection code above.</li>
     <li>Review the patient's sharing choices, then select <strong>Agree &amp; connect</strong>.</li>
   </ol>
   <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#595959">The patient controls which information is shared and can change or revoke access at any time. No wellness information is shared by this email.</p>

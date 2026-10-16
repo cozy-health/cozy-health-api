@@ -35,7 +35,7 @@ class ProviderInvitationMailTest extends ProviderDataTestCase
         $mail = new ProviderInvitationMail($link->id, '123456');
         $link->user->update(['name' => 'Amara Updated']);
         $mail->assertHasSubject('A patient invited you to connect on Cozy');
-        foreach (['Amara Updated', 'Dr. Avery', '123456', '14 Oct 2026, 10:15 UTC', $provider->email, 'Add patient', 'Open provider dashboard', 'https://portal.example.test/provider'] as $text) {
+        foreach (['Amara Updated', 'Dr. Avery', '123456', '14 Oct 2026, 10:15 UTC', $provider->email, 'Accept patient invitation', 'Open provider dashboard', 'https://portal.example.test/provider'] as $text) {
             $mail->assertSeeInHtml($text);
             $mail->assertSeeInText($text);
         }

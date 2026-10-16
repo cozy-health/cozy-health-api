@@ -9,7 +9,7 @@ Open provider dashboard: {!! $portalUrl !!}
 Add your first patient:
 1. A patient sends you a connection invitation through Cozy.
 2. Sign in using the email address that received the invitation.
-3. Choose Add patient, enter the emailed code, review their sharing choices, and select Agree & connect.
+3. Choose Accept patient invitation, enter the emailed code, review their sharing choices, and select Agree & connect.
 
 Patients control what they share and can change or revoke access at any time.
 Creating an account does not certify professional credentials.
