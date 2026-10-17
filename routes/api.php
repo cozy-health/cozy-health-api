@@ -124,6 +124,9 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
+    Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
+    Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
+
     Route::get('wellness/catalog', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'catalog'])->middleware('throttle:60,1');
     Route::get('wellness/challenges', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'challenges'])->middleware('throttle:60,1');
     Route::post('wellness/challenges/{id}/enroll', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'enroll'])->whereNumber('id')->middleware('throttle:30,1');
@@ -273,6 +276,9 @@ Route::prefix('v1/provider')->group(function () {
     Route::post('auth/forgot-password', [$controller, 'forgotPassword'])->middleware(['throttle:5,1', 'throttle:provider-password-reset-email']);
     Route::post('auth/reset-password', [$controller, 'resetPassword'])->middleware('throttle:5,1');
     Route::middleware(['auth:provider', EnsureActiveProvider::class])->group(function () use ($controller) {
+    Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
+    Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
+
         Route::post('auth/logout', [$controller, 'logout']);
         Route::post('invitations/preview', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'preview'])->middleware('throttle:provider-invitation-code');
         Route::post('invitations/connect', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'connect'])->middleware('throttle:provider-invitation-code');

@@ -68,3 +68,6 @@ Artisan::command('flags:set {key} {enabled}', function () {
 });
 
 \Illuminate\Support\Facades\Schedule::command('avatars:cleanup')->hourly()->withoutOverlapping()->runInBackground();
+
+Artisan::command('audio:cleanup', function () { $this->info('Removed '.app(\App\Services\AudioAttachmentService::class)->cleanup().' unreferenced recordings.'); });
+Schedule::command('audio:cleanup')->daily()->withoutOverlapping();

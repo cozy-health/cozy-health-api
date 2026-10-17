@@ -13,6 +13,7 @@ class JournalEntryRequest extends ApiFormRequest {
             'client_updated_at' => ['sometimes', 'nullable', 'date'],
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'body' => ['sometimes', 'nullable', 'string'],
+            'audio_attachment_id' => ['sometimes', 'nullable', 'uuid'],
             'voice_url' => ['sometimes', 'nullable', 'string', 'max:500'],
             'voice_duration' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'transcription' => ['sometimes', 'nullable', 'string'],

@@ -16,6 +16,9 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if ($type === 'journal_entry' && (($data['type'] ?? null) === 'voice' || array_key_exists('body', $data))) {
+            $data['body'] ??= '';
+        }
         if ($type === 'quiz_attempt') {
             if (empty($data['definition_version'])) {
                 app(AssessmentService::class)->submitLegacy($user, $data);

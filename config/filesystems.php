@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'audio_disk' => env('AUDIO_FILESYSTEM_DISK', 'local'),
+    'audio_ffmpeg' => env('AUDIO_FFMPEG_BINARY', 'ffmpeg'),
+    'audio_ffprobe' => env('AUDIO_FFPROBE_BINARY', 'ffprobe'),
     'default' => env('FILESYSTEM_DISK', 'local'),
     'disks' => [
         'local' => ['driver' => 'local', 'root' => storage_path('app/private'), 'throw' => false],

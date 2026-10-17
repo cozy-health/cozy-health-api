@@ -117,7 +117,9 @@ class ProviderMessageController extends Controller
             $more = $rows->count() > $limit || ($rows->isNotEmpty() && ProviderMessage::where('provider_client_link_id', $link->id)->where('id', '<', $rows->last()->id)->exists());
             $rows = $rows->take($limit)->reverse()->values()->map(function ($message) use ($link) {
                 $data = $message->toArray();
-                $data['records'] = array_map(fn ($ref) => $this->record($link, $ref), $message->records ?? []);
+            $data['records'] = array_map(fn ($ref) => $this->record($link, $ref), $message->records ?? []);
+                $audio = $message->audio_attachment_id ? \App\Models\AudioAttachment::find($message->audio_attachment_id) : null;
+                $data['audio'] = $audio ? ['id' => $audio->id, 'duration' => $audio->duration, 'media_type' => $audio->media_type] : null;
 
                 return $data;
             });
@@ -132,9 +134,9 @@ class ProviderMessageController extends Controller
     public function store(Request $request, string $linkId)
     {
         $data = $request->validate(['client_id' => 'required|uuid', 'content' => 'nullable|string|max:5000',
-            'records' => 'sometimes|array|max:10', 'records.*.type' => 'required|in:moods,journals,quizzes,notes', 'records.*.id' => 'required|string|max:100']);
+            'audio_attachment_id' => 'sometimes|nullable|uuid', 'records' => 'sometimes|array|max:10', 'records.*.type' => 'required|in:moods,journals,quizzes,notes', 'records.*.id' => 'required|string|max:100']);
         $data['content'] = trim($data['content'] ?? '');
-        abort_if($data['content'] === '' && empty($data['records']), 422, 'Write a message or select a record.');
+        abort_if($data['content'] === '' && empty($data['records']) && empty($data['audio_attachment_id']), 422, 'Write a message or select a record.');
         abort_if($this->provider($request) && ! empty($data['records']), 403);
 
         return DB::transaction(function () use ($request, $linkId, $data) {
@@ -143,6 +145,10 @@ class ProviderMessageController extends Controller
             $existing = ProviderMessage::where('provider_client_link_id', $link->id)->where('sender', $sender)->where('client_id', $data['client_id'])->first();
             if ($existing) {
                 return response()->json(['id' => $existing->id]);
+            }
+                if (! empty($data['audio_attachment_id'])) {
+                $audio = app(\App\Services\AudioAttachmentService::class)->reference($request->user(), $data['audio_attachment_id'], 'message', $link->id);
+                abort_if(ProviderMessage::where('audio_attachment_id', $audio->id)->exists(), 422, 'This recording has already been sent.');
             }
             $data['records'] = array_map(fn ($ref) => ['type' => $ref['type'], 'id' => $ref['id']], $data['records'] ?? []);
             foreach ($data['records'] as $ref) {
