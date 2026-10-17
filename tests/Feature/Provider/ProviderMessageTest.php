@@ -54,7 +54,7 @@ class ProviderMessageTest extends ProviderDataTestCase
     public function test_shared_records_follow_consent_and_deletion_and_ownership(): void
     {
         $provider = $this->provider();
-        $user = User::factory()->create();
+        $user = User::factory()->create(['name' => 'Taylor PrivateSurname']);
         $link = $this->link($provider, $user, ['consent_moods' => true, 'consent_journals' => true, 'consent_notes' => true]);
         $mood = MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'happy', 'intensity' => 3]);
         $journal = JournalEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'type' => 'text', 'title' => 'My day', 'body' => 'Private body', 'is_draft' => false]);
@@ -66,6 +66,10 @@ class ProviderMessageTest extends ProviderDataTestCase
         ]])->assertCreated();
         $providerPath = "/api/v1/provider/conversations/{$link->id}/messages";
         $response = $this->asProvider($provider)->getJson($providerPath)->assertOk()->assertJsonPath('data.0.records.0.data.mood', 'happy');
+        $response->assertJsonPath('data.0.records.0.owner.name', 'Taylor')
+            ->assertJsonPath('data.0.records.0.owner.initials', 'T');
+        $this->assertStringNotContainsString('PrivateSurname', $response->getContent());
+        $response->assertJsonMissingPath('data.0.records.0.owner.email');
         $this->assertStringNotContainsString('Private body', $response->getContent());
         $link->update(['consent_moods' => false]);
         $journal->delete();

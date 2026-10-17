@@ -63,7 +63,8 @@ class ProviderMessageController extends Controller
     private function record($link, array $ref, bool $grant = true): array
     {
         $type = $ref['type'];
-        $base = ['type' => $type, 'id' => $ref['id']];
+        $name = preg_split('/\\s+/u', trim($link->user->name))[0] ?: 'Patient';
+        $base = ['type' => $type, 'id' => $ref['id'], 'owner' => ['name' => $name, 'initials' => mb_strtoupper(mb_substr($name, 0, 1))]];
         if (! $link->{'consent_'.$type}) {
             return $base + ['unavailable' => true];
         }
@@ -75,7 +76,7 @@ class ProviderMessageController extends Controller
         $fields = match ($type) {
             'moods' => ['mood', 'intensity', 'note', 'created_at'],
             'journals' => ['title', 'type', 'word_count', 'created_at'],
-            'quizzes' => ['quiz_slug', 'score', 'interpretation', 'completed_at'],
+            'quizzes' => ['quiz_title', 'quiz_slug', 'score', 'maximum_score', 'interpretation', 'completed_at'],
             'notes' => ['body', 'created_at'],
         };
 
