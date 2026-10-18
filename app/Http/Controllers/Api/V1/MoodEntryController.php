@@ -12,11 +12,13 @@ class MoodEntryController extends ApiController {
     public function store(\App\Http\Requests\MoodEntryRequest $request) {
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
+        app(\App\Services\AchievementService::class)->retain($request->user());
         $entry = MoodEntry::updateOrCreate(
             ['id' => $data['id']],
             $data
         );
         if ($entry->wasRecentlyCreated) { app(\App\Services\Analytics\AnalyticsService::class)->track('mood_logged'); }
+        app(\App\Services\AchievementService::class)->retain($request->user());
         return $this->success($entry);
     }
     public function show($id) {

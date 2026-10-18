@@ -63,29 +63,29 @@ it('accepts both top level and nested ids for deletion', function () {
     }
 });
 
-it('routes mobile subscription upserts to subscription statuses', function () {
+it('rejects client-authored paid subscription status', function () {
     $id = 'sub_123456789';
     $this->postJson('/api/v1/sync/batch', ['operations' => [[
         'client_operation_id' => 'subscription:'.$id,
         'type' => 'subscription', 'action' => 'upsert',
         'data' => ['id' => $id, 'plan' => 'pro', 'status' => 'active', 'expires_at' => now()->addMonth()->toIso8601String()],
-    ]]])->assertOk()->assertJsonPath('data.results.0.success', true);
-    $this->assertDatabaseHas('subscription_statuses', ['id' => $id, 'user_id' => $this->syncUser->id, 'plan' => 'pro', 'status' => 'active']);
+    ]]])->assertOk()->assertJsonPath('data.results.0.success', false)->assertJsonPath('data.results.0.error_code', 'access_denied');
+    $this->assertDatabaseMissing('subscription_statuses', ['id' => $id, 'user_id' => $this->syncUser->id, 'plan' => 'pro', 'status' => 'active']);
 });
 
-it('cancels an existing subscription without replacing its plan or expiry', function () {
+it('rejects cancellation sync and preserves the server subscription', function () {
     $subscription = SubscriptionStatus::create(['id' => (string) Str::uuid(), 'user_id' => $this->syncUser->id,
         'plan' => 'pro', 'status' => 'active', 'expires_at' => now()->addMonth()]);
     $expiry = $subscription->expires_at->toIso8601String();
     $this->postJson('/api/v1/sync/batch', ['operations' => [[
         'client_operation_id' => 'cancel', 'type' => 'subscription', 'action' => 'cancel',
         'data' => ['id' => $subscription->id, 'plan' => 'pro', 'status' => 'inactive'],
-    ]]])->assertOk()->assertJsonPath('data.results.0.success', true);
+    ]]])->assertOk()->assertJsonPath('data.results.0.success', false)->assertJsonPath('data.results.0.error_code', 'access_denied');
     $subscription->refresh();
-    expect($subscription->status)->toBe('inactive');
+    expect($subscription->status)->toBe('active');
     expect($subscription->plan)->toBe('pro');
     expect($subscription->expires_at->toIso8601String())->toBe($expiry);
-    expect($subscription->cancelled_at)->not->toBeNull();
+    expect($subscription->cancelled_at)->toBeNull();
 });
 
 it('keeps database failures isolated and reports them instead of acknowledging success', function () {
@@ -146,5 +146,5 @@ it('reports cancellation of a missing subscription as a failure', function () {
     $this->postJson('/api/v1/sync/batch', ['operations' => [[
         'client_operation_id' => 'missing', 'type' => 'subscription', 'action' => 'cancel', 'id' => 'missing',
     ]]])->assertOk()->assertJsonPath('data.results.0.success', false)
-        ->assertJsonPath('data.results.0.error', 'Subscription not found');
+        ->assertJsonPath('data.results.0.error_code', 'access_denied');
 });

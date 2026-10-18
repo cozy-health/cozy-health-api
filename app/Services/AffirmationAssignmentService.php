@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\DB;
 
 class AffirmationAssignmentService
 {
+    public function recordRead(User $user, array $data): void
+    {
+        $validated = \Illuminate\Support\Facades\Validator::make($data, [
+            'read_at' => ['required', 'date', 'before_or_equal:now'],
+        ])->validate();
+        $read = Carbon::parse($validated['read_at'])->utc();
+        // A delayed offline acknowledgement must not remain permanently pending.
+        if ($read->lt(now()->subDays(7))) return;
+        DB::table('user_affirmation_reads')->insertOrIgnore([
+            'user_id' => $user->id,
+            'local_date' => $read->copy()->setTimezone($user->timezone ?? 'UTC')->toDateString(),
+            'read_at' => $read,
+        ]);
+    }
+
     public function current(User $user): ?array
     {
         return DB::transaction(function () use ($user) {

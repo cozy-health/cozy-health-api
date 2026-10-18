@@ -41,8 +41,11 @@ class CommunityController extends ApiController
     private function payload(Request $request, object $row): array
     {
         $owner = (int) $row->user_id === (int) $request->user()->id;
+        $reactions = DB::table('community_reactions')->where('target_type', isset($row->post_id) ? 'comment' : 'post')->where('target_id', $row->id);
 
         return ['id' => $row->id, 'body' => $row->body,
+            ...(! isset($row->post_id) ? ['comment_count' => $this->visible($request, 'community_comments')->where('post_id', $row->id)->count()] : []),
+            'like_count' => (clone $reactions)->count(), 'is_liked' => (clone $reactions)->where('user_id', $request->user()->id)->exists(),
             'author' => ['id' => $row->is_anonymous ? null : $row->user_id, 'name' => $row->is_anonymous ? 'Anonymous' : $row->author_name],
             'is_anonymous' => (bool) $row->is_anonymous, 'is_owner' => $owner,
             'created_at' => $row->created_at, 'updated_at' => $row->updated_at,
@@ -57,6 +60,29 @@ class CommunityController extends ApiController
             ->paginate($request->input('per_page', 20));
         $page->through(fn ($row) => $this->payload($request, $row));
 
+        return $this->success($page);
+    }
+
+    public function reaction(Request $request, string $kind, string $id)
+    {
+        $data = $request->validate(['liked' => 'required|boolean']);
+        if ($kind === 'posts') $this->post($request, $id);
+        else {
+            $row = $this->visible($request, 'community_comments')->where('community_comments.id', $id)->firstOrFail();
+            $this->post($request, $row->post_id);
+        }
+        $key = ['user_id' => $request->user()->id, 'target_type' => $kind === 'posts' ? 'post' : 'comment', 'target_id' => $id];
+        if ($data['liked']) DB::table('community_reactions')->insertOrIgnore($key);
+        else DB::table('community_reactions')->where($key)->delete();
+        return $this->success(['liked' => $data['liked'], 'count' => DB::table('community_reactions')
+            ->where('target_type', $key['target_type'])->where('target_id', $id)->count()]);
+    }
+
+    public function userPosts(PaginationRequest $request, string $id)
+    {
+        $page = $this->posts($request)->where('community_posts.user_id', $id)->where('community_posts.is_anonymous', false)
+            ->orderByDesc('community_posts.created_at')->orderByDesc('community_posts.id')->paginate($request->input('per_page', 20));
+        $page->through(fn ($row) => $this->payload($request, $row));
         return $this->success($page);
     }
 
@@ -229,7 +255,9 @@ class CommunityController extends ApiController
     {
         $page = DB::table('community_groups')->where('is_active', true)->orderBy('name')->orderBy('id')->paginate($request->input('per_page', 20));
         $joined = DB::table('community_memberships')->where('user_id', $request->user()->id)->pluck('group_id')->all();
-        $page->through(fn ($group) => ['id' => $group->id, 'name' => $group->name, 'description' => $group->description, 'joined' => in_array($group->id, $joined)]);
+        $page->through(fn ($group) => ['id' => $group->id, 'name' => $group->name, 'description' => $group->description,
+            'member_count' => DB::table('community_memberships')->where('group_id', $group->id)->count(),
+            'joined' => in_array($group->id, $joined)]);
 
         return $this->success($page);
     }

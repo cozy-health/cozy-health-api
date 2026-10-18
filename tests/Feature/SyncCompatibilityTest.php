@@ -24,6 +24,7 @@ it('persists compatible payloads and rejects an unknown unversioned quiz without
         'name' => 'Before', 'email' => $this->syncUser->email]);
     $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk()->assertJsonCount(11, 'data.results');
     foreach ($this->operations as $index => $operation) {
+        if (in_array($operation['type'], ['subscription', 'subscription_status'], true)) { $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'access_denied'); continue; }
         if ($operation['type'] === 'quiz_attempt') {
             $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'invalid_payload');
             continue;
@@ -32,7 +33,7 @@ it('persists compatible payloads and rejects an unknown unversioned quiz without
             ->assertJsonPath("data.results.$index.client_operation_id", $operation['client_operation_id']);
     }
     foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
-        'user_profiles', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
+        'user_profiles', 'saved_articles', 'app_notifications'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
     $this->assertDatabaseHas('user_profiles', ['id' => $profile->id, 'name' => 'Synthetic user']);
@@ -48,12 +49,13 @@ it('retries all mobile payloads without duplicating singleton or bookmarked reco
     for ($retry = 0; $retry < 2; $retry++) {
         $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk();
         foreach ($this->operations as $index => $operation) {
-            if ($operation['type'] === 'quiz_attempt') { $response->assertJsonPath("data.results.$index.success", false); continue; }
+            if (in_array($operation['type'], ['subscription', 'subscription_status'], true)) { $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'access_denied'); continue; }
+        if ($operation['type'] === 'quiz_attempt') { $response->assertJsonPath("data.results.$index.success", false); continue; }
             $response->assertJsonPath("data.results.$index.success", true);
         }
     }
     foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
-        'user_profiles', 'saved_articles', 'app_notifications', 'subscription_statuses'] as $table) {
+        'user_profiles', 'saved_articles', 'app_notifications'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
 });
@@ -119,12 +121,12 @@ it('returns a safe error category without exposing failed SQL payloads', functio
     expect($response->getContent())->not->toContain('SQLSTATE')->not->toContain('Synthetic mood');
 });
 
-it('accepts the subscription alias and cancels the owned singleton despite a local id mismatch', function () {
-    $operation = ($this->operation)('subscription');
-    $operation['type'] = 'subscription_status';
-    $this->postJson('/api/v1/sync/batch', ['operations' => [$operation]])->assertOk()->assertJsonPath('data.results.0.success', true);
-    $this->postJson('/api/v1/sync/batch', ['operations' => [[
-        'type' => 'subscription', 'action' => 'cancel', 'id' => 'different-local-id',
-    ]]])->assertOk()->assertJsonPath('data.results.0.success', true);
-    $this->assertDatabaseHas('subscription_statuses', ['user_id' => $this->syncUser->id, 'status' => 'inactive']);
+it('rejects both aliases without changing server subscription state', function () {
+    foreach (['subscription', 'subscription_status'] as $type) {
+        $operation = ($this->operation)('subscription');
+        $operation['type'] = $type;
+        $this->postJson('/api/v1/sync/batch', ['operations' => [$operation]])->assertOk()
+            ->assertJsonPath('data.results.0.success', false)->assertJsonPath('data.results.0.error_code', 'access_denied');
+    }
+    $this->assertDatabaseCount('subscription_statuses', 0);
 });

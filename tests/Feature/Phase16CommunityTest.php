@@ -36,6 +36,33 @@ class Phase16CommunityTest extends TestCase
         ], ...$data])->assertOk()->json('data.id');
     }
 
+    public function test_reactions_are_idempotent_owned_and_respect_blocks(): void
+    {
+        $author = $this->login();
+        $id = $this->createPost();
+        $reader = $this->login();
+        $path = "/api/v1/community/posts/$id/reaction";
+        $this->putJson($path, ['liked' => true])->assertOk()->assertJsonPath('data.count', 1);
+        $this->putJson($path, ['liked' => true])->assertOk()->assertJsonPath('data.count', 1);
+        $this->getJson("/api/v1/community/posts/$id")->assertOk()->assertJsonPath('data.is_liked', true);
+        $this->login($author);
+        $this->getJson("/api/v1/community/posts/$id")->assertOk()->assertJsonPath('data.is_liked', false);
+        $this->putJson($path, ['liked' => false])->assertOk()->assertJsonPath('data.count', 1);
+        $this->login($reader);
+        $this->postJson("/api/v1/community/users/{$author->id}/block")->assertOk();
+        $this->putJson($path, ['liked' => true])->assertNotFound();
+    }
+
+    public function test_public_author_posts_never_expose_anonymous_posts(): void
+    {
+        $author = $this->login();
+        $public = $this->createPost();
+        $this->createPost(['is_anonymous' => true]);
+        $this->login();
+        $this->getJson("/api/v1/community/users/{$author->id}/posts")
+            ->assertOk()->assertJsonPath('data.total', 1)->assertJsonPath('data.data.0.id', $public);
+    }
+
     public function test_feed_detail_and_comments_hide_anonymous_identity(): void
     {
         $owner = $this->login();

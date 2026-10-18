@@ -128,6 +128,7 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 
     Route::get('wellness/catalog', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'catalog'])->middleware('throttle:60,1');
+    Route::get('wellness/achievements', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'achievements'])->middleware('throttle:30,1');
     Route::get('wellness/challenges', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'challenges'])->middleware('throttle:60,1');
     Route::post('wellness/challenges/{id}/enroll', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'enroll'])->whereNumber('id')->middleware('throttle:30,1');
     Route::post('wellness/challenges/{id}/complete', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'complete'])->whereNumber('id')->middleware('throttle:30,1');
@@ -135,6 +136,7 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('auth/email-verification/verify', [EmailVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::get('dashboard', [DashboardController::class, 'show'])->middleware('throttle:60,1');
     Route::get('/affirmations/today', [AffirmationController::class, 'today'])->middleware('throttle:60,1');
+    Route::post('/affirmations/read', [AffirmationController::class, 'read'])->middleware('throttle:60,1');
     Route::prefix('/insights')->group(function () {
         Route::get('/weekly', [InsightsController::class, 'weekly'])->middleware('throttle:60,1');
         Route::get('/triggers', [InsightsController::class, 'triggers'])->middleware('throttle:60,1');
@@ -241,6 +243,8 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::prefix('community')->middleware([CommunityReady::class, 'throttle:60,1'])->group(function () {
         $community = CommunityController::class;
         Route::get('posts', [$community, 'index']);
+        Route::put('{kind}/{id}/reaction', [$community, 'reaction'])->where('kind', 'posts|comments')->whereUuid('id');
+        Route::get('users/{id}/posts', [$community, 'userPosts'])->whereNumber('id');
         Route::post('posts', [$community, 'store'])->middleware('throttle:10,1');
         Route::get('posts/{id}', [$community, 'show']);
         Route::patch('posts/{id}', [$community, 'update'])->middleware('throttle:10,1');
@@ -264,6 +268,8 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->middleware('throttle:60,1');
     Route::apiResource('notifications', NotificationController::class);
     Route::get('subscription', [SubscriptionController::class, 'show']);
+    Route::post('support/reports', [\App\Http\Controllers\Api\V1\SupportController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('subscription/prices', [SubscriptionController::class, 'prices'])->middleware('throttle:60,1');
     Route::post('sync/batch', [SyncController::class, 'batch'])->middleware('throttle:60,1');
 });
 

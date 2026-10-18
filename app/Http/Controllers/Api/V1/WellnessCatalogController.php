@@ -4,6 +4,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class WellnessCatalogController extends ApiController
 {
+    public function achievements(Request $request)
+    {
+        $user = $request->user();
+        app(\App\Services\AchievementService::class)->retain($user);
+        return $this->success(DB::table('user_achievement_awards')->where('user_id', $user->id)->orderBy('earned_date')->get(['milestone', 'earned_date']));
+    }
+
     public function catalog()
     {
         $data = ['mood_recording_version' => 2];

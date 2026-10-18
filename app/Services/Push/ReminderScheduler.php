@@ -120,6 +120,14 @@ class ReminderScheduler
                 if (! $this->enabled()) return;
                 $reminder->update(['status' => 'dispatching', 'dispatched_at' => $now->utc(), 'dispatch_date' => $date]);
                 [$title, $body, $route] = self::copy($category);
+                if ($category === 'affirmation') {
+                    $assignment = app(\App\Services\AffirmationAssignmentService::class)->current($user);
+                    if (! $assignment) {
+                        $reminder->update(['status' => 'cancelled']);
+                        continue;
+                    }
+                    [$title, $body, $route] = ['Your daily affirmation', $assignment['body'], '/daily-affirmation'];
+                }
                 AppNotification::create(['id' => $reminder->id, 'user_id' => $user->id, 'type' => $category,
                     'title' => $title, 'body' => $body, 'deep_link' => $route, 'data' => ['category' => $category],
                     'is_read' => false, 'client_created_at' => $now->utc()]);
@@ -158,6 +166,8 @@ class ReminderScheduler
 
     public function eligible(User $user, UserProfile $profile, string $category, CarbonImmutable $now): bool
     {
+        if ($category === 'affirmation' && DB::table('user_affirmation_reads')
+            ->where('user_id', $user->id)->where('local_date', $now->toDateString())->exists()) return false;
         $settings = ReminderSettings::for($profile);
         if (! $user->is_active || $user->is_demo || ! $profile->push_consent || ! $profile->notifications_master
             || ! $this->categoryEnabled($profile, $settings, $category) || ! in_array($now->isoWeekday(), $settings[$category.'_days'])) return false;

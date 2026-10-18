@@ -8,6 +8,71 @@ use Tests\TestCase;
 class AdminManagementTest extends TestCase
 {
     use RefreshDatabase;
+    public function test_journal_drafts_do_not_earn_a_published_journal_milestone(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+        \App\Models\JournalEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id,
+            'type' => 'text', 'body' => 'Draft', 'is_draft' => true, 'client_created_at' => now()]);
+        $this->getJson('/api/v1/wellness/achievements')->assertOk()->assertJsonCount(0, 'data');
+    }
+    public function test_sync_delete_retains_achievements_before_first_achievement_visit(): void
+    {
+        $user = User::factory()->create(['timezone' => 'Africa/Lagos']);
+        $this->actingAs($user, 'sanctum');
+        $ids = [];
+        foreach ([1, 2, 3] as $day) {
+            $id = (string) Str::uuid();
+            $ids[] = $id;
+            \App\Models\MoodEntry::create(['id' => $id, 'user_id' => $user->id,
+                'mood' => 'good', 'intensity' => 5, 'client_created_at' => "2026-10-0{$day}T10:00:00Z"]);
+        }
+        foreach ($ids as $id) {
+            $this->postJson('/api/v1/sync/batch', ['operations' => [
+                ['type' => 'mood_entry', 'action' => 'delete', 'id' => $id, 'data' => ['id' => $id]],
+            ]])->assertOk()->assertJsonPath('data.results.0.success', true);
+        }
+        $this->getJson('/api/v1/wellness/achievements')->assertOk()->assertJsonCount(2, 'data');
+        $this->assertDatabaseHas('user_achievement_awards', ['user_id' => $user->id, 'milestone' => 'streak_3']);
+    }
+    public function test_achievements_backfill_distinct_days_and_survive_deleted_activity(): void
+    {
+        $user = User::factory()->create(['timezone' => 'Africa/Lagos']);
+        $this->actingAs($user, 'sanctum');
+        foreach (['2026-10-01T10:00:00Z', '2026-10-01T11:00:00Z', '2026-10-02T10:00:00Z', '2026-10-03T10:00:00Z'] as $date) {
+            \App\Models\MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'good', 'intensity' => 5, 'client_created_at' => $date]);
+        }
+        $this->getJson('/api/v1/wellness/achievements')->assertOk()->assertJsonCount(2, 'data');
+        $this->assertDatabaseHas('user_achievement_awards', ['user_id' => $user->id, 'milestone' => 'streak_3', 'earned_date' => '2026-10-03']);
+        DB::table('mood_entries')->where('user_id', $user->id)->update(['is_deleted' => true]);
+        $this->getJson('/api/v1/wellness/achievements')->assertOk()->assertJsonCount(2, 'data');
+        $this->actingAs(User::factory()->create(), 'sanctum')->getJson('/api/v1/wellness/achievements')->assertOk()->assertJsonCount(0, 'data');
+    }
+    public function test_mobile_regional_prices_have_correct_annual_totals_and_no_region_fallback(): void
+    {
+        $this->actingAs(User::factory()->create(), 'sanctum');
+        $this->getJson('/api/v1/subscription/prices?country=NG')->assertOk()
+            ->assertJsonPath('data.packages.0.tier', 'free')
+            ->assertJsonPath('data.packages.1.yearly_price', 48000)
+            ->assertJsonPath('data.packages.2.yearly_price', 96000)
+            ->assertJsonPath('data.purchasing_available', false);
+        $this->getJson('/api/v1/subscription/prices?country=GB')->assertOk()->assertJsonCount(0, 'data.packages');
+    }
+
+    public function test_admin_can_change_annual_discount_without_changing_entitlements(): void
+    {
+        $this->admin();
+        $row = DB::table('subscription_packages')->where('slug', 'mobile-ng-student')->first();
+        $body = (array) $row;
+        $body['features'] = json_decode($row->features, true);
+        $body['annual_discount'] = 10;
+        $body['expected_updated_at'] = $row->updated_at;
+        $this->putJson('/api/v1/admin/content/packages/'.$row->id, $body)->assertOk();
+        $this->assertDatabaseHas('subscription_packages', ['id' => $row->id, 'annual_discount' => 10]);
+        $this->assertDatabaseCount('subscription_statuses', 0);
+        $body['expected_updated_at'] = '2000-01-01 00:00:00';
+        $this->putJson('/api/v1/admin/content/packages/'.$row->id, $body)->assertConflict();
+    }
     private function admin(array $abilities = ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email']): User
     {
         $admin = User::factory()->create(); $admin->forceFill(['role' => 'admin'])->save();

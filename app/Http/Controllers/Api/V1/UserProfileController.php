@@ -106,6 +106,7 @@ class UserProfileController extends Controller
 
     private function profileData(Request $request, UserProfile $profile): array
     {
-        return [...$profile->toArray(), 'timezone' => $request->user()->timezone ?? 'UTC', 'country_code' => $request->user()->country_code];
+        return [...$profile->toArray(), 'timezone' => $request->user()->timezone ?? 'UTC', 'country_code' => $request->user()->country_code,
+            'account_created_at' => $request->user()->created_at?->toIso8601String()];
     }
 }

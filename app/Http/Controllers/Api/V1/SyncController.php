@@ -30,6 +30,7 @@ class SyncController extends ApiController
         'safety_plan' => SafetyPlan::class,
         'user_profile' => UserProfile::class,
         'user_preferences' => UserProfile::class,
+        'affirmation_read' => UserProfile::class,
         'quiz_attempt' => QuizAttempt::class,
         'saved_article' => SavedArticle::class,
         'app_notification' => AppNotification::class,
@@ -65,6 +66,10 @@ class SyncController extends ApiController
             }
 
             $modelClass = self::MODELS[$type] ?? null;
+            if (in_array($type, ['subscription', 'subscription_status'], true)) {
+                $results[] = [...$result, 'error' => 'Subscription status is server managed', 'error_code' => 'access_denied'];
+                continue;
+            }
             if ($modelClass === null) {
                 $results[] = [...$result, 'error' => 'Unknown type', 'error_code' => 'unknown_type'];
 
@@ -89,6 +94,11 @@ class SyncController extends ApiController
 
             try {
                 $error = DB::transaction(function () use ($modelClass, $action, $data, $request, $isCancellation, $type) {
+                    if ($type === 'affirmation_read') {
+                        abort_unless($action === 'upsert', 422);
+                        app(\App\Services\AffirmationAssignmentService::class)->recordRead($request->user(), $data);
+                        return null;
+                    }
                     if ($type === 'next_of_kin') {
                         app(\App\Services\NextOfKinService::class)->apply($request->user(), $action, $data);
                         return null;

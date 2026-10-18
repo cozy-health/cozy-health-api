@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class AffirmationController extends Controller
 {
+    public function read(Request $request, AffirmationAssignmentService $assignments): JsonResponse
+    {
+        $assignments->recordRead($request->user(), $request->all());
+        return response()->json(['success' => true, 'data' => null]);
+    }
+
     public function today(Request $request, AffirmationAssignmentService $assignments): JsonResponse
     {
         $data = $assignments->current($request->user());

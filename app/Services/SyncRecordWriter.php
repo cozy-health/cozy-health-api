@@ -16,6 +16,7 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'journal_entry' && (($data['type'] ?? null) === 'voice' || array_key_exists('body', $data))) {
             $data['body'] ??= '';
         }
@@ -97,6 +98,7 @@ class SyncRecordWriter
             $record = $modelClass::create($data);
         }
         $event = ['mood_entry' => 'mood_logged', 'journal_entry' => 'journal_created', 'quiz_attempt' => 'quiz_completed'][$type] ?? null;
+        if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($record->wasRecentlyCreated && $event && ! ($data['is_deleted'] ?? false)) {
             app(AnalyticsService::class)->track($event);
         }
@@ -106,6 +108,7 @@ class SyncRecordWriter
 
     public function delete(string $modelClass, string $type, User $user, string $id): void
     {
+        if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'quiz_attempt') {
             app(QuizSharingService::class)->deleteAttempt($user->id, $id);
 

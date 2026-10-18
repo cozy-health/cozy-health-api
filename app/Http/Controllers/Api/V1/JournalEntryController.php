@@ -21,6 +21,7 @@ class JournalEntryController extends ApiController
         $data['body'] = $data['body'] ?? '';
         $data['user_id'] = $request->user()->id;
         $entry = JournalEntry::create($data)->refresh();
+        app(\App\Services\AchievementService::class)->retain($request->user());
         app(\App\Services\Analytics\AnalyticsService::class)->track('journal_created');
         return $this->success($entry);
     }
@@ -41,7 +42,9 @@ class JournalEntryController extends ApiController
         if (array_key_exists('body', $data)) {
             $data['body'] ??= '';
         }
+        app(\App\Services\AchievementService::class)->retain($request->user());
         $entry->update($data);
+        app(\App\Services\AchievementService::class)->retain($request->user());
         return $this->success($entry->refresh());
     }
 
@@ -51,6 +54,7 @@ class JournalEntryController extends ApiController
         if (!$entry) {
             return $this->notFound();
         }
+        app(\App\Services\AchievementService::class)->retain($request->user());
         $entry->delete();
         return response()->json(['message' => 'Journal entry deleted.']);
     }

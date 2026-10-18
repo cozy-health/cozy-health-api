@@ -10,6 +10,27 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
+test('reading is idempotent owned and rejects future timestamps', function () {
+    $user = User::factory()->create(['timezone' => 'Africa/Lagos']);
+    $this->actingAs($user, 'sanctum');
+    $body = ['read_at' => now()->toIso8601String()];
+    $this->postJson('/api/v1/affirmations/read', $body)->assertOk();
+    $this->postJson('/api/v1/affirmations/read', $body)->assertOk();
+    expect(DB::table('user_affirmation_reads')->where('user_id', $user->id)->count())->toBe(1);
+    $this->postJson('/api/v1/affirmations/read', ['read_at' => now()->addDay()->toIso8601String()])->assertUnprocessable();
+    expect(DB::table('user_affirmation_reads')->where('user_id', '!=', $user->id)->count())->toBe(0);
+});
+
+test('offline read sync succeeds while paid entitlement sync is rejected', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user, 'sanctum')->postJson('/api/v1/sync/batch', ['operations' => [
+        ['type' => 'affirmation_read', 'action' => 'upsert', 'data' => ['id' => 'read-one', 'read_at' => now()->toIso8601String()]],
+        ['type' => 'subscription', 'action' => 'upsert', 'data' => ['id' => 'forged', 'status' => 'active']],
+    ]])->assertOk()->assertJsonPath('data.results.0.success', true)
+        ->assertJsonPath('data.results.1.error_code', 'access_denied');
+    expect(DB::table('subscription_statuses')->where('user_id', $user->id)->count())->toBe(0);
+});
+
 beforeEach(function () {
     Carbon::setTestNow(Carbon::parse('2026-10-08 12:00:00', 'UTC'));
     Cache::flush();
