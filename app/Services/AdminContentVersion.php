@@ -8,7 +8,7 @@ class AdminContentVersion
 {
     public static function token(object $content): string
     {
-        return hash('sha256', json_encode([$content->id, $content->body, $content->status, $content->updated_at], JSON_THROW_ON_ERROR));
+        return hash('sha256', json_encode([$content->id, $content->body, $content->status, $content->updated_at, $content->image_object_key ?? null], JSON_THROW_ON_ERROR));
     }
 
     public static function check(object $content, array $data, string $status): void

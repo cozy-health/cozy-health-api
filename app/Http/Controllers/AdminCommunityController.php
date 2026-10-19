@@ -17,21 +17,23 @@ class AdminCommunityController extends Controller
         } else {
             $table = 'community_'.$kind;
             $query = DB::table($table)->whereNull('deleted_at')->select('id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at');
-            if ($kind === 'posts') { $query->addSelect('group_id'); if (isset($data['group_id'])) $query->where('group_id', $data['group_id']); }
+            if ($kind === 'posts') { $query->addSelect('group_id', 'image_object_key'); if (isset($data['group_id'])) $query->where('group_id', $data['group_id']); }
             else $query->addSelect('post_id');
             if (!empty($data['search'])) $query->where('body', 'like', '%'.$data['search'].'%');
             $query->orderByDesc('created_at');
         }
         AdminAudit::record($request->user()->id, 'review-list', 'community-'.$kind, 'list');
         $rows = $query->paginate($data['per_page'] ?? 10);
-        if ($kind !== 'members') $rows->through(function ($row) { $row->version = AdminContentVersion::token($row); return $row; });
+        if ($kind !== 'members') $rows->through(function ($row) { $row->version = AdminContentVersion::token($row); $row->image_url = app(\App\Services\CommunityImageService::class)->url($row->image_object_key ?? null); unset($row->image_object_key); return $row; });
         return response()->json(['data' => $rows])->header('Cache-Control', 'private, no-store');
     }
     public function show(Request $request, string $kind, string $id)
     {
         abort_unless(in_array($kind, ['posts', 'comments'], true), 404);
-        $row = DB::table('community_'.$kind)->where('id', $id)->whereNull('deleted_at')->firstOrFail(['id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at']);
+        $row = DB::table('community_'.$kind)->where('id', $id)->whereNull('deleted_at')->firstOrFail(['id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at', ...($kind === 'posts' ? ['image_object_key'] : [])]);
         $row->version = AdminContentVersion::token($row);
+        $row->image_url = app(\App\Services\CommunityImageService::class)->url($row->image_object_key ?? null);
+        unset($row->image_object_key);
         AdminAudit::record($request->user()->id, 'review-content', 'community-'.$kind, $id);
         return response()->json(['data' => $row])->header('Cache-Control', 'private, no-store');
     }

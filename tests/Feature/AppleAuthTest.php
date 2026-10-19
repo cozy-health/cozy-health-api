@@ -42,7 +42,7 @@ it('apple signin creates a new user and registration profile defaults', function
     mockAppleAuthClaims($this->appleClaims);
     $response = $this->postJson('/api/v1/auth/apple', [
         'identity_token' => 'test-id-token', 'device_name' => 'apple-test-device',
-    ])->assertOk()->assertJsonPath('success', true)
+    ])->assertOk()->assertJsonPath('success', true)->assertJsonPath('data.is_new_user', true)
         ->assertJsonPath('data.user.name', 'Cozy User')
         ->assertJsonPath('data.user.email', 'apple-user@gmail.com');
 
@@ -69,7 +69,7 @@ it('apple signin links an existing verified email account', function () {
     $password = $user->password;
     mockAppleAuthClaims($this->appleClaims);
     $this->postJson('/api/v1/auth/apple', ['identity_token' => 'test-id-token'])
-        ->assertOk()->assertJsonPath('data.user.id', $user->id);
+        ->assertOk()->assertJsonPath('data.is_new_user', false)->assertJsonPath('data.user.id', $user->id);
     expect($user->fresh()->apple_sub)->toBe($this->appleClaims['sub'])
         ->and($user->fresh()->email_verified_at)->not->toBeNull()
         ->and($user->fresh()->password)->toBe($password);

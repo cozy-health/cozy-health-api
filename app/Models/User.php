@@ -34,6 +34,9 @@ class User extends Authenticatable
             if ($avatar?->avatar_object_key) {
                 ProfileAvatarService::queueDeletion(config('avatars.disk'), $avatar->avatar_object_key);
             }
+            foreach (\Illuminate\Support\Facades\DB::table('community_posts')->where('user_id', $user->id)->whereNotNull('image_object_key')->pluck('image_object_key') as $image) {
+                ProfileAvatarService::queueDeletion(config('avatars.disk'), $image);
+            }
             NextOfKinContact::where('user_id', $user->id)->delete();
             PushDevice::where('user_id', $user->id)->delete();
             PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);

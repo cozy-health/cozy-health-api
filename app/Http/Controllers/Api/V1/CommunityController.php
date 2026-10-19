@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Requests\PaginationRequest;
 use App\Models\User;
+use App\Services\CommunityImageService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,7 @@ class CommunityController extends ApiController
         $reactions = DB::table('community_reactions')->where('target_type', isset($row->post_id) ? 'comment' : 'post')->where('target_id', $row->id);
 
         return ['id' => $row->id, 'body' => $row->body,
+            'image_url' => app(CommunityImageService::class)->url($row->image_object_key ?? null),
             ...(! isset($row->post_id) ? ['comment_count' => $this->visible($request, 'community_comments')->where('post_id', $row->id)->count()] : []),
             'like_count' => (clone $reactions)->count(), 'is_liked' => (clone $reactions)->where('user_id', $request->user()->id)->exists(),
             'author' => ['id' => $row->is_anonymous ? null : $row->user_id, 'name' => $row->is_anonymous ? 'Anonymous' : $row->author_name],
@@ -117,20 +119,26 @@ class CommunityController extends ApiController
     {
         $data = $request->validate([...$this->textRules(), 'mood' => ['sometimes', 'nullable', 'string', 'max:50'],
             'group_id' => ['sometimes', 'nullable', 'integer'],
+            'image' => ['sometimes', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5119', 'dimensions:max_width=4095,max_height=4095'],
             'guidelines_version' => ['required', Rule::in([config('community.guidelines_version')])],
             'guidelines_accepted' => ['required', 'accepted']]);
         if (isset($data['group_id'])) {
             $this->memberGroup($request, (string) $data['group_id']);
         }
-        unset($data['guidelines_accepted']);
+        unset($data['guidelines_accepted'], $data['image']);
+        $image = $request->hasFile('image') ? app(CommunityImageService::class)->upload($request->file('image')) : null;
         $id = (string) Str::uuid();
         $data = [...$data, 'user_id' => $request->user()->id, 'is_crisis_flagged' => $this->flagged($data['body']),
             'guidelines_accepted_at' => now(), 'created_at' => now(), 'updated_at' => now()];
-        $data['status'] = $data['is_crisis_flagged'] ? 'pending' : 'published';
-        DB::transaction(function () use ($id, $data) {
+        $data['status'] = $data['is_crisis_flagged'] || $image ? 'pending' : 'published';
+        $data['image_object_key'] = $image;
+        try { DB::transaction(function () use ($id, $data, $image) {
             DB::table('community_posts')->insert(['id' => $id, ...$data]);
-            $this->autoReport('post', $id, $data);
-        });
+            $this->autoReport('post', $id, $data, $image !== null);
+        }); } catch (\Throwable $error) {
+            app(CommunityImageService::class)->discard($image);
+            throw $error;
+        }
 
         return $this->show($request, $id);
     }
@@ -158,8 +166,9 @@ class CommunityController extends ApiController
 
     public function destroy(Request $request, string $id)
     {
-        $this->owned($request, 'community_posts', $id);
-        DB::table('community_posts')->where('id', $id)->where('user_id', $request->user()->id)->update(['body' => '', 'deleted_at' => now(), 'updated_at' => now()]);
+        $post = $this->owned($request, 'community_posts', $id);
+        app(CommunityImageService::class)->discard($post->image_object_key);
+        DB::table('community_posts')->where('id', $id)->where('user_id', $request->user()->id)->update(['body' => '', 'image_object_key' => null, 'deleted_at' => now(), 'updated_at' => now()]);
 
         return response()->json(['message' => 'Post removed.']);
     }
@@ -294,11 +303,24 @@ class CommunityController extends ApiController
 
     public function image(Request $request, string $id)
     {
+        $this->post($request, $id);
         $this->owned($request, 'community_posts', $id);
         $request->validate(['image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5119', 'dimensions:max_width=4095,max_height=4095']]);
-
-        // No image is persisted or made visible without a configured moderation
-        // service and EXIF-stripping pipeline. Phase 21 must supply that pipeline.
-        return $this->error('Image moderation is not available. Please post text instead.', 'IMAGE_MODERATION_UNAVAILABLE', [], 503);
+        $images = app(CommunityImageService::class);
+        $key = $images->upload($request->file('image'));
+        try {
+            $old = DB::transaction(function () use ($request, $id, $key) {
+                $post = DB::table('community_posts')->where('id', $id)->where('user_id', $request->user()->id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
+                abort_if($post->status === 'removed', 409, 'A removed post cannot accept images.');
+                DB::table('community_posts')->where('id', $id)->update(['image_object_key' => $key, 'status' => 'pending', 'updated_at' => now()]);
+                $this->autoReport('post', $id, ['body' => $post->body, 'is_crisis_flagged' => (bool) $post->is_crisis_flagged], true);
+                return $post->image_object_key;
+            });
+        } catch (\Throwable $error) {
+            $images->discard($key);
+            throw $error;
+        }
+        $images->discard($old);
+        return $this->show($request, $id);
     }
 }

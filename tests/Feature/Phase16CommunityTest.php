@@ -144,6 +144,9 @@ class Phase16CommunityTest extends TestCase
         $this->getJson('/api/v1/community/groups')->assertJsonPath('data.data.0.joined', true);
         $this->deleteJson("/api/v1/community/groups/$group/leave")->assertOk();
         $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+        // Check membership denial independently of the write rate limit.
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->image('private-group.jpg')])->assertNotFound();
     }
 
     public function test_comment_parent_must_be_visible_and_belong_to_same_post(): void
@@ -183,13 +186,41 @@ class Phase16CommunityTest extends TestCase
         $this->getJson('/api/v1/community/posts')->assertStatus(503);
     }
 
-    public function test_images_are_not_saved_when_moderation_is_unavailable(): void
+    public function test_post_and_image_are_created_together_in_pending_review(): void
     {
+        \Illuminate\Support\Facades\Storage::fake(config('avatars.disk'));
         $this->login();
+        $id = $this->createPost(['image' => UploadedFile::fake()->image('photo.jpg')]);
+        $post = DB::table('community_posts')->where('id', $id)->first();
+        $this->assertSame('pending', $post->status);
+        $this->assertNotNull($post->image_object_key);
+        $this->deleteJson('/api/v1/account')->assertOk();
+        $this->assertDatabaseHas('avatar_photo_deletions', ['object_key' => $post->image_object_key]);
+    }
+
+    public function test_images_are_reencoded_private_and_hidden_until_review(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake(config('avatars.disk'));
+        $owner = $this->login();
         $id = $this->createPost();
         $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->create('unsafe.txt', 1)])->assertUnprocessable();
-        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
-        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->createWithContent('fixture.png', $png)])->assertStatus(503);
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->image('fixture.png', 1400, 700)])
+            ->assertOk()->assertJsonPath('data.status', 'pending');
+        $key = DB::table('community_posts')->where('id', $id)->value('image_object_key');
+        $disk = \Illuminate\Support\Facades\Storage::disk(config('avatars.disk'));
+        $disk->assertExists($key);
+        // Windows local fake disks cannot represent Unix private permissions.
+        if (PHP_OS_FAMILY !== 'Windows') $this->assertSame('private', $disk->getVisibility($key));
+        $info = getimagesizefromstring($disk->get($key));
+        $this->assertSame([1280, 640, IMAGETYPE_JPEG], array_slice($info, 0, 3));
+        $this->assertDatabaseHas('community_reports', ['target_id' => $id, 'status' => 'pending']);
+        $this->login();
+        $this->getJson("/api/v1/community/posts/$id")->assertNotFound();
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->image('other.png')])->assertNotFound();
+        $this->login($owner);
+        DB::table('community_posts')->where('id', $id)->update(['status' => 'removed']);
+        $this->postJson("/api/v1/community/posts/$id/image", ['image' => UploadedFile::fake()->image('other.png')])->assertConflict();
+        $this->assertDatabaseHas('community_posts', ['id' => $id, 'status' => 'removed', 'image_object_key' => $key]);
     }
 
     public function test_account_deletion_scrubs_moderation_snapshots_and_cascades_owned_content(): void

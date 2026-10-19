@@ -19,8 +19,8 @@ class AdminOperationsController extends Controller
         $table = match ($report->target_type) {
             'post' => 'community_posts', 'comment' => 'community_comments', default => null
         };
-        $target = $table ? DB::table($table)->where('id', $report->target_id)->whereNull('deleted_at')->first(['id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at']) : null;
-        if ($target) $target->version = AdminContentVersion::token($target);
+        $target = $table ? DB::table($table)->where('id', $report->target_id)->whereNull('deleted_at')->first(['id', 'body', 'status', 'is_anonymous', 'created_at', 'updated_at', ...($table === 'community_posts' ? ['image_object_key'] : [])]) : null;
+        if ($target) { $target->version = AdminContentVersion::token($target); $target->image_url = app(\App\Services\CommunityImageService::class)->url($target->image_object_key ?? null); unset($target->image_object_key); }
         unset($report->target_id);
         AdminAudit::record($request->user()->id, 'review-content', 'community-reports', $id);
 

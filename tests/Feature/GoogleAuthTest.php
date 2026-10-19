@@ -42,7 +42,7 @@ it('google signin creates a new user and registration profile defaults', functio
     mockGoogleAuthClaims($this->googleClaims);
     $response = $this->postJson('/api/v1/auth/google', [
         'id_token' => 'test-id-token', 'device_name' => 'google-test-device',
-    ])->assertOk()->assertJsonPath('success', true)
+    ])->assertOk()->assertJsonPath('success', true)->assertJsonPath('data.is_new_user', true)
         ->assertJsonPath('data.user.name', 'Google User')
         ->assertJsonPath('data.user.email', 'google-user@gmail.com');
 
@@ -69,7 +69,7 @@ it('google signin links an existing verified email account', function () {
     $password = $user->password;
     mockGoogleAuthClaims($this->googleClaims);
     $this->postJson('/api/v1/auth/google', ['id_token' => 'test-id-token'])
-        ->assertOk()->assertJsonPath('data.user.id', $user->id);
+        ->assertOk()->assertJsonPath('data.is_new_user', false)->assertJsonPath('data.user.id', $user->id);
     expect($user->fresh()->google_sub)->toBe($this->googleClaims['sub'])
         ->and($user->fresh()->email_verified_at)->not->toBeNull()
         ->and($user->fresh()->password)->toBe($password);

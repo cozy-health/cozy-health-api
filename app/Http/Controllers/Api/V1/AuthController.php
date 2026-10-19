@@ -65,6 +65,7 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => $u,
+            'is_new_user' => true,
             ...$pair,
         ], 'Account created successfully.', 201);
     }
@@ -91,6 +92,7 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => $u,
+            'is_new_user' => false,
             ...$pair,
         ], 'Logged in successfully.');
     }
@@ -192,6 +194,7 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => $user,
+            'is_new_user' => $created,
             ...$pair,
         ], 'Logged in successfully.');
     }
@@ -305,6 +308,7 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => $user,
+            'is_new_user' => $created,
             ...$pair,
         ], 'Logged in successfully.');
     }
