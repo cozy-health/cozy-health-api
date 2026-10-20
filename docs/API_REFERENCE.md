@@ -10,6 +10,8 @@ Authenticated requests use `Authorization: Bearer <token>`. JSON is used for req
 - `POST /register`
 - `POST /login`
 - `POST /logout`
+- `POST /forgot-password`
+- `POST /reset-password`
 - `GET /me`
 - `PUT /me`
 

@@ -1,0 +1,640 @@
+{
+    "passed": true,
+    "mysql": "9.7.2",
+    "isolation": "REPEATABLE-READ",
+    "cases": [
+        {
+            "round": 1,
+            "case": "daily_cap_spacing_and_three_devices",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "elapsed_spacing_across_local_midnight",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "quiet_hours_rollover_and_streak_expiry",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "ambiguous_outcome_is_never_replayed",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "transient_retry_is_bounded_and_deduplicated",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "completion_before_delivery_cancels_queued_work",
+            "passed": true
+        },
+        {
+            "round": 1,
+            "case": "late_retry_racing_a_new_category_preserves_spacing",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "daily_cap_spacing_and_three_devices",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "elapsed_spacing_across_local_midnight",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "quiet_hours_rollover_and_streak_expiry",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "ambiguous_outcome_is_never_replayed",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "transient_retry_is_bounded_and_deduplicated",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "completion_before_delivery_cancels_queued_work",
+            "passed": true
+        },
+        {
+            "round": 2,
+            "case": "late_retry_racing_a_new_category_preserves_spacing",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "daily_cap_spacing_and_three_devices",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "elapsed_spacing_across_local_midnight",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "quiet_hours_rollover_and_streak_expiry",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "ambiguous_outcome_is_never_replayed",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "transient_retry_is_bounded_and_deduplicated",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "completion_before_delivery_cancels_queued_work",
+            "passed": true
+        },
+        {
+            "round": 3,
+            "case": "late_retry_racing_a_new_category_preserves_spacing",
+            "passed": true
+        }
+    ],
+    "concurrent_groups": [
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "tick",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "schedule",
+            "workers": 16,
+            "overlap": 16
+        },
+        {
+            "action": "queue",
+            "workers": 16,
+            "overlap": 16
+        }
+    ],
+    "external_requests": 0
+}

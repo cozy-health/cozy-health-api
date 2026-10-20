@@ -1,0 +1,1091 @@
+{
+  "mood_recording_version": 2,
+  "moods": [
+    {
+      "id": 1,
+      "name": "Angry",
+      "slug": "angry",
+      "sort_order": 0
+    },
+    {
+      "id": 2,
+      "name": "Sad",
+      "slug": "sad",
+      "sort_order": 1
+    },
+    {
+      "id": 3,
+      "name": "Good",
+      "slug": "good",
+      "sort_order": 2
+    },
+    {
+      "id": 4,
+      "name": "Upset",
+      "slug": "upset",
+      "sort_order": 3
+    },
+    {
+      "id": 5,
+      "name": "Spectacular",
+      "slug": "spectacular",
+      "sort_order": 4
+    },
+    {
+      "id": 6,
+      "name": "Happy",
+      "slug": "happy",
+      "sort_order": 5
+    }
+  ],
+  "expressions": [
+    {
+      "feeling_id": 1,
+      "name": "Resentful",
+      "slug": "angry-resentful",
+      "emoji": "😡",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 1,
+      "name": "Displaced",
+      "slug": "angry-displaced",
+      "emoji": "😡",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 1,
+      "name": "Irritated",
+      "slug": "angry-irritated",
+      "emoji": "😒",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 1,
+      "name": "Annoyed",
+      "slug": "angry-annoyed",
+      "emoji": "😲",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 1,
+      "name": "Hostile",
+      "slug": "angry-hostile",
+      "emoji": "😠",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 1,
+      "name": "Bitter",
+      "slug": "angry-bitter",
+      "emoji": "😡",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 1,
+      "name": "Frustrated",
+      "slug": "angry-frustrated",
+      "emoji": "😤",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 1,
+      "name": "Provoked",
+      "slug": "angry-provoked",
+      "emoji": "😡",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 1,
+      "name": "Livid",
+      "slug": "angry-livid",
+      "emoji": "😡",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 1,
+      "name": "Furious",
+      "slug": "angry-furious",
+      "emoji": "🤬",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 1,
+      "name": "Agitated",
+      "slug": "angry-agitated",
+      "emoji": "😫",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 1,
+      "name": "Aggressive",
+      "slug": "angry-aggressive",
+      "emoji": "😡",
+      "sort_order": 11
+    },
+    {
+      "feeling_id": 2,
+      "name": "Gloomy",
+      "slug": "sad-gloomy",
+      "emoji": "🥺",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 2,
+      "name": "Heartbroken",
+      "slug": "sad-heartbroken",
+      "emoji": "💔",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 2,
+      "name": "Lost",
+      "slug": "sad-lost",
+      "emoji": "😢",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 2,
+      "name": "Hopeless",
+      "slug": "sad-hopeless",
+      "emoji": "😔",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 2,
+      "name": "Miserable",
+      "slug": "sad-miserable",
+      "emoji": "😢",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 2,
+      "name": "Empty",
+      "slug": "sad-empty",
+      "emoji": "😶",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 2,
+      "name": "Frustrated",
+      "slug": "sad-frustrated",
+      "emoji": "😢",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 2,
+      "name": "Drained",
+      "slug": "sad-drained",
+      "emoji": "😢",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 2,
+      "name": "Weary",
+      "slug": "sad-weary",
+      "emoji": "😢",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 2,
+      "name": "Disappointed",
+      "slug": "sad-disappointed",
+      "emoji": "😔",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 2,
+      "name": "Defeated",
+      "slug": "sad-defeated",
+      "emoji": "😢",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 2,
+      "name": "Lonely",
+      "slug": "sad-lonely",
+      "emoji": "😢",
+      "sort_order": 11
+    },
+    {
+      "feeling_id": 3,
+      "name": "Content",
+      "slug": "good-content",
+      "emoji": "🤗",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 3,
+      "name": "Satisfied",
+      "slug": "good-satisfied",
+      "emoji": "😁",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 3,
+      "name": "Grateful",
+      "slug": "good-grateful",
+      "emoji": "😄",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 3,
+      "name": "Neutral",
+      "slug": "good-neutral",
+      "emoji": "😁",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 3,
+      "name": "Mildly Happy",
+      "slug": "good-mildly-happy",
+      "emoji": "😀",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 3,
+      "name": "Okay",
+      "slug": "good-okay",
+      "emoji": "🥳",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 3,
+      "name": "Light Hearted",
+      "slug": "good-light-hearted",
+      "emoji": "😄",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 3,
+      "name": "Hopeful",
+      "slug": "good-hopeful",
+      "emoji": "😀",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 3,
+      "name": "Relaxed",
+      "slug": "good-relaxed",
+      "emoji": "🤗",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 3,
+      "name": "Comfortable",
+      "slug": "good-comfortable",
+      "emoji": "😄",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 3,
+      "name": "Peaceful",
+      "slug": "good-peaceful",
+      "emoji": "😄",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 3,
+      "name": "Secure",
+      "slug": "good-secure",
+      "emoji": "😀",
+      "sort_order": 11
+    },
+    {
+      "feeling_id": 4,
+      "name": "Uneasy",
+      "slug": "upset-uneasy",
+      "emoji": "😟",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 4,
+      "name": "Hurt",
+      "slug": "upset-hurt",
+      "emoji": "😫",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 4,
+      "name": "Worried",
+      "slug": "upset-worried",
+      "emoji": "😢",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 4,
+      "name": "Distraught",
+      "slug": "upset-distraught",
+      "emoji": "🥺",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 4,
+      "name": "Overwhelmed",
+      "slug": "upset-overwhelmed",
+      "emoji": "😢",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 4,
+      "name": "Insecure",
+      "slug": "upset-insecure",
+      "emoji": "😔",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 4,
+      "name": "Stressed",
+      "slug": "upset-stressed",
+      "emoji": "🥺",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 4,
+      "name": "Doubtful",
+      "slug": "upset-doubtful",
+      "emoji": "😥",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 4,
+      "name": "Anxious",
+      "slug": "upset-anxious",
+      "emoji": "😢",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 4,
+      "name": "Unsettled",
+      "slug": "upset-unsettled",
+      "emoji": "😢",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 4,
+      "name": "Disoriented",
+      "slug": "upset-disoriented",
+      "emoji": "😔",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 4,
+      "name": "Troubled",
+      "slug": "upset-troubled",
+      "emoji": "😫",
+      "sort_order": 11
+    },
+    {
+      "feeling_id": 5,
+      "name": "Energized",
+      "slug": "spectacular-energized",
+      "emoji": "🤗",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 5,
+      "name": "Elated",
+      "slug": "spectacular-elated",
+      "emoji": "😄",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 5,
+      "name": "Blissful",
+      "slug": "spectacular-blissful",
+      "emoji": "🥳",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 5,
+      "name": "Thrilled",
+      "slug": "spectacular-thrilled",
+      "emoji": "😀",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 5,
+      "name": "Jubilant",
+      "slug": "spectacular-jubilant",
+      "emoji": "🥳",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 5,
+      "name": "Hyped",
+      "slug": "spectacular-hyped",
+      "emoji": "🥳",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 5,
+      "name": "Over the moon",
+      "slug": "spectacular-over-the-moon",
+      "emoji": "🥳",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 5,
+      "name": "Overjoyed",
+      "slug": "spectacular-overjoyed",
+      "emoji": "🤗",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 5,
+      "name": "Proud",
+      "slug": "spectacular-proud",
+      "emoji": "😀",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 5,
+      "name": "Radiant",
+      "slug": "spectacular-radiant",
+      "emoji": "😄",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 5,
+      "name": "Inspired",
+      "slug": "spectacular-inspired",
+      "emoji": "🥳",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 5,
+      "name": "Victorious",
+      "slug": "spectacular-victorious",
+      "emoji": "🤗",
+      "sort_order": 11
+    },
+    {
+      "feeling_id": 6,
+      "name": "Cheerful",
+      "slug": "happy-cheerful",
+      "emoji": "😀",
+      "sort_order": 0
+    },
+    {
+      "feeling_id": 6,
+      "name": "Playful",
+      "slug": "happy-playful",
+      "emoji": "🤗",
+      "sort_order": 1
+    },
+    {
+      "feeling_id": 6,
+      "name": "Glad",
+      "slug": "happy-glad",
+      "emoji": "😁",
+      "sort_order": 2
+    },
+    {
+      "feeling_id": 6,
+      "name": "Uplifted",
+      "slug": "happy-uplifted",
+      "emoji": "🤗",
+      "sort_order": 3
+    },
+    {
+      "feeling_id": 6,
+      "name": "Lively",
+      "slug": "happy-lively",
+      "emoji": "🤗",
+      "sort_order": 4
+    },
+    {
+      "feeling_id": 6,
+      "name": "Satisfied",
+      "slug": "happy-satisfied",
+      "emoji": "😄",
+      "sort_order": 5
+    },
+    {
+      "feeling_id": 6,
+      "name": "Warm",
+      "slug": "happy-warm",
+      "emoji": "😄",
+      "sort_order": 6
+    },
+    {
+      "feeling_id": 6,
+      "name": "Optimistic",
+      "slug": "happy-optimistic",
+      "emoji": "🥳",
+      "sort_order": 7
+    },
+    {
+      "feeling_id": 6,
+      "name": "Delighted",
+      "slug": "happy-delighted",
+      "emoji": "😀",
+      "sort_order": 8
+    },
+    {
+      "feeling_id": 6,
+      "name": "Joyful",
+      "slug": "happy-joyful",
+      "emoji": "🤗",
+      "sort_order": 9
+    },
+    {
+      "feeling_id": 6,
+      "name": "Excited",
+      "slug": "happy-excited",
+      "emoji": "😀",
+      "sort_order": 10
+    },
+    {
+      "feeling_id": 6,
+      "name": "Contented",
+      "slug": "happy-contented",
+      "emoji": "😀",
+      "sort_order": 11
+    }
+  ],
+  "triggers": [
+    {
+      "name": "Deadlines",
+      "slug": "work-deadlines",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 0
+    },
+    {
+      "name": "Conflict",
+      "slug": "work-conflict",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 1
+    },
+    {
+      "name": "Workload",
+      "slug": "work-workload",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 2
+    },
+    {
+      "name": "Job Insecurity",
+      "slug": "work-job-insecurity",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 3
+    },
+    {
+      "name": "Burnout",
+      "slug": "work-burnout",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 4
+    },
+    {
+      "name": "Salary",
+      "slug": "work-salary",
+      "group_name": "Work",
+      "icon": "",
+      "sort_order": 5
+    },
+    {
+      "name": "Exam stress",
+      "slug": "school-exam-stress",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 6
+    },
+    {
+      "name": "Bullying",
+      "slug": "school-bullying",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 7
+    },
+    {
+      "name": "Teacher",
+      "slug": "school-teacher",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 8
+    },
+    {
+      "name": "Lack of motivation",
+      "slug": "school-lack-of-motivation",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 9
+    },
+    {
+      "name": "Fear of failure",
+      "slug": "school-fear-of-failure",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 10
+    },
+    {
+      "name": "Time Management",
+      "slug": "school-time-management",
+      "group_name": "School",
+      "icon": "",
+      "sort_order": 11
+    },
+    {
+      "name": "Conflict with partner",
+      "slug": "relationship-conflict-with-partner",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 12
+    },
+    {
+      "name": "Trust Issues",
+      "slug": "relationship-trust-issues",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 13
+    },
+    {
+      "name": "Long Distance",
+      "slug": "relationship-long-distance",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 14
+    },
+    {
+      "name": "Lack of communication",
+      "slug": "relationship-lack-of-communication",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 15
+    },
+    {
+      "name": "Family tension",
+      "slug": "relationship-family-tension",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 16
+    },
+    {
+      "name": "Betrayal",
+      "slug": "relationship-betrayal",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 17
+    },
+    {
+      "name": "Ghosting",
+      "slug": "relationship-ghosting",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 18
+    },
+    {
+      "name": "Jealousy",
+      "slug": "relationship-jealousy",
+      "group_name": "Relationship",
+      "icon": "",
+      "sort_order": 19
+    },
+    {
+      "name": "Insomnia",
+      "slug": "sleep-insomnia",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 20
+    },
+    {
+      "name": "Nightmares",
+      "slug": "sleep-nightmares",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 21
+    },
+    {
+      "name": "Noise",
+      "slug": "sleep-noise",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 22
+    },
+    {
+      "name": "Stress",
+      "slug": "sleep-stress",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 23
+    },
+    {
+      "name": "Restlessness",
+      "slug": "sleep-restlessness",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 24
+    },
+    {
+      "name": "Sleep Paralysis",
+      "slug": "sleep-sleep-paralysis",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 25
+    },
+    {
+      "name": "Late night work/study",
+      "slug": "sleep-late-night-work-study",
+      "group_name": "Sleep",
+      "icon": "",
+      "sort_order": 26
+    },
+    {
+      "name": "Period",
+      "slug": "health-period",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 27
+    },
+    {
+      "name": "Anxiety",
+      "slug": "health-anxiety",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 28
+    },
+    {
+      "name": "Poor diet",
+      "slug": "health-poor-diet",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 29
+    },
+    {
+      "name": "Physical pain",
+      "slug": "health-physical-pain",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 30
+    },
+    {
+      "name": "Allergies",
+      "slug": "health-allergies",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 31
+    },
+    {
+      "name": "Lack of exercise",
+      "slug": "health-lack-of-exercise",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 32
+    },
+    {
+      "name": "Chronic illness",
+      "slug": "health-chronic-illness",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 33
+    },
+    {
+      "name": "Medication",
+      "slug": "health-medication",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 34
+    },
+    {
+      "name": "Digestive issues",
+      "slug": "health-digestive-issues",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 35
+    },
+    {
+      "name": "Hormonal imbalance",
+      "slug": "health-hormonal-imbalance",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 36
+    },
+    {
+      "name": "Fatigue",
+      "slug": "health-fatigue",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 37
+    },
+    {
+      "name": "Substance withdrawal",
+      "slug": "health-substance-withdrawal",
+      "group_name": "Health",
+      "icon": "",
+      "sort_order": 38
+    },
+    {
+      "name": "Anniversaries",
+      "slug": "life-changes-anniversaries",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 39
+    },
+    {
+      "name": "Birthday",
+      "slug": "life-changes-birthday",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 40
+    },
+    {
+      "name": "Loss of a loved one",
+      "slug": "life-changes-loss-of-a-loved-one",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 41
+    },
+    {
+      "name": "Loss of a pet",
+      "slug": "life-changes-loss-of-a-pet",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 42
+    },
+    {
+      "name": "Moving homes",
+      "slug": "life-changes-moving-homes",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 43
+    },
+    {
+      "name": "Parenthood",
+      "slug": "life-changes-parenthood",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 44
+    },
+    {
+      "name": "New beginnings",
+      "slug": "life-changes-new-beginnings",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 45
+    },
+    {
+      "name": "Family reunion",
+      "slug": "life-changes-family-reunion",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 46
+    },
+    {
+      "name": "Financial struggles",
+      "slug": "life-changes-financial-struggles",
+      "group_name": "Life changes",
+      "icon": "",
+      "sort_order": 47
+    }
+  ],
+  "coping": [
+    {
+      "name": "Deep breathing",
+      "slug": "deep-breathing",
+      "icon": "",
+      "sort_order": 0
+    },
+    {
+      "name": "Meditation",
+      "slug": "meditation",
+      "icon": "",
+      "sort_order": 1
+    },
+    {
+      "name": "Journaling",
+      "slug": "journaling",
+      "icon": "",
+      "sort_order": 2
+    },
+    {
+      "name": "Talking to a friend",
+      "slug": "talking-to-a-friend",
+      "icon": "",
+      "sort_order": 3
+    },
+    {
+      "name": "Exercise",
+      "slug": "exercise",
+      "icon": "",
+      "sort_order": 4
+    },
+    {
+      "name": "Listening to music",
+      "slug": "listening-to-music",
+      "icon": "",
+      "sort_order": 5
+    },
+    {
+      "name": "Watching a movie",
+      "slug": "watching-a-movie",
+      "icon": "",
+      "sort_order": 6
+    },
+    {
+      "name": "Writing",
+      "slug": "writing",
+      "icon": "",
+      "sort_order": 7
+    },
+    {
+      "name": "Painting",
+      "slug": "painting",
+      "icon": "",
+      "sort_order": 8
+    },
+    {
+      "name": "Baking",
+      "slug": "baking",
+      "icon": "",
+      "sort_order": 9
+    },
+    {
+      "name": "Resting",
+      "slug": "resting",
+      "icon": "",
+      "sort_order": 10
+    },
+    {
+      "name": "Cooking",
+      "slug": "cooking",
+      "icon": "",
+      "sort_order": 11
+    },
+    {
+      "name": "Taking a walk",
+      "slug": "taking-a-walk",
+      "icon": "",
+      "sort_order": 12
+    },
+    {
+      "name": "Reading",
+      "slug": "reading",
+      "icon": "",
+      "sort_order": 13
+    },
+    {
+      "name": "Practicing gratitude",
+      "slug": "practicing-gratitude",
+      "icon": "",
+      "sort_order": 14
+    },
+    {
+      "name": "Seeking therapy",
+      "slug": "seeking-therapy",
+      "icon": "",
+      "sort_order": 15
+    },
+    {
+      "name": "Using affirmations",
+      "slug": "using-affirmations",
+      "icon": "",
+      "sort_order": 16
+    },
+    {
+      "name": "Drinking water",
+      "slug": "drinking-water",
+      "icon": "",
+      "sort_order": 17
+    },
+    {
+      "name": "Snacking",
+      "slug": "snacking",
+      "icon": "",
+      "sort_order": 18
+    },
+    {
+      "name": "Limiting screen time",
+      "slug": "limiting-screen-time",
+      "icon": "",
+      "sort_order": 19
+    },
+    {
+      "name": "Setting boundaries",
+      "slug": "setting-boundaries",
+      "icon": "",
+      "sort_order": 20
+    },
+    {
+      "name": "Problem-solving",
+      "slug": "problem-solving",
+      "icon": "",
+      "sort_order": 21
+    },
+    {
+      "name": "Crying",
+      "slug": "crying",
+      "icon": "",
+      "sort_order": 22
+    },
+    {
+      "name": "Avoiding responsibilities",
+      "slug": "avoiding-responsibilities",
+      "icon": "",
+      "sort_order": 23
+    },
+    {
+      "name": "Smoking",
+      "slug": "smoking",
+      "icon": "",
+      "sort_order": 24
+    },
+    {
+      "name": "Drinking",
+      "slug": "drinking",
+      "icon": "",
+      "sort_order": 25
+    },
+    {
+      "name": "Sleeping",
+      "slug": "sleeping",
+      "icon": "",
+      "sort_order": 26
+    },
+    {
+      "name": "Taking drugs",
+      "slug": "taking-drugs",
+      "icon": "",
+      "sort_order": 27
+    },
+    {
+      "name": "Excessive screen time",
+      "slug": "excessive-screen-time",
+      "icon": "",
+      "sort_order": 28
+    },
+    {
+      "name": "Excessive shopping",
+      "slug": "excessive-shopping",
+      "icon": "",
+      "sort_order": 29
+    },
+    {
+      "name": "Ignoring problems",
+      "slug": "ignoring-problems",
+      "icon": "",
+      "sort_order": 30
+    },
+    {
+      "name": "Procrastination",
+      "slug": "procrastination",
+      "icon": "",
+      "sort_order": 31
+    },
+    {
+      "name": "Emotional outbursts",
+      "slug": "emotional-outbursts",
+      "icon": "",
+      "sort_order": 32
+    },
+    {
+      "name": "Isolation from friends and family",
+      "slug": "isolation-from-friends-and-family",
+      "icon": "",
+      "sort_order": 33
+    }
+  ]
+}

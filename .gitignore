@@ -7,3 +7,28 @@
 /vendor
 .env
 .phpunit.result.cache
+/storage/framework/views/*
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/
+/storage/app/private/
+
+# Temporary files and generated outputs
+.env.*
+!.env.example
+!.env.launch.example
+analyze.txt
+analyze_*.txt
+*.log
+build/
+.dart_tool/
+.next/
+node_modules/
+.DS_Store
+Thumbs.db
+scratch/
+tmp/
+
+# Isolated local admin preview database
+/storage/admin-preview.sqlite*

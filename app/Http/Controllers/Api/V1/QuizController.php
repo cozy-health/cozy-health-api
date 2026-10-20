@@ -1,3 +1,21 @@
 <?php
-namespace App\Http\Controllers\Api\V1; use App\Http\Controllers\Controller; use App\Http\Requests\SubmitQuizRequest; use App\Models\{Quiz,QuizOption,QuizResult}; use App\Support\ApiResponse; use Illuminate\Support\Facades\DB;
-class QuizController extends Controller {use ApiResponse; public function index(){return response()->json(['quizzes'=>Quiz::where('is_active',1)->orderBy('sort_order')->get()]);} public function show(Quiz $quiz){abort_unless($quiz->is_active,404);return response()->json(['quiz'=>$quiz->load('questions.options')]);} public function submit(SubmitQuizRequest $r,Quiz $quiz){$answers=collect($r->validated('answers'));$questionIds=$quiz->questions()->pluck('id');abort_if($answers->pluck('question_id')->diff($questionIds)->isNotEmpty(),422,'One or more answers do not belong to this quiz.');$options=QuizOption::whereIn('id',$answers->pluck('option_id'))->get()->keyBy('id');$score=0;$max=0;foreach($quiz->questions()->with('options')->get() as $q){$max+=max(0,(int)$q->options->max('score'));}$normalized=[];foreach($answers as $a){$o=$options[$a['option_id']]??null;abort_if(!$o||$o->quiz_question_id!=$a['question_id'],422,'Invalid answer option.');$score+=(int)$o->score;$normalized[]=['question_id'=>$a['question_id'],'option_id'=>$a['option_id'],'score'=>(int)$o->score];}$pct=$max>0?round($score/$max*100,2):0;$interpretation=$pct<35?'Low range':($pct<70?'Moderate range':'High range');$result=$r->user()->quizResults()->create(['quiz_id'=>$quiz->id,'score'=>$score,'max_score'=>$max,'percentage'=>$pct,'interpretation'=>$interpretation,'answers'=>$normalized,'completed_at'=>now()]);return $this->success($result->load('quiz'),'Quiz submitted successfully.',201);} public function results(){return response()->json(['results'=>request()->user()->quizResults()->with('quiz')->latest('completed_at')->get()]);}}
+namespace App\Http\Controllers\Api\V1;
+use App\Http\Requests\PaginationRequest;
+use App\Services\{AssessmentService, QuizSharingService};
+use Illuminate\Http\Request;
+class QuizController extends ApiController
+{
+    public function index(PaginationRequest $request) {
+        $query = \App\Models\QuizAttempt::where('user_id', $request->user()->id);
+        if ($request->boolean('include_deleted')) $query->withTrashed(); else $query->where('is_deleted', false);
+        return $this->success($query->orderByDesc('client_created_at')->orderBy('id')->paginate($request->input('per_page', 20)));
+    }
+    public function show(Request $request, string $id) { return app(QuizCatalogController::class)->attempt($request, $id); }
+    public function store(Request $request) { return $this->success(app(AssessmentService::class)->submit($request->user(), $request->all())); }
+    public function update(Request $request, string $id) { abort(405, 'Completed assessments cannot be edited.'); }
+    public function destroy(Request $request, string $id)
+    {
+        app(QuizSharingService::class)->deleteAttempt($request->user()->id, $id);
+        return $this->success(['id' => $id, 'is_deleted' => true]);
+    }
+}
