@@ -38,6 +38,11 @@ class SettingsService
                 if ($document['published'] && (str_starts_with($document['version'], 'draft-') || blank($document['content']))) {
                     throw ValidationException::withMessages(['value' => ['Published documents require real text and a non-draft version.']]);
                 }
+                if ($document['published']) {
+                    $audience = $key === 'consent.provider_documents' ? 'provider' : 'consumer';
+                    $revision = \Illuminate\Support\Facades\DB::table('legal_document_revisions')->where(['audience' => $audience, 'document_type' => $type, 'version' => $document['version']])->first();
+                    if ($revision && $revision->sha256 !== hash('sha256', $document['content'])) throw ValidationException::withMessages(['value' => ['This published version already has different content.']]);
+                }
                 if ($previous[$type]['published'] && $previous[$type]['version'] === $document['version']
                     && ($previous[$type]['content'] !== $document['content'] || ! $document['published'])) {
                     throw ValidationException::withMessages(['value' => ['Published text is immutable. Use a new version for changes.']]);
@@ -52,6 +57,17 @@ class SettingsService
                 throw ValidationException::withMessages(['value' => ['Use the official App Store or Google Play URL.']]);
             }
         }
-        return Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($key, $value) {
+            if (in_array($key, ['consent.documents', 'consent.provider_documents'])) {
+                foreach ($value as $type => $document) {
+                    if (!$document['published']) continue;
+                    $identity = ['audience' => $key === 'consent.provider_documents' ? 'provider' : 'consumer', 'document_type' => $type, 'version' => $document['version']];
+                    \Illuminate\Support\Facades\DB::table('legal_document_revisions')->insertOrIgnore([...$identity, 'content' => $document['content'], 'sha256' => hash('sha256', $document['content']), 'published_at' => now()]);
+                    $stored = \Illuminate\Support\Facades\DB::table('legal_document_revisions')->where($identity)->lockForUpdate()->first();
+                    if ($stored->sha256 !== hash('sha256', $document['content'])) throw ValidationException::withMessages(['value' => ['Published version content is immutable.']]);
+                }
+            }
+            return Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        });
     }
 }

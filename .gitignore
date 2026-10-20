@@ -17,6 +17,7 @@
 # Temporary files and generated outputs
 .env.*
 !.env.example
+!.env.launch.example
 analyze.txt
 analyze_*.txt
 *.log

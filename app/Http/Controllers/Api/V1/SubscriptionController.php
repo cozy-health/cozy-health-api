@@ -14,7 +14,7 @@ class SubscriptionController extends ApiController {
             return $row;
         });
         return $this->success(['country' => $data['country'], 'packages' => $rows,
-            'revision' => hash('sha256', $rows->toJson()), 'purchasing_available' => false]);
+            'revision' => hash('sha256', $rows->toJson()), 'purchasing_available' => (bool) config('launch.billing_enabled')]);
     }
     public function index(\App\Http\Requests\PaginationRequest $request) {
         $entries = \App\Models\SubscriptionStatus::orderBy('updated_at', 'desc')->paginate($request->input('per_page', 20));
@@ -31,6 +31,7 @@ class SubscriptionController extends ApiController {
                 'status' => 'none',
             ]);
         }
+        if ($entry->expires_at && $entry->expires_at->isPast()) $entry->status = 'expired';
         return $this->success($entry);
     }
     public function update(Request $request, $id) { return $this->success([]); }

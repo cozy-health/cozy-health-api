@@ -4,7 +4,6 @@ return [
     'documents' => collect([
         'tos' => ['Terms of Service', true],
         'privacy_policy' => ['Privacy Policy', true],
-        'ai_disclosure' => ['AI Disclosure', true],
         'health_data' => ['Health Data Consent', true],
         'marketing' => ['Marketing emails', false],
         'ugc_guidelines' => ['Community Guidelines', false],

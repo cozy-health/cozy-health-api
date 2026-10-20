@@ -53,8 +53,11 @@ class DocumentConsentTest extends TestCase
         $user = $this->login();
         $service = app(DocumentConsentService::class);
         $this->assertFalse($service->marketingAllowed($user));
+        $documents = config('consent.documents');
+        $documents['marketing'] = [...$documents['marketing'], 'version' => '1.0', 'published' => true, 'content' => 'Optional marketing news. Withdraw any time.'];
+        app(SettingsService::class)->set('consent.documents', $documents);
         $this->postJson('/api/v1/me/consents', $this->draft('marketing'))->assertUnprocessable();
-        $data = ['document_type' => 'marketing', 'version' => 'draft-0.1', 'accepted' => true];
+        $data = ['document_type' => 'marketing', 'version' => '1.0', 'accepted' => true];
         $this->postJson('/api/v1/me/consents', $data)->assertOk();
         $this->assertTrue($service->marketingAllowed($user));
         $this->postJson('/api/v1/me/consents', [...$data, 'accepted' => false])->assertOk()->assertJsonPath('data.status', 'withdrawn');

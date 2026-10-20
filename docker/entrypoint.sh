@@ -3,11 +3,22 @@ set -eu
 
 export DB_QUEUE="${DB_QUEUE:-default}"
 export PORT="${PORT:-8080}"
-export RUN_QUEUE_WORKER="${RUN_QUEUE_WORKER:-true}"
+export RUN_QUEUE_WORKER="${RUN_QUEUE_WORKER:-false}"
+export RUN_SCHEDULER="${RUN_SCHEDULER:-false}"
 case "$RUN_QUEUE_WORKER" in
     true|false) ;;
     *) echo 'RUN_QUEUE_WORKER must be true or false' >&2; exit 1 ;;
 esac
+case "$RUN_SCHEDULER" in
+    true|false) ;;
+    *) echo 'RUN_SCHEDULER must be true or false' >&2; exit 1 ;;
+esac
+
+# Worker services execute only their requested process; initialization and
+# schema migrations belong to the API deployment's pre-deploy command.
+if [ "$#" -gt 0 ]; then
+    exec "$@"
+fi
 case "$PORT" in
     ''|*[!0-9]*) echo 'PORT must be a valid TCP port' >&2; exit 1 ;;
 esac
@@ -26,8 +37,6 @@ chmod -R 755 storage bootstrap/cache
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-php artisan migrate --force
-php artisan db:seed --class=AffirmationSeeder --force
 
 if [ ! -e public/storage ] && [ ! -L public/storage ]; then
     php artisan storage:link

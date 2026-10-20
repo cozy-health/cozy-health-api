@@ -80,6 +80,9 @@ Route::prefix('v1')->group(function () {
             Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
             Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
         });
+        Route::get('student-applications', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::get('student-applications/{id}/evidence', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'evidence'])->whereUuid('id')->middleware('admin.manage:subscriptions');
+        Route::post('student-applications/{id}/review', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'review'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('subscriptions', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptions'])->middleware('admin.manage:subscriptions');
         Route::get('subscriptions/history', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptionHistory'])->middleware('admin.manage:subscriptions');
         Route::middleware('admin.manage:email')->group(function () {
@@ -155,6 +158,15 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('me/device-security', DeviceSecurityController::class)->middleware('throttle:10,60');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [ProfileController::class, 'show']);
+    Route::get('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'show']);
+    Route::post('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'store'])->middleware('throttle:2,1440');
+    Route::post('student-verification/{id}/verify-email', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'sendVerification'])->whereUuid('id')->middleware('throttle:2,60');
+    Route::get('store/config', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'configuration']);
+    Route::post('subscription/verify-receipt', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'verify'])->middleware('throttle:10,1');
+    Route::get('emergency-email', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'show']);
+    Route::post('emergency-email', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'store'])->middleware('throttle:2,60');
+    Route::delete('emergency-email', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'destroy']);
+    Route::post('emergency-email/alerts', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'alert'])->middleware('throttle:10,1');
     Route::get('me/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
     Route::post('me/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
     Route::get('user/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
@@ -330,3 +342,8 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('reports/{reportId}/file', [$reports, 'file'])->middleware('signed:relative')->name('provider.reports.file');
     });
 });
+
+Route::get('v1/emergency-email/{action}', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'tokenPage'])->where('action', 'confirm|unsubscribe')->middleware('throttle:30,1');
+Route::post('v1/emergency-email/{action}', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'tokenAction'])->where('action', 'confirm|unsubscribe')->middleware('throttle:10,1');
+Route::get('v1/student-email/confirm', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'confirm'])->middleware('throttle:10,1');
+Route::post('v1/store-events/{platform}', \App\Http\Controllers\StoreWebhookController::class)->where('platform', 'apple|google')->middleware('throttle:120,1');

@@ -71,3 +71,7 @@ Artisan::command('flags:set {key} {enabled}', function () {
 
 Artisan::command('audio:cleanup', function () { $this->info('Removed '.app(\App\Services\AudioAttachmentService::class)->cleanup().' unreferenced recordings.'); });
 Schedule::command('audio:cleanup')->daily()->withoutOverlapping();
+
+Schedule::command('launch:prune')->daily()->withoutOverlapping();
+
+Schedule::command('stores:reconcile')->everyFifteenMinutes()->withoutOverlapping();

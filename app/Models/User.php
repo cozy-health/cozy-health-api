@@ -30,6 +30,10 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            // Queue private evidence cleanup before database cascades remove its paths.
+            StudentApplication::where('user_id', $user->id)->get()->each(function ($application) {
+                if ($application->evidence_path) ProfileAvatarService::queueDeletion('local', $application->evidence_path);
+            });
             $avatar = $user->profile()->first();
             if ($avatar?->avatar_object_key) {
                 ProfileAvatarService::queueDeletion(config('avatars.disk'), $avatar->avatar_object_key);

@@ -1,0 +1,49 @@
+name: Release checks
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+permissions:
+  contents: read
+jobs:
+  api:
+    name: API release checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:9
+        env:
+          MYSQL_ROOT_PASSWORD: isolated-test-password
+          MYSQL_DATABASE: cozy_release_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd
+          coverage: none
+      - run: |
+          cp .env.example .env
+          composer install --no-interaction --prefer-dist
+          php artisan key:generate
+      - name: Full application suite
+        run: php artisan test --compact
+      - name: Empty MySQL bootstrap and isolation contract
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: cozy_release_test
+          DB_USERNAME: root
+          DB_PASSWORD: isolated-test-password
+          DB_URL: ''
+          DB_TLS_ENFORCE: 'false'
+        run: php artisan test --compact --filter=EnvironmentIsolationTest
