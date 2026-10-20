@@ -31,6 +31,9 @@ jobs:
           extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd
           coverage: none
       - run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
           cp .env.example .env
           composer install --no-interaction --prefer-dist
           php artisan key:generate
