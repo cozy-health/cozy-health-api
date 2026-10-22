@@ -34,7 +34,7 @@ class PruneProviderData extends Command
         }
         $execute = (bool) $this->option('execute');
         if ($execute && trim((string) config('provider-retention.approval_reference')) === '') {
-            $this->error('Execution requires PROVIDER_RETENTION_APPROVAL referencing a signed policy.');
+            $this->error('Execution requires PROVIDER_RETENTION_APPROVAL referencing an approved policy.');
             return self::FAILURE;
         }
 

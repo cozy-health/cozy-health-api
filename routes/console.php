@@ -74,4 +74,9 @@ Schedule::command('audio:cleanup')->daily()->withoutOverlapping();
 
 Schedule::command('launch:prune')->daily()->withoutOverlapping();
 
+// Retention is approved, but deployment must record the approval reference.
+// The command also validates limits and holds before any destructive action.
+Schedule::command('provider:prune --execute --orphan-reports')->daily()->withoutOverlapping()
+    ->when(fn () => filled(config('provider-retention.approval_reference')));
+
 Schedule::command('stores:reconcile')->everyFifteenMinutes()->withoutOverlapping();

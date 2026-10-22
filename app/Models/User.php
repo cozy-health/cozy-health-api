@@ -30,6 +30,17 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            // Audio ownership is polymorphic, so there is no users foreign-key
+            // cascade. Persist cleanup work before removing the metadata.
+            AudioAttachment::where('owner_type', 'patient')->where('owner_id', $user->id)
+                ->eachById(function ($audio) {
+                    ProfileAvatarService::queueDeletion($audio->disk, $audio->storage_key);
+                    $audio->delete();
+                });
+            // Database cascades remove report rows, not the private PDFs.
+            ProviderReport::where('user_id', $user->id)->eachById(function ($report) {
+                ProfileAvatarService::queueDeletion('local', $report->file_path);
+            });
             // Queue private evidence cleanup before database cascades remove its paths.
             StudentApplication::where('user_id', $user->id)->get()->each(function ($application) {
                 if ($application->evidence_path) ProfileAvatarService::queueDeletion('local', $application->evidence_path);
