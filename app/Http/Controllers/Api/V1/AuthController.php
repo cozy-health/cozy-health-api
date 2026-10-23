@@ -28,11 +28,6 @@ class AuthController extends Controller
     {
         $u = DB::transaction(function () use ($r) {
         $u = User::create(collect($r->validated())->except(['residence_country', 'device_id', 'device_name'])->all());
-        if ($r->filled('date_of_birth')) {
-            $u->forceFill(['residence_country' => $r->input('residence_country'), 'age_declared_at' => now()])->save();
-            app(\App\Services\AgeEligibility::class)->event($u, 'age_declared_at_registration');
-        }
-
         $u->profile()->create([
             'id' => (string) Str::uuid(),
             'name' => $u->name,

@@ -11,10 +11,16 @@ class ShareDeliveryWindow
     }
     public static function latest(int $userId, ?string $except = null): ?string
     {
-        return self::query($userId, $except)->max('quiz_push_attempts.created_at');
+        $share = self::query($userId, $except)->max('quiz_push_attempts.created_at');
+        $community = DB::table('community_push_attempts')->join('app_notifications', 'app_notifications.id', '=', 'community_push_attempts.notification_id')
+            ->where('app_notifications.user_id', $userId)->when($except, fn ($q) => $q->where('notification_id', '!=', $except))->max('community_push_attempts.created_at');
+        return max($share, $community);
     }
     public static function count(int $userId, $from, $to, ?string $except = null): int
     {
-        return self::query($userId, $except)->where('quiz_push_attempts.created_at', '>=', $from)->where('quiz_push_attempts.created_at', '<', $to)->distinct()->count('notification_id');
+        $community = DB::table('community_push_attempts')->join('app_notifications', 'app_notifications.id', '=', 'community_push_attempts.notification_id')
+            ->where('app_notifications.user_id', $userId)->when($except, fn ($q) => $q->where('notification_id', '!=', $except))
+            ->where('community_push_attempts.created_at', '>=', $from)->where('community_push_attempts.created_at', '<', $to)->distinct()->count('notification_id');
+        return $community + self::query($userId, $except)->where('quiz_push_attempts.created_at', '>=', $from)->where('quiz_push_attempts.created_at', '<', $to)->distinct()->count('notification_id');
     }
 }

@@ -46,7 +46,8 @@ class UserProfileController extends Controller
 
     public function show(Request $request)
     {
-        if (! app(\App\Services\AgeEligibility::class)->allows($request->user())) {
+        if (! app(\App\Services\AgeEligibility::class)->allows($request->user())
+            || ! app(\App\Services\DocumentConsentService::class)->patientConsentCurrent($request->user())) {
             $user = $request->user();
             return response()->json(['data' => ['user_id' => $user->id, 'name' => $user->name, 'email' => $user->email]])->header('Cache-Control', 'private, no-store');
         }

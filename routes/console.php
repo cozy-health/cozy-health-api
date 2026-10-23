@@ -80,5 +80,3 @@ Schedule::command('provider:prune --execute --orphan-reports')->daily()->without
     ->when(fn () => filled(config('provider-retention.approval_reference')));
 
 Schedule::command('stores:reconcile')->everyFifteenMinutes()->withoutOverlapping();
-Schedule::command('guardians:prune --execute')->daily()->withoutOverlapping()
-    ->when(fn () => filled(config('age.retention_approval')) && config('age.record_days') > 0);

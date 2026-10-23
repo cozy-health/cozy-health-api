@@ -81,6 +81,32 @@ class DocumentConsentTest extends TestCase
         $this->assertNotNull(DB::table('user_consents')->value('accepted_at'));
     }
 
+    public function test_patient_consent_is_enforced_independently_of_age_and_recovers_after_acceptance(): void
+    {
+        config(['age.enabled' => false]);
+        $documents = config('consent.documents');
+        foreach ($documents as $type => &$doc) {
+            if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved fixture text.'];
+        }
+        unset($doc);
+        app(SettingsService::class)->set('consent.documents', $documents);
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->login();
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->postJson('/api/v1/sync/batch', ['operations' => []])->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/me/consents')->assertOk();
+        $this->getJson('/api/v1/user/profile')->assertOk()->assertJsonCount(3, 'data')->assertJsonMissingPath('data.theme');
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonCount(3, 'data');
+        foreach ($documents as $type => $doc) {
+            if ($type !== 'marketing' && $doc['required']) {
+                $this->postJson('/api/v1/me/consents', ['document_type' => $type, 'version' => '1.0', 'accepted' => true])->assertOk();
+            }
+        }
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+        $this->postJson('/api/v1/me/consents', ['document_type' => 'health_data', 'version' => '1.0', 'accepted' => false])->assertOk();
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+    }
+
     public function test_provider_documents_have_separate_records_and_draft_config(): void
     {
         $provider = Provider::create(['name' => 'Provider', 'email' => 'provider@example.test', 'password_hash' => 'Fixture7!Strong']);

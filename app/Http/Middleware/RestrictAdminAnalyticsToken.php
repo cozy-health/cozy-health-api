@@ -12,6 +12,7 @@ class RestrictAdminAnalyticsToken
         $token = $request->user()?->currentAccessToken();
         if ($token instanceof \Laravel\Sanctum\PersonalAccessToken && $token->name === 'cozy-admin-management-v1') {
             $path = preg_replace('#^api/v1/admin/#', '', $request->path());
+            if (preg_match('#^articles(?:/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}(?:/publish)?)?$#', $path)) return $next($request);
             $allowed = preg_match('#^(operations/summary|auth/(session|logout)|metrics/(overview|usage|retention|safety|insights)|content/(moods|expressions|triggers|coping|communities|challenges|packages)(/\d+)?|users(/\d+)?|quizzes(/\d+(/publish)?)?|reports(/\d+(/target)?)?|support(/\d+)?|subscriptions(/history)?|age-cases(/[a-f0-9-]+/resolve)?|student-applications(/[a-f0-9-]+/(evidence|review))?|emails(/test|/[a-z-]+/preview)?|community/(posts|comments|members)(/[a-f0-9-]+)?)$#', $path);
             abort_unless($allowed, 403, 'This credential grants scoped admin access only.');
         }

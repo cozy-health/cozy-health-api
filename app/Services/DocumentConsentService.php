@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class DocumentConsentService
 {
@@ -26,6 +27,32 @@ class DocumentConsentService
             ->every(fn ($doc) => $doc['published'] && ! str_starts_with($doc['version'], 'draft-') && filled($doc['content']));
         return ['enforce_blocking' => $enabled && $ready, 'documents' => $documents,
             'current_versions' => array_map(fn ($doc) => $doc['version'], $documents)];
+    }
+
+    public function patientConsentCurrent(User $user): bool
+    {
+        $configuration = $this->configuration();
+        if (! $configuration['enforce_blocking']) return true;
+        foreach ($configuration['documents'] as $type => $document) {
+            if ($type === 'marketing' || ! $document['required']) continue;
+            if (! DB::table('user_consents')->where([
+                'user_id' => $user->id, 'document_type' => $type,
+                'version' => $document['version'], 'status' => 'accepted',
+            ])->exists()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function requirePatientConsent(User $user): void
+    {
+        if (! $this->patientConsentCurrent($user)) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'Review and accept the required documents before using private features.',
+                'code' => 'consent_required',
+            ], 403));
+        }
     }
 
     public function marketingAllowed(User $user): bool

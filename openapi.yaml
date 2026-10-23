@@ -78,10 +78,12 @@
             "type": "integer"
           },
           "enforced": {
-            "type": "boolean"
+            "type": "boolean",
+            "const": false
           },
           "allowed": {
-            "type": "boolean"
+            "type": "boolean",
+            "const": true
           },
           "reason": {
             "type": [
@@ -91,27 +93,93 @@
           },
           "age_band": {
             "type": "string",
-            "enum": [
-              "unknown",
-              "under_13",
-              "minor",
-              "adult"
-            ]
+            "const": "unknown"
           },
           "online_required": {
-            "type": "boolean"
-          },
-          "patient_consent_ready": {
             "type": "boolean"
           },
           "invitations_enabled": {
             "type": "boolean"
           },
-          "residence_country": {
+          "retired": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "Legacy compatibility response. Does not certify age or replace document consent."
+      },
+      "AdminArticleDraft": {
+        "type": "object",
+        "required": [
+          "title",
+          "slug",
+          "category",
+          "excerpt",
+          "body",
+          "read_time_minutes"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "anxiety",
+              "depression",
+              "sleep",
+              "relationships",
+              "self-care",
+              "work"
+            ]
+          },
+          "excerpt": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 50000,
+            "description": "Plain text, displayed without HTML interpretation."
+          },
+          "read_time_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 180
+          },
+          "license": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 255,
+            "description": "Required and nonempty before publication."
+          },
+          "source_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "pattern": "^https://"
+          }
+        }
+      },
+      "AdminArticleVersion": {
+        "type": "object",
+        "required": [
+          "expected_version"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
           }
         }
       }
@@ -942,7 +1010,7 @@
     },
     "/api/v1/me/eligibility": {
       "get": {
-        "summary": "Current age and guardian eligibility",
+        "summary": "Legacy nonblocking eligibility compatibility response",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -953,38 +1021,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
-          },
-          "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Always enforced=false, allowed=true, invitations_enabled=false, retired=true. Does not replace document consent."
           }
         }
       }
     },
     "/api/v1/me/age": {
       "post": {
-        "summary": "Complete initial age declaration",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -994,49 +1038,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AgeDeclaration"
-              }
-            }
-          }
-        }
+        "deprecated": true
       }
     },
     "/api/v1/me/residence": {
       "put": {
-        "summary": "Update residence and end current guardian authorization",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1046,57 +1060,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "residence_country"
-                ],
-                "properties": {
-                  "residence_country": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "deprecated": true
       }
     },
     "/api/v1/me/guardian": {
       "post": {
-        "summary": "Invite or replace guardian",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1106,48 +1082,18 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GuardianInvitation"
-              }
-            }
-          }
-        },
-        "description": "Action errors include guardian_unavailable, guardian_delivery_failed, guardian_email_unverified, guardian_email_matches, guardian_not_applicable and age_case_open. Invitation throttling returns code=guardian_rate_limited, retry_after seconds and Retry-After header. Validation errors retain their field keys."
+        "description": "Action errors include guardian_unavailable, guardian_delivery_failed, guardian_email_unverified, guardian_email_matches, guardian_not_applicable and age_case_open. Invitation throttling returns code=guardian_rate_limited, retry_after seconds and Retry-After header. Validation errors retain their field keys.",
+        "deprecated": true
       },
       "delete": {
-        "summary": "Cancel or withdraw guardian authorization",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1157,39 +1103,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/me/age-support": {
       "post": {
-        "summary": "Create a team support case",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1199,266 +1125,75 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "kind",
-                  "message"
-                ],
-                "properties": {
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "dob_correction",
-                      "guardian_dispute",
-                      "appeal",
-                      "privacy"
-                    ]
-                  },
-                  "message": {
-                    "type": "string",
-                    "minLength": 5,
-                    "maxLength": 2000
-                  }
-                }
-              }
-            }
-          }
-        }
+        "deprecated": true
       }
     },
     "/api/v1/guardian/confirm": {
       "post": {
-        "summary": "Consume emailed token and issue short-lived guardian session",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
         "security": [],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "token"
-                ],
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "pattern": "^[a-f0-9]{64}$"
-                  },
-                  "session": {
-                    "type": "string",
-                    "pattern": "^[a-f0-9]{64}$",
-                    "description": "Optional website-prepared recovery credential; never expose or persist in browser script storage."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Website prepares a random 64-character credential in an HttpOnly cookie before confirmation, then supplies it as session. Omit session for legacy server-issued credentials. Opening an email link alone does not confirm or authorize. The emailed token remains single-use."
+        "description": "Website prepares a random 64-character credential in an HttpOnly cookie before confirmation, then supplies it as session. Omit session for legacy server-issued credentials. Opening an email link alone does not confirm or authorize. The emailed token remains single-use.",
+        "deprecated": true
       }
     },
     "/api/v1/guardian/decision": {
       "post": {
-        "summary": "Record an explicit guardian decision",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
         "security": [],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "session",
-                  "decision"
-                ],
-                "properties": {
-                  "session": {
-                    "type": "string",
-                    "description": "Server-only guardian session; website retains it in an HttpOnly cookie."
-                  },
-                  "decision": {
-                    "type": "string",
-                    "enum": [
-                      "authorize",
-                      "decline",
-                      "not_guardian",
-                      "withdraw"
-                    ]
-                  },
-                  "adult_and_authority": {
-                    "type": "boolean"
-                  },
-                  "versions": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Consumes decision authority through the resulting terminal status. The original hashed credential remains usable only for a read-only receipt until the original session expiry. A repeated decision is rejected. No session refresh or automatic authorization occurs."
+        "description": "Consumes decision authority through the resulting terminal status. The original hashed credential remains usable only for a read-only receipt until the original session expiry. A repeated decision is rejected. No session refresh or automatic authorization occurs.",
+        "deprecated": true
       }
     },
     "/api/v1/guardian/withdrawal": {
       "post": {
-        "summary": "Request a withdrawal confirmation email",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
         "security": [],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "email"
-                ],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "deprecated": true
       }
     },
     "/api/v1/admin/age-cases": {
       "get": {
-        "summary": "List team cases with admin:guardians permission",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1468,39 +1203,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/admin/age-cases/{id}/resolve": {
       "post": {
-        "summary": "Assign or resolve a scoped age case",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
@@ -1510,72 +1225,11 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created when applicable"
-          },
-          "403": {
-            "description": "Eligibility or scope restriction"
-          },
-          "404": {
-            "description": "Unavailable record or consumed token"
-          },
-          "409": {
-            "description": "Stale state, procedure or document version"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "Expired guardian link or session"
-          },
-          "422": {
-            "description": "Invalid submitted fields"
-          },
-          "429": {
-            "description": "Rate limited"
-          },
-          "503": {
-            "description": "Activation prerequisites or service unavailable"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "action",
-                  "note"
-                ],
-                "properties": {
-                  "action": {
-                    "type": "string",
-                    "enum": [
-                      "assign",
-                      "resolve",
-                      "correct_dob",
-                      "clear_dispute"
-                    ]
-                  },
-                  "note": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 2000
-                  },
-                  "authority_checked": {
-                    "type": "boolean"
-                  },
-                  "verification_reference": {
-                    "type": "string"
-                  },
-                  "date_of_birth": {
-                    "type": "string",
-                    "format": "date"
-                  }
-                }
-              }
-            }
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
         "parameters": [
@@ -1588,7 +1242,8 @@
               "format": "uuid"
             }
           }
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/api/v1/crisis/public-resources": {
@@ -1631,7 +1286,7 @@
     },
     "/api/v1/auth/register": {
       "post": {
-        "summary": "Register; date of birth and residence are required once age enforcement is enabled. Under-13 registration is rejected. Health personalization is prohibited during enforced registration.",
+        "summary": "Register an account without custom age or guardian onboarding; intended store audience is 13+.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1659,13 +1314,6 @@
                   "password_confirmation": {
                     "type": "string",
                     "format": "password"
-                  },
-                  "date_of_birth": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "residence_country": {
-                    "type": "string"
                   }
                 }
               }
@@ -1674,55 +1322,360 @@
         },
         "responses": {
           "201": {
-            "description": "Restricted or eligible account created with eligibility in data.eligibility"
+            "description": "Account created; required document consent still applies."
           },
           "422": {
-            "description": "Invalid age, identity or device metadata"
+            "description": "Invalid identity, credentials or device metadata."
           }
         }
       }
     },
     "/api/v1/guardian/review": {
       "post": {
-        "summary": "Restore a guardian review or read-only decision receipt",
+        "summary": "Retired custom age/guardian endpoint",
         "tags": [
           "Age and guardian authorization"
         ],
         "security": [],
         "responses": {
-          "200": {
-            "description": "Current review (completed=false) or read-only receipt (completed=true)"
+          "401": {
+            "description": "Authentication required for account endpoints."
           },
           "410": {
-            "description": "No resumable session; reopen an unused email link or request a new one"
-          },
-          "422": {
-            "description": "Malformed credential"
-          },
-          "429": {
-            "description": "Rate limited; respect Retry-After"
+            "description": "Custom age/guardian journey retired; no record or authorization is created."
           }
         },
+        "description": "Uses the restricted session credential only. Returns current documents and expires_at without extending the original 20-minute session. A saved decision returns completed=true, decision and message with no private records or new decision authority. Unknown, replaced, cancelled, expired and adulthood sessions cannot resume. Website relay injects the HttpOnly cookie and ignores body credentials. This operation does not accept a decision.",
+        "deprecated": true
+      }
+    },
+    "/api/v1/admin/articles": {
+      "get": {
+        "summary": "List admin article drafts and published records",
+        "description": "Requires an active scoped admin-management token with admin:content. Draft saves never change published text. See docs/ADMIN_ARTICLES.md.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article data and current version."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "409": {
+            "description": "Stale version; reload before retrying."
+          },
+          "422": {
+            "description": "Invalid fields, licence, approval or immutable slug."
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                10,
+                20,
+                50
+              ]
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create an unpublished article draft",
+        "description": "Requires an active scoped admin-management token with admin:content. Draft saves never change published text. See docs/ADMIN_ARTICLES.md.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminArticleDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Article data and current version."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "409": {
+            "description": "Stale version; reload before retrying."
+          },
+          "422": {
+            "description": "Invalid fields, licence, approval or immutable slug."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/articles/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "summary": "Save a draft without changing published content",
+        "description": "Requires an active scoped admin-management token with admin:content. Draft saves never change published text. See docs/ADMIN_ARTICLES.md.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AdminArticleDraft"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AdminArticleVersion"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article data and current version."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "409": {
+            "description": "Stale version; reload before retrying."
+          },
+          "422": {
+            "description": "Invalid fields, licence, approval or immutable slug."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unpublish while retaining the article and bookmarks",
+        "description": "Requires an active scoped admin-management token with admin:content. Draft saves never change published text. See docs/ADMIN_ARTICLES.md.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminArticleVersion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article data and current version."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "409": {
+            "description": "Stale version; reload before retrying."
+          },
+          "422": {
+            "description": "Invalid fields, licence, approval or immutable slug."
+          }
+        }
+      },
+      "get": {
+        "summary": "Reload an admin article and its current version",
+        "description": "Requires admin:content. Does not publish or overwrite a draft.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current article draft and version."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "404": {
+            "description": "Article not found."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/articles/{id}/publish": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Publish the explicitly approved saved draft",
+        "description": "Requires an active scoped admin-management token with admin:content. Draft saves never change published text. See docs/ADMIN_ARTICLES.md.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AdminArticleVersion"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "approved"
+                    ],
+                    "properties": {
+                      "approved": {
+                        "const": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article data and current version."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Admin content capability required."
+          },
+          "409": {
+            "description": "Stale version; reload before retrying."
+          },
+          "422": {
+            "description": "Invalid fields, licence, approval or immutable slug."
+          }
+        }
+      }
+    },
+    "/api/v1/user/notification-preferences": {
+      "patch": {
+        "summary": "Update account-owned notification preferences",
+        "description": "Replies use comments_notifications. Community likes and phone delivery are independently controlled within reminder_settings. Phone delivery also requires push consent, platform permission and active device registration.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "session"
-                ],
                 "properties": {
-                  "session": {
-                    "type": "string",
-                    "pattern": "^[a-f0-9]{64}$"
+                  "comments_notifications": {
+                    "type": "boolean"
+                  },
+                  "notifications_master": {
+                    "type": "boolean"
+                  },
+                  "push_consent": {
+                    "type": "boolean"
+                  },
+                  "reminder_settings": {
+                    "type": "object",
+                    "properties": {
+                      "community_likes_enabled": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "community_push_enabled": {
+                        "type": "boolean",
+                        "default": true
+                      }
+                    }
                   }
                 }
               }
             }
           }
         },
-        "description": "Uses the restricted session credential only. Returns current documents and expires_at without extending the original 20-minute session. A saved decision returns completed=true, decision and message with no private records or new decision authority. Unknown, replaced, cancelled, expired and adulthood sessions cannot resume. Website relay injects the HttpOnly cookie and ignores body credentials. This operation does not accept a decision."
+        "responses": {
+          "200": {
+            "description": "Updated preferences and profile."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Required document consent must be confirmed."
+          },
+          "422": {
+            "description": "Invalid preferences."
+          }
+        }
       }
     }
   }

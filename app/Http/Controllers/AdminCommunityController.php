@@ -47,6 +47,11 @@ class AdminCommunityController extends Controller
             $content = DB::table($table)->where('id', $id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
             AdminContentVersion::check($content, $data, $data['status']);
             DB::table($table)->where('id', $id)->update(['status' => $data['status'], 'updated_at' => now()]);
+            if ($kind === 'comments' && $data['status'] === 'published') {
+                $comment = DB::table($table)->where('id', $id)->first();
+                $post = DB::table('community_posts')->where('id', $comment->post_id)->first();
+                if ($post) app(\App\Services\CommunityNotifications::class)->create('reply', $post, $comment->user_id, $comment);
+            }
             AdminAudit::record($request->user()->id, 'moderate', 'community-'.$kind, $id, ['status']);
         });
         return response()->json(['message' => 'Moderation saved.']);

@@ -19,6 +19,6 @@ class AppConfigService
         ]);
         $config['flags']['ai_assistant'] = false; // Excluded from this release, including persisted flags.
         unset($config['consent.enforce_blocking'], $config['consent.documents'], $config['consent.provider_documents']);
-        return [...$config, 'age' => ['enforced' => (bool) config('age.enabled')], 'consent' => app(DocumentConsentService::class)->configuration(), 'server_time' => now()->toIso8601String()];
+        return [...$config, 'age' => ['enforced' => false, 'minimum_age' => 13, 'managed_by' => 'store_ratings'], 'consent' => app(DocumentConsentService::class)->configuration(), 'server_time' => now()->toIso8601String()];
     }
 }

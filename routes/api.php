@@ -54,6 +54,12 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1,admin-management-'])->prefix('admin')->group(function () {
         Route::get('operations/summary', \App\Http\Controllers\AdminOverviewController::class)->middleware('admin.manage:metrics');
         Route::middleware('admin.manage:content')->group(function () {
+            Route::get('articles', [\App\Http\Controllers\AdminArticleController::class, 'index']);
+            Route::post('articles', [\App\Http\Controllers\AdminArticleController::class, 'store']);
+            Route::get('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'show'])->whereUuid('id');
+            Route::put('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'update'])->whereUuid('id');
+            Route::post('articles/{id}/publish', [\App\Http\Controllers\AdminArticleController::class, 'publish'])->whereUuid('id');
+            Route::delete('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'unpublish'])->whereUuid('id');
             Route::get('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'index'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::post('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'store'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::put('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'update'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
@@ -127,13 +133,13 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
-    $age = \App\Http\Controllers\AgeAuthorizationController::class;
-    Route::get('me/eligibility', [$age, 'status']);
-    Route::post('me/age', [$age, 'declare'])->middleware('throttle:10,1');
-    Route::put('me/residence', [$age, 'country'])->middleware('throttle:3,60');
-    Route::post('me/guardian', [$age, 'invite'])->middleware('throttle:10,1');
-    Route::delete('me/guardian', [$age, 'cancel'])->middleware('throttle:10,1');
-    Route::post('me/age-support', [$age, 'support'])->middleware('throttle:3,1440');
+    $retiredAge = fn () => response()->json(['message' => 'The custom age and guardian process has been retired.', 'code' => 'age_flow_retired'], 410);
+    Route::get('me/eligibility', fn (\Illuminate\Http\Request $request) => response()->json(['data' => app(\App\Services\AgeEligibility::class)->state($request->user())]));
+    Route::post('me/age', $retiredAge)->middleware('throttle:10,1');
+    Route::put('me/residence', $retiredAge)->middleware('throttle:3,60');
+    Route::post('me/guardian', $retiredAge)->middleware('throttle:10,1');
+    Route::delete('me/guardian', $retiredAge)->middleware('throttle:10,1');
+    Route::post('me/age-support', $retiredAge)->middleware('throttle:3,1440');
     Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 
@@ -294,16 +300,16 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
 
 // Provider accounts use their own model-scoped Sanctum guard. Patient linking routes above are unchanged.
 Route::prefix('v1/guardian')->middleware('throttle:10,1')->group(function () {
-    $age = \App\Http\Controllers\AgeAuthorizationController::class;
-    Route::post('confirm', [$age, 'confirm']);
-    Route::post('review', [$age, 'review']);
-    Route::post('decision', [$age, 'decide']);
-    Route::post('withdrawal', [$age, 'requestWithdrawal']);
+    $retiredAge = fn () => response()->json(['message' => 'The custom age and guardian process has been retired.', 'code' => 'age_flow_retired'], 410);
+    Route::post('confirm', $retiredAge);
+    Route::post('review', $retiredAge);
+    Route::post('decision', $retiredAge);
+    Route::post('withdrawal', $retiredAge);
 });
 Route::get('v1/crisis/public-resources', CrisisResourceController::class)->middleware('throttle:60,1');
 Route::prefix('v1/admin/age-cases')->middleware(['auth:sanctum', 'role:admin', 'admin.manage:guardians', 'throttle:30,1'])->group(function () {
-    Route::get('/', [\App\Http\Controllers\AdminAgeCaseController::class, 'index']);
-    Route::post('{id}/resolve', [\App\Http\Controllers\AdminAgeCaseController::class, 'resolve'])->whereUuid('id');
+    Route::get('/', fn () => response()->json(['code' => 'age_flow_retired'], 410));
+    Route::post('{id}/resolve', fn () => response()->json(['code' => 'age_flow_retired'], 410))->whereUuid('id');
 });
 Route::prefix('v1/provider')->group(function () {
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');

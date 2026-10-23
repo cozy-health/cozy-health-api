@@ -68,13 +68,16 @@ class CommunityController extends ApiController
     public function reaction(Request $request, string $kind, string $id)
     {
         $data = $request->validate(['liked' => 'required|boolean']);
-        if ($kind === 'posts') $this->post($request, $id);
+        if ($kind === 'posts') $row = $this->post($request, $id);
         else {
             $row = $this->visible($request, 'community_comments')->where('community_comments.id', $id)->firstOrFail();
             $this->post($request, $row->post_id);
         }
         $key = ['user_id' => $request->user()->id, 'target_type' => $kind === 'posts' ? 'post' : 'comment', 'target_id' => $id];
-        if ($data['liked']) DB::table('community_reactions')->insertOrIgnore($key);
+        if ($data['liked']) {
+            DB::table('community_reactions')->insertOrIgnore($key);
+            if ($kind === 'posts') app(\App\Services\CommunityNotifications::class)->create('like', $row, $request->user()->id);
+        }
         else DB::table('community_reactions')->where($key)->delete();
         return $this->success(['liked' => $data['liked'], 'count' => DB::table('community_reactions')
             ->where('target_type', $key['target_type'])->where('target_id', $id)->count()]);
@@ -200,6 +203,7 @@ class CommunityController extends ApiController
         });
         $row = $this->visible($request, 'community_comments')->where('community_comments.id', $commentId)->firstOrFail();
 
+        app(\App\Services\CommunityNotifications::class)->create('reply', $this->post($request, $id), $request->user()->id, $row);
         return $this->success($this->payload($request, $row));
     }
 
