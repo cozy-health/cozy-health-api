@@ -121,11 +121,11 @@ it('defaults journal entry date to the local day and preserves explicit dates', 
     $this->assertDatabaseHas('journals', ['user_id' => $user->id, 'entry_date' => '2026-10-01 00:00:00']);
 });
 
-it('validates date of birth against the user local date', function () {
+it('prevents ordinary profile writes from changing date of birth across timezones', function () {
     Carbon::setTestNow(Carbon::parse('2026-10-07 22:00:00', 'UTC'));
     $user = timezoneTestUser(['timezone' => 'Asia/Tokyo']);
     $this->actingAs($user, 'sanctum')->patchJson('/api/v1/me', ['date_of_birth' => '2026-10-07'])
-        ->assertOk();
+        ->assertUnprocessable()->assertJsonValidationErrors('date_of_birth');
     $this->patchJson('/api/v1/me', ['date_of_birth' => '2026-10-08'])
         ->assertUnprocessable()->assertJsonValidationErrors('date_of_birth');
 });

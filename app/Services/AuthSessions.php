@@ -45,7 +45,7 @@ class AuthSessions
                 catch (\Throwable) { \Log::warning('New-device notification could not be queued.'); }
             }
         }
-        return $pair;
+        return [...$pair, ...($owner instanceof User ? ['eligibility' => app(AgeEligibility::class)->state($owner)] : [])];
     }
 
     public function revoke($owner, ?int $except = null): void

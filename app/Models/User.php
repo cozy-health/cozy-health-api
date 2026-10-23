@@ -20,7 +20,7 @@ class User extends Authenticatable
 
     protected $attributes = ['timezone' => 'UTC', 'is_demo' => false];
 
-    protected $hidden = ['password', 'remember_token', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at', 'apple_refresh_token', 'apple_token_client_id'];
+    protected $hidden = ['password', 'remember_token', 'google_sub', 'apple_sub', 'google_linked_at', 'apple_linked_at', 'apple_refresh_token', 'apple_token_client_id', 'age_disputed', 'age_declared_at'];
 
     protected function casts(): array
     {
@@ -57,6 +57,10 @@ class User extends Authenticatable
             PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
         });
         static::updating(function (User $user) {
+            // Invalidate authorization when age or residence is corrected through an approved path.
+            if ($user->isDirty(['date_of_birth', 'residence_country'])) {
+                app(\App\Services\AgeEligibility::class)->endAuthorizations($user, 'review_required');
+            }
             if ($user->getOriginal('is_demo') && $user->isDirty('email')) {
                 throw ValidationException::withMessages(['email' => ['The demo account email cannot be changed.']]);
             }

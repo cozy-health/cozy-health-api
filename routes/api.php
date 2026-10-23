@@ -127,6 +127,13 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
+    $age = \App\Http\Controllers\AgeAuthorizationController::class;
+    Route::get('me/eligibility', [$age, 'status']);
+    Route::post('me/age', [$age, 'declare'])->middleware('throttle:10,1');
+    Route::put('me/residence', [$age, 'country'])->middleware('throttle:3,60');
+    Route::post('me/guardian', [$age, 'invite'])->middleware('throttle:10,1');
+    Route::delete('me/guardian', [$age, 'cancel'])->middleware('throttle:10,1');
+    Route::post('me/age-support', [$age, 'support'])->middleware('throttle:3,1440');
     Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 
@@ -286,6 +293,17 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
 });
 
 // Provider accounts use their own model-scoped Sanctum guard. Patient linking routes above are unchanged.
+Route::prefix('v1/guardian')->middleware('throttle:10,1')->group(function () {
+    $age = \App\Http\Controllers\AgeAuthorizationController::class;
+    Route::post('confirm', [$age, 'confirm']);
+    Route::post('decision', [$age, 'decide']);
+    Route::post('withdrawal', [$age, 'requestWithdrawal']);
+});
+Route::get('v1/crisis/public-resources', CrisisResourceController::class)->middleware('throttle:60,1');
+Route::prefix('v1/admin/age-cases')->middleware(['auth:sanctum', 'role:admin', 'admin.manage:guardians', 'throttle:30,1'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\AdminAgeCaseController::class, 'index']);
+    Route::post('{id}/resolve', [\App\Http\Controllers\AdminAgeCaseController::class, 'resolve'])->whereUuid('id');
+});
 Route::prefix('v1/provider')->group(function () {
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     $controller = ProviderAuthController::class;

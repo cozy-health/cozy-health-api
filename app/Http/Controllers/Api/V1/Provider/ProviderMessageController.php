@@ -31,7 +31,7 @@ class ProviderMessageController extends Controller
     public function index(Request $request)
     {
         return DB::transaction(function () use ($request) {
-            return response()->json($this->links($request)->with(['user', 'provider'])->lockForUpdate()->get()->map(function ($link) use ($request) {
+            return response()->json($this->links($request)->with(['user', 'provider'])->lockForUpdate()->get()->filter(fn ($link) => app(\App\Services\AgeEligibility::class)->allows($link->user))->map(function ($link) use ($request) {
                 $messages = ProviderMessage::where('provider_client_link_id', $link->id);
 
                 return ['id' => $link->id, 'name' => $this->provider($request) ? preg_split('/\\s+/u', trim($link->user->name))[0] : $link->provider->name,
@@ -62,6 +62,7 @@ class ProviderMessageController extends Controller
 
     private function record($link, array $ref, bool $grant = true): array
     {
+        abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
         $type = $ref['type'];
         $name = preg_split('/\\s+/u', trim($link->user->name))[0] ?: 'Patient';
         $base = ['type' => $type, 'id' => $ref['id'], 'owner' => ['name' => $name, 'initials' => mb_strtoupper(mb_substr($name, 0, 1))]];
@@ -90,6 +91,7 @@ class ProviderMessageController extends Controller
 
         return DB::transaction(function () use ($request, $linkId) {
             $link = $this->links($request)->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
             $type = $request->input('type');
             abort_unless($link->{'consent_'.$type}, 403, 'Enable sharing for this category first.');
             $page = $this->query($link, $type, false)->orderByDesc('created_at')->paginate(20);
@@ -105,6 +107,7 @@ class ProviderMessageController extends Controller
 
         return DB::transaction(function () use ($request, $linkId) {
             $link = $this->links($request)->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
             $query = ProviderMessage::where('provider_client_link_id', $link->id);
             if ($request->filled('before')) {
                 $query->where('id', '<', $request->integer('before'));
@@ -141,6 +144,7 @@ class ProviderMessageController extends Controller
 
         return DB::transaction(function () use ($request, $linkId, $data) {
             $link = $this->links($request)->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
             $sender = $this->provider($request) ? 'provider' : 'patient';
             $existing = ProviderMessage::where('provider_client_link_id', $link->id)->where('sender', $sender)->where('client_id', $data['client_id'])->first();
             if ($existing) {
@@ -179,6 +183,7 @@ class ProviderMessageController extends Controller
 
         return DB::transaction(function () use ($request, $linkId) {
             $link = $this->links($request)->whereKey($linkId)->lockForUpdate()->firstOrFail();
+            abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
             ProviderMessage::where('provider_client_link_id', $link->id)->where('sender', $this->provider($request) ? 'patient' : 'provider')
                 ->where('id', '<=', $request->integer('through'))->whereNull('read_at')->update(['read_at' => now()]);
 

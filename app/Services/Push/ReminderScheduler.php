@@ -166,6 +166,7 @@ class ReminderScheduler
 
     public function eligible(User $user, UserProfile $profile, string $category, CarbonImmutable $now): bool
     {
+        if (! app(\App\Services\AgeEligibility::class)->allows($user)) return false;
         if ($category === 'affirmation' && DB::table('user_affirmation_reads')
             ->where('user_id', $user->id)->where('local_date', $now->toDateString())->exists()) return false;
         $settings = ReminderSettings::for($profile);

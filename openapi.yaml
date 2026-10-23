@@ -17,6 +17,104 @@
         "scheme": "bearer",
         "bearerFormat": "Sanctum"
       }
+    },
+    "schemas": {
+      "AgeDeclaration": {
+        "type": "object",
+        "required": [
+          "date_of_birth",
+          "residence_country"
+        ],
+        "properties": {
+          "date_of_birth": {
+            "type": "string",
+            "format": "date"
+          },
+          "residence_country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 3166-1 country of residence, checked against the supported code list."
+          }
+        }
+      },
+      "GuardianInvitation": {
+        "type": "object",
+        "required": [
+          "guardian_name",
+          "guardian_email",
+          "relationship"
+        ],
+        "properties": {
+          "guardian_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "guardian_email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 190
+          },
+          "relationship": {
+            "type": "string",
+            "enum": [
+              "parent",
+              "legal_guardian"
+            ]
+          }
+        }
+      },
+      "AgeEligibility": {
+        "type": "object",
+        "required": [
+          "owner_id",
+          "enforced",
+          "allowed",
+          "reason",
+          "age_band",
+          "online_required"
+        ],
+        "properties": {
+          "owner_id": {
+            "type": "integer"
+          },
+          "enforced": {
+            "type": "boolean"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "age_band": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "under_13",
+              "minor",
+              "adult"
+            ]
+          },
+          "online_required": {
+            "type": "boolean"
+          },
+          "patient_consent_ready": {
+            "type": "boolean"
+          },
+          "invitations_enabled": {
+            "type": "boolean"
+          },
+          "residence_country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
     }
   },
   "paths": {
@@ -838,6 +936,740 @@
                 "message": "Description"
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/me/eligibility": {
+      "get": {
+        "summary": "Current age and guardian eligibility",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/me/age": {
+      "post": {
+        "summary": "Complete initial age declaration",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgeDeclaration"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/residence": {
+      "put": {
+        "summary": "Update residence and end current guardian authorization",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "residence_country"
+                ],
+                "properties": {
+                  "residence_country": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/guardian": {
+      "post": {
+        "summary": "Invite or replace guardian",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuardianInvitation"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Cancel or withdraw guardian authorization",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/me/age-support": {
+      "post": {
+        "summary": "Create a team support case",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "message"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "dob_correction",
+                      "guardian_dispute",
+                      "appeal",
+                      "privacy"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guardian/confirm": {
+      "post": {
+        "summary": "Consume emailed token and issue short-lived guardian session",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guardian/decision": {
+      "post": {
+        "summary": "Record an explicit guardian decision",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "session",
+                  "decision"
+                ],
+                "properties": {
+                  "session": {
+                    "type": "string",
+                    "description": "Server-only guardian session; website retains it in an HttpOnly cookie."
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "authorize",
+                      "decline",
+                      "not_guardian",
+                      "withdraw"
+                    ]
+                  },
+                  "adult_and_authority": {
+                    "type": "boolean"
+                  },
+                  "versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guardian/withdrawal": {
+      "post": {
+        "summary": "Request a withdrawal confirmation email",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/age-cases": {
+      "get": {
+        "summary": "List team cases with admin:guardians permission",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/age-cases/{id}/resolve": {
+      "post": {
+        "summary": "Assign or resolve a scoped age case",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "note"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "assign",
+                      "resolve",
+                      "correct_dob",
+                      "clear_dispute"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  },
+                  "authority_checked": {
+                    "type": "boolean"
+                  },
+                  "verification_reference": {
+                    "type": "string"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/crisis/public-resources": {
+      "get": {
+        "summary": "Public verified crisis resource directory",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created when applicable"
+          },
+          "403": {
+            "description": "Eligibility or scope restriction"
+          },
+          "404": {
+            "description": "Unavailable record or consumed token"
+          },
+          "409": {
+            "description": "Stale state, procedure or document version"
+          },
+          "410": {
+            "description": "Expired guardian link or session"
+          },
+          "422": {
+            "description": "Invalid submitted fields"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Activation prerequisites or service unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register; date of birth and residence are required once age enforcement is enabled. Under-13 registration is rejected. Health personalization is prohibited during enforced registration.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "password",
+                  "password_confirmation"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "password_confirmation": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "residence_country": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Restricted or eligible account created with eligibility in data.eligibility"
+          },
+          "422": {
+            "description": "Invalid age, identity or device metadata"
           }
         }
       }

@@ -18,7 +18,7 @@ class SendEmergencyContactAlert implements ShouldQueue, ShouldBeEncrypted
         $alert = DB::table('emergency_email_alerts')->where('id', $this->alertId)->first();
         if (!$alert || $alert->status !== 'queued') return;
         $contact = EmergencyEmailContact::find($alert->contact_id);
-        if (!$contact?->confirmed_at || !config('launch.emergency_email.enabled') || \Illuminate\Support\Carbon::parse($alert->created_at)->lt(now()->subMinutes(10))) {
+        if (!($user = \App\Models\User::find($alert->user_id)) || !app(\App\Services\AgeEligibility::class)->allows($user) || !$contact?->confirmed_at || !config('launch.emergency_email.enabled') || \Illuminate\Support\Carbon::parse($alert->created_at)->lt(now()->subMinutes(10))) {
             DB::table('emergency_email_alerts')->where('id', $this->alertId)->update(['status' => 'failed', 'updated_at' => now()]); return;
         }
         $claimed = DB::table('emergency_email_alerts')->where('id', $this->alertId)->where('status', 'queued')->update(['status' => 'sending', 'updated_at' => now()]);

@@ -14,9 +14,11 @@ class AudioAttachmentService
 {
     public function link($actor, $id): ProviderClientLink
     {
-        return ProviderClientLink::active()->whereNotNull('provider_id')->whereHas('user')
+        $link = ProviderClientLink::active()->whereNotNull('provider_id')->whereHas('user')
             ->whereHas('provider', fn ($q) => $q->where('is_active', true))
             ->where($actor instanceof Provider ? 'provider_id' : 'user_id', $actor->id)->findOrFail($id);
+        abort_unless(app(AgeEligibility::class)->allows($link->user), 403, 'This recording relationship is unavailable.');
+        return $link;
     }
 
     public function reference($actor, string $id, string $purpose, $linkId = null): AudioAttachment

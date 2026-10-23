@@ -9,6 +9,7 @@ class QuizSharingService
 {
     public function owner(int $owner, string $id, bool $validated = true): QuizAttempt
     {
+        abort_unless(app(AgeEligibility::class)->allows(User::findOrFail($owner)), 404);
         $attempt = QuizAttempt::withoutGlobalScope('user')->where('user_id', $owner)->where('is_deleted', false)->findOrFail($id);
         abort_if($validated && ! $attempt->validated_at, 409, 'Connect to validate this result before sharing.');
         return $attempt;

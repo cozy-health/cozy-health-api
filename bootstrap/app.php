@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json(['success'=>false,'message'=>'The submitted data is invalid.','errors'=>$e->errors()],422);
         });
         $exceptions->render(function (Throwable $e, Request $request) {
+            if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return $e->getResponse();
             if (!$request->is('api/*', 'admin/*', 'webhooks/*')) return null;
             $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
             $message = $status === 500 && !config('app.debug') ? 'Server error. Please try again later.' : ($e->getMessage() ?: 'Something went wrong.');

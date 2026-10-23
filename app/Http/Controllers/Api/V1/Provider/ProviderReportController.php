@@ -24,6 +24,7 @@ class ProviderReportController extends Controller
     {
         return DB::transaction(function () use ($request) {
             $links = ProviderClientLink::active()->where('provider_id', $request->user()->id)->whereHas('user')->lockForUpdate()->get()->keyBy('id');
+            $links = $links->filter(fn ($link) => app(\App\Services\AgeEligibility::class)->allows($link->user));
             $reports = ProviderReport::where('provider_id', $request->user()->id)->whereIn('link_id', $links->keys())
                 ->orderByDesc('generated_at')->orderByDesc('id')->paginate(ProviderClientAccess::pagination($request));
             foreach ($reports as $report) {

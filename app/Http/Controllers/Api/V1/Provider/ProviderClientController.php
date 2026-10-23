@@ -18,6 +18,7 @@ class ProviderClientController extends Controller
     {
         return DB::transaction(function () use ($request) {
             $links = $request->user()->clientLinks()->active()->whereHas('user')->with('user')->orderByDesc('linked_at')->lockForUpdate()->get();
+            $links = $links->filter(fn ($link) => app(\App\Services\AgeEligibility::class)->allows($link->user));
             $clients = $links->map(function ($link) use ($request) {
                 ProviderAudit::record($request, $link, 'list', 'client', (string) $link->user_id);
 

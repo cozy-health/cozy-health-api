@@ -26,7 +26,12 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $r)
     {
-        $u = User::create($r->validated());
+        $u = DB::transaction(function () use ($r) {
+        $u = User::create(collect($r->validated())->except(['residence_country', 'device_id', 'device_name'])->all());
+        if ($r->filled('date_of_birth')) {
+            $u->forceFill(['residence_country' => $r->input('residence_country'), 'age_declared_at' => now()])->save();
+            app(\App\Services\AgeEligibility::class)->event($u, 'age_declared_at_registration');
+        }
 
         $u->profile()->create([
             'id' => (string) Str::uuid(),
@@ -52,6 +57,9 @@ class AuthController extends Controller
             'achievements_notifications' => true,
             'marketing_notifications' => false,
         ]);
+
+        return $u;
+        });
 
         try {
             Mail::to($u->email)->send(new WelcomeMail($u));

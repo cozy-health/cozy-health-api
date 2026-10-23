@@ -19,7 +19,7 @@ class AdminAuthController extends Controller
         }
         $expires = now()->addMinutes(30);
         $management = $request->input('session_mode') === 'management-v1';
-        $abilities = $management ? ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email'] : ['admin:metrics'];
+        $abilities = $management ? ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email', ...(in_array($user->id, array_map('intval', array_filter(explode(',', (string) config('age.reviewers')))), true) ? ['admin:guardians'] : [])] : ['admin:metrics'];
         return response()->json(['token' => $user->createToken($management ? 'cozy-admin-management-v1' : 'cozy-admin-dashboard', $abilities, $expires)->plainTextToken,
             'expires_at' => $expires->toIso8601String()])->header('Cache-Control', 'private, no-store');
     }
