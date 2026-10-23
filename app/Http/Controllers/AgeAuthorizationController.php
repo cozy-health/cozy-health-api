@@ -28,7 +28,7 @@ class AgeAuthorizationController extends Controller
         $cases = DB::table('age_support_cases')->where('user_id', $user->id)->latest()->limit(5)->get(['id', 'kind', 'status', 'resolution']);
         foreach ($cases as $case) $case->resolution = $case->resolution ? decrypt($case->resolution) : null;
         return response()->json(['data' => [...$eligibility->state($user), 'date_of_birth' => $user->date_of_birth?->format('Y-m-d'),
-            'cases' => $cases, 'authorization' => $authorization?->only(['id', 'status', 'expires_at', 'email_confirmed_at', 'authorized_at'])]])->header('Cache-Control', 'private, no-store');
+            'cases' => $cases, 'authorization' => $authorization?->only(['id', 'status', 'expires_at', 'session_expires_at', 'email_confirmed_at', 'authorized_at'])]])->header('Cache-Control', 'private, no-store');
     }
 
     public function declare(Request $request, AgeEligibility $eligibility)
@@ -37,7 +37,9 @@ class AgeAuthorizationController extends Controller
             'residence_country' => ['required', new \App\Rules\ResidenceCountry]]);
         return DB::transaction(function () use ($request, $data, $eligibility) {
             $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
-            abort_if(($user->age_declared_at && $user->residence_country) || ($user->date_of_birth && $user->date_of_birth->format('Y-m-d') !== $data['date_of_birth']), 409, 'A date-of-birth correction needs a support case.');
+            if (($user->age_declared_at && $user->residence_country) || ($user->date_of_birth && $user->date_of_birth->format('Y-m-d') !== $data['date_of_birth'])) {
+                return response()->json(['code' => 'age_correction_required', 'message' => 'A date-of-birth correction needs a support case.'], 409);
+            }
             $user->forceFill([...$data, 'age_declared_at' => now()])->save();
             $eligibility->event($user, 'age_declared', $data);
             return response()->json(['data' => $eligibility->state($user)]);
@@ -60,17 +62,25 @@ class AgeAuthorizationController extends Controller
 
     public function invite(Request $request, AgeEligibility $eligibility)
     {
-        abort_unless($eligibility->invitationsReady(), 503, 'Guardian invitations are not available yet.');
+        if (! $eligibility->invitationsReady()) return response()->json([
+            'code' => 'guardian_unavailable', 'message' => 'Guardian invitations are not available yet. Please contact support if you need help.',
+        ], 503);
         $data = $request->validate(['guardian_name' => 'required|string|max:120', 'guardian_email' => 'required|email|max:190',
             'relationship' => 'required|in:parent,legal_guardian']);
         $user = $request->user();
-        abort_unless($user->email_verified_at && ! $user->age_disputed && ($eligibility->age($user) ?? 0) >= 13 && $eligibility->age($user) < 18, 403, 'Confirm your email and age before inviting a guardian.');
+        if (! $user->email_verified_at) return response()->json(['code' => 'guardian_email_unverified', 'message' => 'Verify your own email before inviting a guardian.'], 403);
+        if ($user->age_disputed) return response()->json(['code' => 'age_case_open', 'message' => 'Resolve your open age or guardian case with the team before sending an invitation.'], 409);
+        if (($eligibility->age($user) ?? 0) < 13 || $eligibility->age($user) >= 18) return response()->json(['code' => 'guardian_not_applicable', 'message' => 'Check your age details before inviting a guardian.'], 403);
         $email = mb_strtolower(trim($data['guardian_email']));
-        abort_if($email === mb_strtolower($user->email), 422, 'Use your guardian’s own email address.');
+        if ($email === mb_strtolower($user->email)) return response()->json(['code' => 'guardian_email_matches', 'message' => 'Use your guardian’s own email address.'], 422);
         $emailHash = hash_hmac('sha256', $email, config('app.key'));
         foreach (['guardian-minute:'.$user->id => [1, 60], 'guardian-day:'.$user->id => [3, 86400],
             'guardian-recipient:'.$emailHash => [5, 86400], 'guardian-ip:'.$request->ip() => [10, 86400]] as $key => [$limit, $seconds]) {
-            abort_unless(RateLimiter::attempt($key, $limit, fn () => true, $seconds), 429, 'Please wait before requesting another invitation.');
+            if (! RateLimiter::attempt($key, $limit, fn () => true, $seconds)) {
+                $retry = max(1, RateLimiter::availableIn($key));
+                return response()->json(['code' => 'guardian_rate_limited', 'message' => 'Please wait before requesting another invitation.',
+                    'retry_after' => $retry], 429)->header('Retry-After', $retry);
+            }
         }
         $token = bin2hex(random_bytes(32));
         $authorization = DB::transaction(function () use ($user, $eligibility, $data, $email, $emailHash, $token) {
@@ -92,7 +102,7 @@ class AgeAuthorizationController extends Controller
         } catch (\Throwable) {
             $authorization->update(['status' => 'delivery_failed', 'token_hash' => null]);
             $eligibility->event($user, 'guardian_delivery_failed', [], $authorization->id);
-            return response()->json(['message' => 'The invitation could not be sent. Please wait and retry.'], 503);
+            return response()->json(['code' => 'guardian_delivery_failed', 'message' => 'The invitation could not be sent. Your details have been kept; please wait and retry.'], 503);
         }
         return response()->json(['data' => ['id' => $authorization->id, 'status' => 'pending']], 201);
     }
@@ -109,8 +119,10 @@ class AgeAuthorizationController extends Controller
 
     public function confirm(Request $request, AgeEligibility $eligibility)
     {
-        $data = $request->validate(['token' => 'required|regex:/^[a-f0-9]{64}$/']);
-        $session = bin2hex(random_bytes(32));
+        $data = $request->validate(['token' => 'required|regex:/^[a-f0-9]{64}$/', 'session' => 'sometimes|regex:/^[a-f0-9]{64}$/']);
+        // The website prepares this random HttpOnly credential before consuming the
+        // link, so it can recover even when the confirmation response is lost.
+        $session = $data['session'] ?? bin2hex(random_bytes(32));
         return DB::transaction(function () use ($data, $session, $eligibility) {
             $candidate = GuardianAuthorization::where('token_hash', hash('sha256', $data['token']))->firstOrFail();
             $user = User::whereKey($candidate->user_id)->lockForUpdate()->firstOrFail();
@@ -121,9 +133,36 @@ class AgeAuthorizationController extends Controller
             $authorization->update(['status' => $withdraw ? 'withdrawal_confirmed' : 'confirmed', 'token_hash' => null,
                 'email_confirmed_at' => now(), 'session_hash' => hash('sha256', $session), 'session_expires_at' => now()->addMinutes(20)]);
             $eligibility->event($user, 'guardian_email_confirmed', [], $authorization->id);
-            return response()->json(['session' => $session, 'withdrawal' => $withdraw,
-                'account_first_name' => explode(' ', trim($user->name))[0], 'documents' => $eligibility->documents(),
-                'versions' => $eligibility->versions(), 'documents_ready' => $eligibility->documentsReady()]);
+            return response()->json(['session' => $session, ...$this->reviewData($authorization, $user, $eligibility)]);
+        });
+    }
+
+    private function reviewData(GuardianAuthorization $authorization, User $user, AgeEligibility $eligibility): array
+    {
+        $completed = in_array($authorization->status, ['authorized', 'declined', 'disputed', 'withdrawn'], true);
+        if ($completed) return ['completed' => true, 'decision' => $authorization->status,
+            'message' => $authorization->status === 'authorized'
+                ? 'Authorization recorded. Access still depends on age, country and consent requirements. No private records have been shared.'
+                : 'Your decision has been recorded.'];
+        return ['completed' => false, 'withdrawal' => $authorization->status === 'withdrawal_confirmed',
+            'expires_at' => $authorization->session_expires_at->toIso8601String(),
+            'account_first_name' => explode(' ', trim($user->name))[0], 'documents' => $eligibility->documents(),
+            'versions' => $eligibility->versions(), 'documents_ready' => $eligibility->documentsReady()];
+    }
+
+    public function review(Request $request, AgeEligibility $eligibility)
+    {
+        $data = $request->validate(['session' => 'required|regex:/^[a-f0-9]{64}$/']);
+        return DB::transaction(function () use ($data, $eligibility) {
+            $candidate = GuardianAuthorization::where('session_hash', hash('sha256', $data['session']))->first();
+            abort_unless($candidate, 410, 'This review is unavailable or has expired. Reopen your email link or request a new one.');
+            $user = User::whereKey($candidate->user_id)->lockForUpdate()->firstOrFail();
+            $authorization = GuardianAuthorization::whereKey($candidate->id)->where('session_hash', hash('sha256', $data['session']))->lockForUpdate()->first();
+            abort_unless($authorization && $authorization->session_expires_at?->isFuture()
+                && in_array($authorization->status, ['confirmed', 'withdrawal_confirmed', 'authorized', 'declined', 'disputed', 'withdrawn'], true),
+                410, 'This review is unavailable or has expired. Reopen your email link or request a new one.');
+            abort_if(($eligibility->age($user) ?? 18) >= 18, 410, 'Guardian authorization no longer applies.');
+            return response()->json($this->reviewData($authorization, $user, $eligibility));
         });
     }
 
@@ -132,7 +171,7 @@ class AgeAuthorizationController extends Controller
         $data = $request->validate(['session' => 'required|regex:/^[a-f0-9]{64}$/', 'decision' => 'required|in:authorize,decline,not_guardian,withdraw',
             'adult_and_authority' => 'required_if:decision,authorize|boolean', 'versions' => 'required_if:decision,authorize|array']);
         return DB::transaction(function () use ($data, $eligibility) {
-            $candidate = GuardianAuthorization::where('session_hash', hash('sha256', $data['session']))->firstOrFail();
+            $candidate = GuardianAuthorization::where('session_hash', hash('sha256', $data['session']))->whereIn('status', ['confirmed', 'withdrawal_confirmed'])->firstOrFail();
             $user = User::whereKey($candidate->user_id)->lockForUpdate()->firstOrFail();
             $authorization = GuardianAuthorization::whereKey($candidate->id)->where('session_hash', hash('sha256', $data['session']))->lockForUpdate()->firstOrFail();
             abort_unless($authorization->session_expires_at?->isFuture(), 410, 'Your session expired. Request a new link.');
@@ -144,7 +183,9 @@ class AgeAuthorizationController extends Controller
                     && $data['versions'] == $eligibility->versions(), 409, 'Review the current effective documents before authorizing.');
             }
             $status = match ($data['decision']) { 'authorize' => 'authorized', 'decline' => 'declined', 'not_guardian' => 'disputed', 'withdraw' => 'withdrawn' };
-            $authorization->update(['status' => $status, 'session_hash' => null, 'session_expires_at' => null,
+            // Terminal status consumes decision authority. Keep the hashed credential
+            // only until its original expiry to recover a lost decision receipt.
+            $authorization->update(['status' => $status,
                 'authorized_at' => $status === 'authorized' ? now() : $authorization->authorized_at,
                 'document_versions' => $status === 'authorized' ? $eligibility->versions() : $authorization->document_versions,
                 'ended_at' => $status === 'authorized' ? null : now(),

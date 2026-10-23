@@ -57,7 +57,8 @@ remains. New regression coverage exercises adults/minors, both resolution orders
 correction/clearance, privacy rejection, appeals, account isolation, reviewer
 assignment/stale decisions and transaction rollback after an audit-write failure.
 This closes the identified source gap; isolated MySQL concurrency acceptance
-remains part of step 5. Steps 2–6 remain outstanding.
+remains part of step 5. Step 2 is covered by the follow-up below; steps 3–6 remain
+outstanding except for the partial coverage recorded there.
 
 ### 2. Make errors and recovery actionable — required client work
 
@@ -73,6 +74,18 @@ the original fragment has already been removed. A lost confirmation response
 also needs a recovery path. Implement bounded session-review recovery, or an
 explicit, tested new-link recovery flow. Acceptance: reload, timeout and network
 failure never imply success or leave an unexplained dead end.
+
+**Follow-up implementation (2026-10-23):** added stable invitation error codes,
+validation field feedback, real resend timing, preserved app input and readable
+request/expiry statuses. Error summaries are announced and brought into view.
+The website now prepares a random HttpOnly credential before consuming a link,
+then restores current review after a lost response or reload without extending
+expiry or authorizing. A saved decision can restore a read-only receipt; duplicate
+decisions remain rejected. Expired/unavailable sessions explain new-link recovery.
+Current documents are reloaded and the authority checkbox is reset on recovery.
+This implements step 2 in source; real browser/device/inbox acceptance still
+belongs to steps 4–5. Some session-change/error widget coverage also advances
+step 3, but does not close all account/cache/consent-loading checks there.
 
 ### 3. Complete account-change and consent failure acceptance — required tests
 
@@ -161,7 +174,8 @@ reopen it. Production changes require separate explicit authorization.
 
 These commits preserve the implementation as a disabled development baseline.
 The initial audit did not implement the completion plan. The follow-up described
-under step 1 implements the dispute fix only; steps 2–6 remain outstanding.
+under steps 1–2 implements dispute handling and error/review recovery. Steps
+3–6 remain outstanding except for the partial widget coverage noted above.
 
 ## Dispute-fix verification follow-up
 
@@ -172,6 +186,31 @@ MySQL transactions and physical-device workflows remain separate acceptance gate
 The complete API suite also passed: 715 tests, 5,022 assertions, with the installed
 GD extension enabled for the test command. No activation flags or live records
 were changed.
+
+## Error and review-recovery verification follow-up
+
+Matching development commits: mobile `065871d`, website `152ce5d`, and the API
+commit containing this follow-up. None were pushed or deployed by this task.
+
+- Full API suite: 722 tests passed, 5,097 assertions, with GD enabled for the
+  command and SQLite in memory. The age/guardian subset passed 44 tests with
+  291 assertions. Coverage includes prepared credentials, single-use links,
+  expiry, current-document recovery, replacement, read-only decision receipts,
+  rejected repeated decisions and actual invitation retry timing.
+- Website: 20 unit/component-handler/relay tests passed and the strict TypeScript
+  check passed. The local deployment build passed after retrying with network
+  access for the existing Google Fonts downloads. No fonts were changed. These
+  deterministic handler/effect tests are not a real browser or inbox acceptance run.
+- Flutter: 17 targeted tests passed, including visible field errors, preserved
+  input, resend guidance, session-change isolation and existing consent/age
+  cases. Analysis of seven changed/new feature/test files passed with no issues.
+- OpenAPI and the existing Postman collection document the optional prepared
+  credential and the new review operation. Match API and website versions when
+  releasing to development; deploy the compatible API before the new website.
+
+No policies, country availability, activation flags, live records or deployments
+were changed by this follow-up. Physical-device/browser/inbox and MySQL-race
+acceptance remain outstanding.
 
 No live migration, email, deployment, policy publication or activation was
 performed for this audit. Existing historical device/inbox/rollback claims have

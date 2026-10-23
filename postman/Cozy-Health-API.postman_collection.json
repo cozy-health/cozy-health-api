@@ -1167,7 +1167,38 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Website prepares a random 64-character credential in an HttpOnly cookie before confirmation, then supplies it as session. Omit session for legacy server-issued credentials. Opening an email link alone does not confirm or authorize. The emailed token remains single-use. For synthetic development testing only. Never save real tokens/session credentials in this collection."
+          }
+        },
+        {
+          "name": "Restore a guardian review or read-only decision receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/guardian/review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session\": \"{{guardian_session}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Uses the restricted session credential only. Returns current documents and expires_at without extending the original 20-minute session. A saved decision returns completed=true, decision and message with no private records or new decision authority. Unknown, replaced, cancelled, expired and adulthood sessions cannot resume. Website relay injects the HttpOnly cookie and ignores body credentials. This operation does not accept a decision."
           }
         },
         {

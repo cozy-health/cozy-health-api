@@ -381,3 +381,67 @@ it('rolls back case closure and access changes if recording the decision fails',
     $this->assertDatabaseHas('age_support_cases', ['id' => $id, 'status' => 'open', 'resolution' => null]);
     $this->assertDatabaseMissing('age_authorization_events', ['user_id' => $patient->id]);
 });
+
+it('recovers a confirmed review using a prepared credential without reusing the email link', function () {
+    ageReady(); $patient = ageUser(); $authorization = ageAuthorization($patient, 'pending');
+    $token = str_repeat('b', 64); $session = str_repeat('c', 64);
+    $authorization->update(['token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours(48)]);
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertGone();
+    $this->postJson('/api/v1/guardian/confirm', ['token' => $token, 'session' => $session])->assertOk()->assertJsonPath('session', $session);
+    $expiry = $authorization->fresh()->session_expires_at;
+    $this->travel(5)->minutes();
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer')
+        ->assertJsonPath('completed', false)->assertJsonPath('withdrawal', false)
+        ->assertJsonPath('expires_at', $expiry->toIso8601String())->assertJsonMissingPath('session');
+    expect($authorization->fresh()->session_expires_at->equalTo($expiry))->toBeTrue();
+    expect($authorization->fresh()->status)->toBe('confirmed');
+    expect($authorization->fresh()->session_hash)->toBe(hash('sha256', $session));
+    $this->postJson('/api/v1/guardian/confirm', ['token' => $token, 'session' => $session])->assertNotFound();
+    $this->postJson('/api/v1/guardian/review', ['session' => str_repeat('d', 64)])->assertGone()->assertJsonMissingPath('account_first_name');
+    $this->travel(16)->minutes();
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertGone();
+});
+
+it('restores current documents and refuses a cancelled or replaced review', function () {
+    ageReady(); $patient = ageUser(); $authorization = ageAuthorization($patient, 'pending');
+    $token = str_repeat('e', 64); $session = str_repeat('f', 64);
+    $authorization->update(['token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours(48)]);
+    $this->postJson('/api/v1/guardian/confirm', ['token' => $token, 'session' => $session])->assertOk();
+    config(['consent.documents.health_data.version' => 'test-2']);
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertOk()->assertJsonPath('versions.health_data', 'test-2');
+    $this->postJson('/api/v1/guardian/decision', ['session' => $session, 'decision' => 'authorize', 'adult_and_authority' => true,
+        'versions' => ['health_data' => 'test-1']])->assertConflict();
+    app(AgeEligibility::class)->endAuthorizations($patient, 'replaced');
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertGone();
+});
+
+it('recovers a lost decision receipt without repeating or extending decision authority', function (string $decision, string $status) {
+    ageReady(); $patient = ageUser(); $authorization = ageAuthorization($patient, $decision === 'withdraw' ? 'authorized' : 'pending');
+    $token = str_repeat('a', 64); $session = str_repeat('b', 64);
+    $authorization->update(['token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours(48)]);
+    $this->postJson('/api/v1/guardian/confirm', ['token' => $token, 'session' => $session])->assertOk();
+    $expiry = $authorization->fresh()->session_expires_at;
+    $payload = ['session' => $session, 'decision' => $decision, 'adult_and_authority' => true, 'versions' => app(AgeEligibility::class)->versions()];
+    $this->postJson('/api/v1/guardian/decision', $payload)->assertOk();
+    $this->postJson('/api/v1/guardian/decision', $payload)->assertNotFound();
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertOk()
+        ->assertJsonPath('completed', true)->assertJsonPath('decision', $status)
+        ->assertJsonMissingPath('account_first_name')->assertJsonMissingPath('documents');
+    expect($authorization->fresh()->session_expires_at->equalTo($expiry))->toBeTrue();
+    $this->travel(21)->minutes();
+    $this->postJson('/api/v1/guardian/review', ['session' => $session])->assertGone();
+})->with([['authorize', 'authorized'], ['decline', 'declined'], ['not_guardian', 'disputed'], ['withdraw', 'withdrawn']]);
+
+it('returns actionable invitation errors and the actual resend waiting period', function () {
+    ageReady(); Mail::fake(); $patient = ageUser(); Sanctum::actingAs($patient);
+    $payload = ['guardian_name' => 'Test Parent', 'guardian_email' => 'parent@example.com', 'relationship' => 'parent'];
+    config(['age.invitations_enabled' => false]);
+    $this->postJson('/api/v1/me/guardian', $payload)->assertStatus(503)->assertJsonPath('code', 'guardian_unavailable');
+    config(['age.invitations_enabled' => true]);
+    $this->postJson('/api/v1/me/guardian', [...$payload, 'guardian_email' => $patient->email])->assertUnprocessable()->assertJsonPath('code', 'guardian_email_matches');
+    $this->postJson('/api/v1/me/guardian', $payload)->assertCreated();
+    $this->postJson('/api/v1/me/guardian', $payload)->assertStatus(429)
+        ->assertJsonPath('code', 'guardian_rate_limited')->assertHeader('Retry-After')
+        ->assertJson(fn (\Illuminate\Testing\Fluent\AssertableJson $json) => $json->where('retry_after', fn ($seconds) => $seconds > 0 && $seconds <= 60)->etc());
+});

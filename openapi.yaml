@@ -1143,7 +1143,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Action errors include guardian_unavailable, guardian_delivery_failed, guardian_email_unverified, guardian_email_matches, guardian_not_applicable and age_case_open. Invitation throttling returns code=guardian_rate_limited, retry_after seconds and Retry-After header. Validation errors retain their field keys."
       },
       "delete": {
         "summary": "Cancel or withdraw guardian authorization",
@@ -1307,12 +1308,18 @@
                   "token": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "session": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Optional website-prepared recovery credential; never expose or persist in browser script storage."
                   }
                 }
               }
             }
           }
-        }
+        },
+        "description": "Website prepares a random 64-character credential in an HttpOnly cookie before confirmation, then supplies it as session. Omit session for legacy server-issued credentials. Opening an email link alone does not confirm or authorize. The emailed token remains single-use."
       }
     },
     "/api/v1/guardian/decision": {
@@ -1388,7 +1395,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Consumes decision authority through the resulting terminal status. The original hashed credential remains usable only for a read-only receipt until the original session expiry. A repeated decision is rejected. No session refresh or automatic authorization occurs."
       }
     },
     "/api/v1/guardian/withdrawal": {
@@ -1672,6 +1680,49 @@
             "description": "Invalid age, identity or device metadata"
           }
         }
+      }
+    },
+    "/api/v1/guardian/review": {
+      "post": {
+        "summary": "Restore a guardian review or read-only decision receipt",
+        "tags": [
+          "Age and guardian authorization"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Current review (completed=false) or read-only receipt (completed=true)"
+          },
+          "410": {
+            "description": "No resumable session; reopen an unused email link or request a new one"
+          },
+          "422": {
+            "description": "Malformed credential"
+          },
+          "429": {
+            "description": "Rate limited; respect Retry-After"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "session"
+                ],
+                "properties": {
+                  "session": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Uses the restricted session credential only. Returns current documents and expires_at without extending the original 20-minute session. A saved decision returns completed=true, decision and message with no private records or new decision authority. Unknown, replaced, cancelled, expired and adulthood sessions cannot resume. Website relay injects the HttpOnly cookie and ignores body credentials. This operation does not accept a decision."
       }
     }
   }

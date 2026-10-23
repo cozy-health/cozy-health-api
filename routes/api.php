@@ -296,6 +296,7 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
 Route::prefix('v1/guardian')->middleware('throttle:10,1')->group(function () {
     $age = \App\Http\Controllers\AgeAuthorizationController::class;
     Route::post('confirm', [$age, 'confirm']);
+    Route::post('review', [$age, 'review']);
     Route::post('decision', [$age, 'decide']);
     Route::post('withdrawal', [$age, 'requestWithdrawal']);
 });

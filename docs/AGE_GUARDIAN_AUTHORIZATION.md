@@ -23,6 +23,7 @@ All paths below follow `/api/v1`; patient calls require the existing patient bea
 | DELETE `me/guardian` | Cancel/withdraw own guardian authorization; preserve health records |
 | POST `me/age-support` | Open `dob_correction`, `guardian_dispute`, `appeal` or `privacy` case with message; age/guardian disputes restrict access |
 | POST `guardian/confirm` | Consume emailed token and issue a 20-minute restricted guardian session |
+| POST `guardian/review` | Restore current review or a read-only saved-decision receipt using the restricted session; never extends expiry or authorizes |
 | POST `guardian/decision` | Explicit authorize/decline/not-guardian/withdraw; authorization requires adulthood/authority declaration and exact effective document versions |
 | POST `guardian/withdrawal` | Generic response; email a fresh withdrawal confirmation link if eligible |
 | GET `admin/age-cases` | Paginated case queue; real management token with `admin:guardians` |
@@ -69,6 +70,22 @@ Defaults are off. Deploy the additive migration before using the new code. Relea
 - `GUARDIAN_WEBSITE_URL` selects the reviewed HTTPS website. Website `GUARDIAN_API_URL` must end `/api/v1/guardian/`, and `GUARDIAN_SITE_ORIGIN` must match the exact website origin. In production both require HTTPS. Do not point development guardian pages at production.
 - Invitations expire after 48 hours; resend invalidates previous invitations. One/minute and three/day/account, recipient limits and IP limits bound sending. Mail failure is shown honestly; delivery/inbox acceptance still requires testing. Mail messages exclude private health content.
 - Emailed token travels in a URL fragment, is exchanged only after an explicit email-confirmation action, and is stored hashed server-side. The website holds the restricted session in a Secure, HttpOnly, SameSite cookie, protects mutations by origin/header checks, disables caching/referrers/indexing and sends no analytics from guardian pages. Email link scanning does not grant authorization.
+- The website calls its same-origin `prepare` relay first, setting a random
+  64-character session credential in the HttpOnly cookie before sending the link
+  token to the API. `confirm` accepts this optional credential; legacy callers
+  can still receive a server-generated one. A lost confirmation response or page
+  reload can resume through `review`. Review always returns current documents;
+  the authority checkbox resets, and a fresh explicit decision is still required.
+  Neither review nor decision refreshes the cookie or session lifetime. Terminal
+  decisions consume write authority but retain the hashed credential for a
+  read-only receipt until the original expiry. Repeat decisions are rejected.
+  Unknown, expired, replaced, cancelled and adulthood sessions cannot resume;
+  the page explains how to reopen an unused email link or request a new one.
+- Invitation errors provide stable codes for availability, delivery, verification,
+  conflicting age cases and email mistakes. Resend limits include `retry_after`
+  seconds and `Retry-After`; mobile preserves entered values, labels invalid
+  fields and announces/scrolls to the error. Interrupted submissions instruct the
+  user to check access/status before retrying rather than claiming success.
 - Unused invitation contacts are scheduled for removal after 30 days. Active authorization evidence remains while needed for current authority; the approved `GUARDIAN_RECORD_DAYS` controls the period after authority ends and routine audit/case retention. No universal decision-retention period has been invented.
 - `php artisan guardians:prune` previews. `--execute` requires approval and runs daily only when configured. Open cases hold related records; the team must review/resolve these holds rather than leaving them indefinitely. Existing account deletion cascades remove guardian/case/event rows. Verify backup expiry and deletion replay operationally before activation; a command does not prove backup erasure.
 
