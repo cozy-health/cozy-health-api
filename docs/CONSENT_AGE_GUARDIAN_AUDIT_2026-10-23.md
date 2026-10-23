@@ -48,6 +48,17 @@ restriction. Add regressions for two cases resolved in either order, ordinary
 closure, adult/minor accounts and concurrent reviewer actions. Pass condition:
 one resolution cannot reopen an account with another blocking case.
 
+**Follow-up implementation (2026-10-23):** the resolution now checks other open
+blocking cases under the existing account lock, using a locking current read
+to avoid a stale MySQL snapshot. Blocking case kinds are shared with case creation.
+Privacy-only cases cannot clear age restrictions or change DOB. Ordinary closure
+preserves the restriction; an approved appeal can clear it when no blocking case
+remains. New regression coverage exercises adults/minors, both resolution orders,
+correction/clearance, privacy rejection, appeals, account isolation, reviewer
+assignment/stale decisions and transaction rollback after an audit-write failure.
+This closes the identified source gap; isolated MySQL concurrency acceptance
+remains part of step 5. Steps 2–6 remain outstanding.
+
 ### 2. Make errors and recovery actionable — required client work
 
 `AgeEligibilityGate::_run` replaces all failures with one generic message. It
@@ -146,10 +157,21 @@ reopen it. Production changes require separate explicit authorization.
 - Mobile: `e372d5b` — age/guardian flow and consent safeguards.
 - Website: `900aeb2` — guardian relay/pages and synchronized legal notices.
 - Staff dashboard: `3b135eb` — scoped guardian support queue.
-- This report is included with the matching API implementation commit.
+- API baseline: `e74c48c` — disabled authorization and legal consent safeguards.
 
 These commits preserve the implementation as a disabled development baseline.
-The fixes listed above are a completion plan, not changes made during this audit.
+The initial audit did not implement the completion plan. The follow-up described
+under step 1 implements the dispute fix only; steps 2–6 remain outstanding.
+
+## Dispute-fix verification follow-up
+
+Before the fix, all ten new multiple-case/privacy-case regressions failed against
+the baseline. After the fix, the age/guardian suite passed 37 tests with 216
+assertions, including 13 new regressions. Tests use SQLite in memory. Concurrent
+MySQL transactions and physical-device workflows remain separate acceptance gates.
+The complete API suite also passed: 715 tests, 5,022 assertions, with the installed
+GD extension enabled for the test command. No activation flags or live records
+were changed.
 
 No live migration, email, deployment, policy publication or activation was
 performed for this audit. Existing historical device/inbox/rollback claims have

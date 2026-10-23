@@ -47,6 +47,14 @@ Normal email confirmation and authorization do not need a manual team approval. 
 
 Only configured `GUARDIAN_REVIEWER_IDS` receive the dedicated management capability on a new admin login. Assign each case to a named reviewer; arrange an operational backup before absence. Assignment, case reads, corrections and decisions are audited. Use another reviewer for appeals where feasible. Close a case with a response suitable for the requester; omit confidential third-party information. The response appears in the app, with a generic email update attempted for verified accounts. Email failure never reverses a saved decision.
 
+Closing a case with an ordinary response does not clear an age restriction.
+An approved correction or dispute clearance can clear it only when no other
+open DOB-correction or guardian-dispute case remains for that account. An appeal
+can use the approved review procedure; a privacy-only case cannot change DOB or
+clear age restrictions. The account and case locks serialize case changes, and
+the remaining-case check uses a locking current read for MySQL. Real MySQL
+concurrency acceptance is still required; local SQLite tests do not prove it.
+
 Do not collect ID/evidence by ordinary email, put health records in case notes or infer authority from a checkbox. DOB corrections/dispute clearance are disabled without `AGE_CORRECTION_PROCEDURE_APPROVAL` and a case-specific `verification_reference`. This reference identifies a proportionate approved check; it is not the evidence itself. If no approved process can resolve a case, leave it restricted. Staff cannot override country, policy or global health-data gates. There is no promised emergency coverage or review SLA.
 
 ## Activation, mail and retention

@@ -270,3 +270,114 @@ it('records health-consent withdrawal through the real endpoint and blocks the n
     $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
     $this->getJson('/api/v1/me/consents')->assertOk();
 });
+
+function ageReviewCase(User $patient, User $reviewer, string $kind): string
+{
+    $id = (string) \Illuminate\Support\Str::uuid();
+    DB::table('age_support_cases')->insert(['id' => $id, 'user_id' => $patient->id,
+        'assignee_id' => $reviewer->id, 'kind' => $kind, 'status' => 'open',
+        'message' => encrypt('Synthetic support request.'), 'created_at' => now(), 'updated_at' => now()]);
+    return $id;
+}
+
+function ageReviewDecision(string $action, int $years = 25): array
+{
+    return ['action' => $action, 'note' => 'Reviewed using the approved support procedure.',
+        'authority_checked' => true, 'verification_reference' => 'synthetic-check-reference',
+        ...($action === 'correct_dob' ? ['date_of_birth' => now('UTC')->subYears($years)->subDay()->format('Y-m-d')] : [])];
+}
+
+it('retains other open blocking cases when a reviewer resolves a dispute', function (int $years, string $firstKind, string $dobAction) {
+    ageReady(); Mail::fake(); config(['age.correction_approval' => 'synthetic-approved-procedure']);
+    $patient = ageUser($years); ageAccept($patient);
+    $authorization = ageAuthorization($patient);
+    $patient->forceFill(['age_disputed' => true])->save();
+    $reviewer = User::factory()->create(['role' => 'admin']);
+    $cases = [
+        'dob_correction' => ageReviewCase($patient, $reviewer, 'dob_correction'),
+        'guardian_dispute' => ageReviewCase($patient, $reviewer, 'guardian_dispute'),
+    ];
+    $this->withToken($reviewer->createToken('cozy-admin-management-v1', ['admin:guardians'], now()->addMinutes(30))->plainTextToken);
+    $lastKind = $firstKind === 'dob_correction' ? 'guardian_dispute' : 'dob_correction';
+    $firstAction = $firstKind === 'dob_correction' ? $dobAction : 'clear_dispute';
+    $lastAction = $lastKind === 'dob_correction' ? $dobAction : 'clear_dispute';
+
+    $this->postJson('/api/v1/admin/age-cases/'.$cases[$firstKind].'/resolve', ageReviewDecision($firstAction, $years))->assertOk();
+    expect((bool) $patient->fresh()->age_disputed)->toBeTrue();
+    expect(app(AgeEligibility::class)->state($patient->fresh())['reason'])->toBe('age_disputed');
+    $this->assertDatabaseHas('age_support_cases', ['id' => $cases[$lastKind], 'status' => 'open']);
+    expect($authorization->fresh()->status)->toBe('review_required');
+
+    $this->postJson('/api/v1/admin/age-cases/'.$cases[$lastKind].'/resolve', ageReviewDecision($lastAction, $years))->assertOk();
+    expect((bool) $patient->fresh()->age_disputed)->toBeFalse();
+    expect(app(AgeEligibility::class)->state($patient->fresh())['reason'])->toBe($years < 18 ? 'guardian_required' : null);
+    if ($dobAction === 'correct_dob') {
+        expect($patient->fresh()->date_of_birth->format('Y-m-d'))->toBe(ageReviewDecision('correct_dob', $years)['date_of_birth']);
+    }
+    expect(DB::table('age_authorization_events')->where('user_id', $patient->id)->count())->toBe(2);
+})->with([16, 25])->with(['dob_correction', 'guardian_dispute'])->with(['clear_dispute', 'correct_dob']);
+
+it('does not let a privacy case clear an age restriction or change a birthday', function (string $action) {
+    ageReady(); Mail::fake(); config(['age.correction_approval' => 'synthetic-approved-procedure']);
+    $patient = ageUser(25); $patient->forceFill(['age_disputed' => true])->save();
+    $reviewer = User::factory()->create(['role' => 'admin']);
+    $id = ageReviewCase($patient, $reviewer, 'privacy');
+    $this->withToken($reviewer->createToken('cozy-admin-management-v1', ['admin:guardians'], now()->addMinutes(30))->plainTextToken)
+        ->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision($action))->assertConflict();
+    expect((bool) $patient->fresh()->age_disputed)->toBeTrue();
+    expect($patient->fresh()->date_of_birth->format('Y-m-d'))->toBe($patient->date_of_birth->format('Y-m-d'));
+    $this->assertDatabaseHas('age_support_cases', ['id' => $id, 'status' => 'open']);
+    $this->assertDatabaseMissing('age_authorization_events', ['user_id' => $patient->id]);
+})->with(['clear_dispute', 'correct_dob']);
+
+it('keeps an ordinary closure restricted until an approved appeal clears it', function () {
+    ageReady(); Mail::fake(); config(['age.correction_approval' => 'synthetic-approved-procedure']);
+    $patient = ageUser(25); ageAccept($patient); $patient->forceFill(['age_disputed' => true])->save();
+    $reviewer = User::factory()->create(['role' => 'admin']);
+    $id = ageReviewCase($patient, $reviewer, 'dob_correction');
+    $this->withToken($reviewer->createToken('cozy-admin-management-v1', ['admin:guardians'], now()->addMinutes(30))->plainTextToken)
+        ->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('resolve'))->assertOk();
+    expect(app(AgeEligibility::class)->state($patient->fresh())['reason'])->toBe('age_disputed');
+    $appeal = ageReviewCase($patient, $reviewer, 'appeal');
+    $otherPatient = ageUser(25);
+    ageReviewCase($otherPatient, $reviewer, 'guardian_dispute');
+    ageReviewCase($patient, $reviewer, 'privacy');
+    $this->postJson('/api/v1/admin/age-cases/'.$appeal.'/resolve', ageReviewDecision('clear_dispute'))->assertOk();
+    expect(app(AgeEligibility::class)->allows($patient->fresh()))->toBeTrue();
+});
+
+it('rejects stale or unassigned reviewer decisions without removing a newer dispute', function () {
+    ageReady(); Mail::fake(); config(['age.correction_approval' => 'synthetic-approved-procedure']);
+    $patient = ageUser(25); $patient->forceFill(['age_disputed' => true])->save();
+    $firstReviewer = User::factory()->create(['role' => 'admin']);
+    $secondReviewer = User::factory()->create(['role' => 'admin']);
+    $id = ageReviewCase($patient, $firstReviewer, 'guardian_dispute');
+    $this->withToken($secondReviewer->createToken('cozy-admin-management-v1', ['admin:guardians'], now()->addMinutes(30))->plainTextToken)
+        ->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('clear_dispute'))->assertConflict();
+    expect((bool) $patient->fresh()->age_disputed)->toBeTrue();
+    $this->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('assign'))->assertOk();
+    $this->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('clear_dispute'))->assertOk();
+    $newCase = ageReviewCase($patient, $secondReviewer, 'dob_correction');
+    $patient->refresh()->forceFill(['age_disputed' => true])->save();
+    $this->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('clear_dispute'))->assertConflict();
+    expect((bool) $patient->fresh()->age_disputed)->toBeTrue();
+    $this->assertDatabaseHas('age_support_cases', ['id' => $newCase, 'status' => 'open']);
+});
+
+it('rolls back case closure and access changes if recording the decision fails', function () {
+    ageReady(); Mail::fake(); config(['age.correction_approval' => 'synthetic-approved-procedure']);
+    $patient = ageUser(25); $patient->forceFill(['age_disputed' => true])->save();
+    $authorization = ageAuthorization($patient);
+    $reviewer = User::factory()->create(['role' => 'admin']);
+    $id = ageReviewCase($patient, $reviewer, 'dob_correction');
+    $eligibility = \Mockery::mock(AgeEligibility::class)->makePartial();
+    $eligibility->shouldReceive('event')->once()->andThrow(new RuntimeException('Synthetic audit write failure'));
+    app()->instance(AgeEligibility::class, $eligibility);
+    $this->withToken($reviewer->createToken('cozy-admin-management-v1', ['admin:guardians'], now()->addMinutes(30))->plainTextToken)
+        ->postJson('/api/v1/admin/age-cases/'.$id.'/resolve', ageReviewDecision('correct_dob'))->assertStatus(500);
+    expect((bool) $patient->fresh()->age_disputed)->toBeTrue();
+    expect($patient->fresh()->date_of_birth->format('Y-m-d'))->toBe($patient->date_of_birth->format('Y-m-d'));
+    expect($authorization->fresh()->status)->toBe('authorized');
+    $this->assertDatabaseHas('age_support_cases', ['id' => $id, 'status' => 'open', 'resolution' => null]);
+    $this->assertDatabaseMissing('age_authorization_events', ['user_id' => $patient->id]);
+});

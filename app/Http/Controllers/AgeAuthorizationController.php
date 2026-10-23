@@ -191,7 +191,7 @@ class AgeAuthorizationController extends Controller
         $data = $request->validate(['kind' => 'required|in:dob_correction,guardian_dispute,appeal,privacy', 'message' => 'required|string|min:5|max:2000']);
         return DB::transaction(function () use ($request, $data, $eligibility) {
             $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
-            if (in_array($data['kind'], ['dob_correction', 'guardian_dispute'])) {
+            if (in_array($data['kind'], AgeEligibility::BLOCKING_CASE_KINDS, true)) {
                 $user->forceFill(['age_disputed' => true])->save();
                 $eligibility->endAuthorizations($user, 'disputed');
             }

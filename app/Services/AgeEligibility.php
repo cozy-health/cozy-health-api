@@ -9,6 +9,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AgeEligibility
 {
+    public const BLOCKING_CASE_KINDS = ['dob_correction', 'guardian_dispute'];
+
     public function age(User $user): ?int
     {
         if (! $user->date_of_birth) return null;

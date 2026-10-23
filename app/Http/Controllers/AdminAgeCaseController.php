@@ -41,8 +41,16 @@ class AdminAgeCaseController extends Controller
             } else {
                 abort_unless($case->assignee_id === $request->user()->id, 409, 'Assign this case to yourself before resolving it.');
                 if (in_array($data['action'], ['correct_dob', 'clear_dispute'])) {
+                    abort_unless(in_array($case->kind, [...AgeEligibility::BLOCKING_CASE_KINDS, 'appeal'], true),
+                        409, 'Use an age correction, guardian dispute or appeal case to review an age restriction.');
                     $eligibility->endAuthorizations($user, 'review_required');
-                    $user->forceFill(['age_disputed' => false, ...($data['action'] === 'correct_dob'
+                    // All case writers lock this account first. Use a locking current read
+                    // so MySQL cannot reuse a snapshot taken before waiting for that lock.
+                    $anotherDispute = DB::table('age_support_cases')->where('user_id', $user->id)
+                        ->where('id', '!=', $id)->where('status', 'open')
+                        ->whereIn('kind', AgeEligibility::BLOCKING_CASE_KINDS)
+                        ->lockForUpdate()->first(['id']) !== null;
+                    $user->forceFill(['age_disputed' => $anotherDispute, ...($data['action'] === 'correct_dob'
                         ? ['date_of_birth' => $data['date_of_birth'], 'age_declared_at' => now()] : [])])->save();
                 }
                 DB::table('age_support_cases')->where('id', $id)->update(['status' => 'resolved', 'resolution' => encrypt($data['note']), 'updated_at' => now()]);
