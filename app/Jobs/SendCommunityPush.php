@@ -19,8 +19,7 @@ class SendCommunityPush implements ShouldQueue
     {
         $notification = AppNotification::withoutGlobalScope('user')->find($this->notificationId);
         if (! $notification || $notification->created_at->lt(now()->subDay()) || ! $scheduler->enabled()
-            || ! config('community.release_ready') || ! config('community.guidelines_version')
-            || ! \App\Models\FeatureFlag::where('key', 'community')->value('enabled')) return;
+            || ! app(\App\Services\CommunityAvailability::class)->enabled()) return;
         $owner = User::find($notification->user_id);
         if (! $owner) return;
         $retry = false;

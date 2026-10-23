@@ -136,6 +136,19 @@ class CommunityNotificationTest extends TestCase
         $this->assertFalse($this->profile->fresh()->reminder_settings['community_push_enabled']);
     }
 
+    public function test_worker_uses_the_same_guarded_development_availability_as_the_api(): void
+    {
+        config(['community.release_ready' => false, 'community.development_testing' => true,
+            'community.railway_project_id' => \App\Services\CommunityAvailability::DEVELOPMENT_PROJECT,
+            'community.railway_environment_id' => \App\Services\CommunityAvailability::DEVELOPMENT_ENVIRONMENT,
+            'app.url' => 'https://api-dev.cozyhealth.org']);
+        $notice = $this->like();
+        config(['community.railway_environment_id' => 'other-environment']);
+        $this->assertSame(0, $this->runJob($notice)->calls);
+        config(['community.railway_environment_id' => \App\Services\CommunityAvailability::DEVELOPMENT_ENVIRONMENT]);
+        $this->assertSame(1, $this->runJob($notice)->calls);
+    }
+
     public function test_withdrawn_consent_quiet_hours_and_feature_shutdown_prevent_phone_delivery(): void
     {
         $notice = $this->like();
