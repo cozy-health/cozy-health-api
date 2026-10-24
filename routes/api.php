@@ -186,6 +186,10 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('user/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
 
     Route::get('provider-conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('provider-conversations/{linkId}/journal-shares/preview', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'preview'])->middleware('throttle:30,1');
+    Route::post('provider-conversations/{linkId}/journal-shares', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'store'])->middleware('throttle:30,1');
+    Route::get('provider-conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'show'])->middleware('throttle:60,1');
+    Route::delete('provider-conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'destroy'])->middleware('throttle:30,1');
     Route::get('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
     Route::post('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
     Route::post('provider-conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');
@@ -333,6 +337,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::patch('me', [$controller, 'update']);
 
     Route::get('conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'show'])->middleware('throttle:60,1');
     Route::get('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
     Route::post('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
     Route::post('conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');

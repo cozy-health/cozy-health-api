@@ -39,7 +39,7 @@ jobs:
           php artisan key:generate
       - name: Full application suite
         run: php artisan test --compact
-      - name: Empty MySQL bootstrap and isolation contract
+      - name: Empty MySQL bootstrap, isolation and journal-sharing contract
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -49,4 +49,4 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter=EnvironmentIsolationTest
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|JournalSharingTest'

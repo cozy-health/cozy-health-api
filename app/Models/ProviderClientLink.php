@@ -21,6 +21,14 @@ class ProviderClientLink extends Model
 
     protected static function booted(): void
     {
+        static::updated(function (self $link) {
+            if (($link->isDirty('consent_journals') && ! $link->consent_journals)
+                || ($link->isDirty('revoked_at') && $link->revoked_at)
+                || $link->isDirty('provider_id') || ($link->isDirty('verified_at') && ! $link->verified_at)) {
+                app(\App\Services\Provider\JournalSharingService::class)->purge(
+                    JournalShare::where('provider_client_link_id', $link->id));
+            }
+        });
         static::saving(function (self $link) {
             if ($link->verified_at || $link->revoked_at) {
                 $link->invitation_code_secret = null;

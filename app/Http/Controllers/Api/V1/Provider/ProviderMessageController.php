@@ -64,6 +64,9 @@ class ProviderMessageController extends Controller
     {
         abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
         $type = $ref['type'];
+        if ($type === 'journal_shares') {
+            return app(\App\Services\Provider\JournalSharingService::class)->reference($link, $ref['id']);
+        }
         $name = preg_split('/\\s+/u', trim($link->user->name))[0] ?: 'Patient';
         $base = ['type' => $type, 'id' => $ref['id'], 'owner' => ['name' => $name, 'initials' => mb_strtoupper(mb_substr($name, 0, 1))]];
         if (! $link->{'consent_'.$type}) {

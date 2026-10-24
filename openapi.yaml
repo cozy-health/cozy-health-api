@@ -182,6 +182,139 @@
             "pattern": "^[a-f0-9]{64}$"
           }
         }
+      },
+      "JournalSharePreview": {
+        "type": "object",
+        "required": [
+          "journal_id",
+          "revision",
+          "provider",
+          "entry",
+          "later_edits_shared"
+        ],
+        "properties": {
+          "journal_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "provider": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "entry": {
+            "type": "object",
+            "required": [
+              "title",
+              "body"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              }
+            }
+          },
+          "later_edits_shared": {
+            "const": false
+          }
+        }
+      },
+      "JournalShareRequest": {
+        "type": "object",
+        "required": [
+          "journal_id",
+          "expected_revision",
+          "client_id",
+          "confirmed"
+        ],
+        "properties": {
+          "journal_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expected_revision": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "client_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "JournalSharedCopy": {
+        "type": "object",
+        "required": [
+          "share_id",
+          "entry",
+          "shared_at",
+          "later_edits_shared"
+        ],
+        "properties": {
+          "share_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entry": {
+            "type": "object",
+            "required": [
+              "title",
+              "body"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              }
+            }
+          },
+          "shared_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "later_edits_shared": {
+            "const": false
+          }
+        }
+      },
+      "JournalShareResult": {
+        "type": "object",
+        "required": [
+          "share_id",
+          "replayed"
+        ],
+        "properties": {
+          "share_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
       }
     }
   },
@@ -1674,6 +1807,341 @@
           },
           "422": {
             "description": "Invalid preferences."
+          }
+        }
+      }
+    },
+    "/api/v1/provider-conversations/{linkId}/journal-shares/preview": {
+      "get": {
+        "operationId": "previewProviderJournalShare",
+        "description": "Preview one saved written entry for one active connected provider. Does not send or grant access. Audio is excluded.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "journal_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "private, no-store",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalSharePreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Sharing permission disabled"
+          },
+          "404": {
+            "description": "Record or connection unavailable"
+          },
+          "422": {
+            "description": "Invalid or unavailable written entry"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/v1/provider-conversations/{linkId}/journal-shares": {
+      "post": {
+        "operationId": "createProviderJournalShare",
+        "description": "Explicitly confirm the reviewed revision. Atomically creates an encrypted fixed copy and a conversation message. Identical client_id retries do not duplicate the send. Later private edits are not shared.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "private, no-store",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalShareResult"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Shared copy created",
+            "headers": {
+              "Cache-Control": {
+                "description": "private, no-store",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalShareResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Sharing permission disabled"
+          },
+          "404": {
+            "description": "Record or connection unavailable"
+          },
+          "409": {
+            "description": "Entry changed, request ID conflict, or shared copy withdrawn; review again"
+          },
+          "422": {
+            "description": "Invalid or unavailable written entry"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JournalShareRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}": {
+      "get": {
+        "operationId": "getPatientJournalSharedCopy",
+        "description": "Read an explicitly shared copy online. Full text is excluded from conversation-message responses and must not be durably cached. Later edits are not reflected.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "private, no-store",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalSharedCopy"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Sharing permission disabled"
+          },
+          "404": {
+            "description": "Record or connection unavailable"
+          },
+          "422": {
+            "description": "Invalid or unavailable written entry"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "revokeProviderJournalShare",
+        "description": "Patient-only repeatable withdrawal. Purges shared text; does not claim to erase what the recipient already read.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Sharing permission disabled"
+          },
+          "404": {
+            "description": "Record or connection unavailable"
+          },
+          "422": {
+            "description": "Invalid or unavailable written entry"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/conversations/{linkId}/journal-shares/{shareId}": {
+      "get": {
+        "operationId": "getProviderJournalSharedCopy",
+        "description": "Read an explicitly shared copy online. Full text is excluded from conversation-message responses and must not be durably cached. Later edits are not reflected.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "private, no-store",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalSharedCopy"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Sharing permission disabled"
+          },
+          "404": {
+            "description": "Record or connection unavailable"
+          },
+          "422": {
+            "description": "Invalid or unavailable written entry"
+          },
+          "429": {
+            "description": "Rate limited"
           }
         }
       }

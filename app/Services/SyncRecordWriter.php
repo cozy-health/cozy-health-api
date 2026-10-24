@@ -108,6 +108,10 @@ class SyncRecordWriter
 
     public function delete(string $modelClass, string $type, User $user, string $id): void
     {
+        if ($type === 'journal_entry') {
+            app(\App\Services\Provider\JournalSharingService::class)->purge(
+                \App\Models\JournalShare::where('user_id', $user->id)->where('journal_entry_id', $id));
+        }
         if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'quiz_attempt') {
             app(QuizSharingService::class)->deleteAttempt($user->id, $id);

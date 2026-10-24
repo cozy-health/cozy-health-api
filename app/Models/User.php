@@ -30,6 +30,7 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            app(\App\Services\Provider\JournalSharingService::class)->purge(JournalShare::where('user_id', $user->id));
             // Audio ownership is polymorphic, so there is no users foreign-key
             // cascade. Persist cleanup work before removing the metadata.
             AudioAttachment::where('owner_type', 'patient')->where('owner_id', $user->id)

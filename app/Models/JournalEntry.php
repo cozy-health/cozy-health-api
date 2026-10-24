@@ -43,6 +43,12 @@ class JournalEntry extends Model
 
     protected static function booted()
     {
+        static::deleted(fn ($entry) => app(\App\Services\Provider\JournalSharingService::class)->purge(
+            JournalShare::where('journal_entry_id', $entry->id)->where('user_id', $entry->user_id)));
+        static::saved(function ($entry) {
+            if ($entry->is_deleted) app(\App\Services\Provider\JournalSharingService::class)->purge(
+                JournalShare::where('journal_entry_id', $entry->id)->where('user_id', $entry->user_id));
+        });
         static::saving(function ($entry) {
             if (! $entry->isDirty('voice_url') && ! $entry->isDirty('audio_attachment_id')) return;
             if (preg_match('#^/audio-attachments/([a-f0-9-]{36})$#', $entry->voice_url ?? '', $match)) $entry->audio_attachment_id = $match[1];
