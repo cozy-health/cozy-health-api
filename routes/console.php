@@ -72,7 +72,7 @@ Artisan::command('flags:set {key} {enabled}', function () {
 Artisan::command('audio:cleanup', function () { $this->info('Removed '.app(\App\Services\AudioAttachmentService::class)->cleanup().' unreferenced recordings.'); });
 Schedule::command('audio:cleanup')->daily()->withoutOverlapping();
 
-Schedule::command('launch:prune')->daily()->withoutOverlapping();
+Schedule::command('launch:prune')->everyFiveMinutes()->withoutOverlapping();
 
 // Retention is approved, but deployment must record the approval reference.
 // The command also validates limits and holds before any destructive action.

@@ -73,6 +73,22 @@ class AdminManagementTest extends TestCase
         $body['expected_updated_at'] = '2000-01-01 00:00:00';
         $this->putJson('/api/v1/admin/content/packages/'.$row->id, $body)->assertConflict();
     }
+
+    public function test_package_recovery_returns_the_current_price_and_version_under_subscriptions_scope(): void
+    {
+        $this->admin(['admin:subscriptions']);
+        $row = DB::table('subscription_packages')->where('slug', 'mobile-ng-student')->first();
+        $initial = $this->getJson('/api/v1/admin/content/packages/'.$row->id)->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.package_name', $row->package_name);
+        $this->assertIsArray($initial->json('data.features'));
+        $version = $initial->json('data.version');
+        DB::table('subscription_packages')->where('id', $row->id)->update(['price' => 6500]);
+        $updated = $this->getJson('/api/v1/admin/content/packages/'.$row->id)->assertOk();
+        $this->assertNotSame($version, $updated->json('data.version'));
+        $this->getJson('/api/v1/admin/content/packages/999999')->assertNotFound();
+        $this->admin(['admin:content']);
+        $this->getJson('/api/v1/admin/content/packages/'.$row->id)->assertForbidden();
+    }
     private function admin(array $abilities = ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email']): User
     {
         $admin = User::factory()->create(); $admin->forceFill(['role' => 'admin'])->save();

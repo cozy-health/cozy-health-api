@@ -30,6 +30,15 @@ class AdminContentController extends Controller
         return response()->json(['data' => $rows, ...($resource === 'expressions' ? ['lookups' => ['moods' => DB::table('feelings')->select('id', 'name')->orderBy('name')->get()]] : [])])->header('Cache-Control', 'private, no-store');
     }
 
+    public function show(Request $request, string $resource, string $id)
+    {
+        abort_unless($resource === 'packages', 404);
+        $row = DB::table($this->table($resource))->where('id', $id)->firstOrFail();
+        $row->version = $this->priceVersion($row);
+        $row->features = json_decode($row->features, true);
+        return response()->json(['data' => $row])->header('Cache-Control', 'private, no-store');
+    }
+
     private function rules(string $resource, ?string $id): array
     {
         $table = $this->table($resource);

@@ -71,8 +71,9 @@ class AdminOperationsController extends Controller
                 abort_unless($target, 409, 'The reported content is no longer available.');
                 $status = $data['decision'] === 'publish' ? 'published' : 'removed';
                 AdminContentVersion::check($target, $data, $status);
-                $affected = DB::table('community_reports')->where('target_type', $report->target_type)->where('target_id', $report->target_id)->where('status', 'pending')->orderBy('id')->lockForUpdate()->pluck('id')->all();
                 DB::table($table)->where('id', $report->target_id)->update(['status' => $status, 'updated_at' => now()]);
+                \App\Services\AdminReportResolution::resolvePending($request->user()->id, $report->target_type, $report->target_id, $data['decision']);
+                return;
             }
             DB::table('community_reports')->whereIn('id', $affected)->update(['status' => 'resolved', 'resolved_at' => now('UTC'), 'updated_at' => now()]);
             foreach ($affected as $affectedId) AdminAudit::record($request->user()->id, $data['decision'], 'community-reports', (string) $affectedId, ['status', 'resolved_at']);

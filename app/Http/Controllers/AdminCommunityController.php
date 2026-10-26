@@ -47,6 +47,12 @@ class AdminCommunityController extends Controller
             $content = DB::table($table)->where('id', $id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
             AdminContentVersion::check($content, $data, $data['status']);
             DB::table($table)->where('id', $id)->update(['status' => $data['status'], 'updated_at' => now()]);
+            if (in_array($data['status'], ['published', 'removed'], true)) {
+                \App\Services\AdminReportResolution::resolvePending(
+                    $request->user()->id, $kind === 'posts' ? 'post' : 'comment', $id,
+                    $data['status'] === 'published' ? 'publish' : 'remove'
+                );
+            }
             if ($kind === 'comments' && $data['status'] === 'published') {
                 $comment = DB::table($table)->where('id', $id)->first();
                 $post = DB::table('community_posts')->where('id', $comment->post_id)->first();

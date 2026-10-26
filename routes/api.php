@@ -61,6 +61,7 @@ Route::prefix('v1')->group(function () {
             Route::post('articles/{id}/publish', [\App\Http\Controllers\AdminArticleController::class, 'publish'])->whereUuid('id');
             Route::delete('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'unpublish'])->whereUuid('id');
             Route::get('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'index'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::get('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'show'])->whereNumber('id')->where('resource', 'packages');
             Route::post('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'store'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::put('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'update'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::delete('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'archive'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');

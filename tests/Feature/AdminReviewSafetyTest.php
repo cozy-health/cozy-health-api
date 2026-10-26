@@ -82,6 +82,47 @@ class AdminReviewSafetyTest extends TestCase
         $this->putJson('/api/v1/admin/reports/'.$b, ['decision' => 'dismiss'])->assertOk();
     }
 
+    public function test_direct_moderation_resolves_only_pending_reports_for_the_same_target(): void
+    {
+        $this->signIn();
+        foreach (['posts', 'comments'] as $kind) {
+            foreach (['published' => 'publish', 'removed' => 'remove'] as $status => $decision) {
+                $id = $this->content($kind);
+                $first = $this->report($kind, $id);
+                $second = $this->report($kind, $id);
+                $other = $this->report($kind, $this->content($kind));
+                $resolved = $this->report($kind, $id);
+                $oldResolution = now()->subDay()->startOfSecond();
+                DB::table('community_reports')->where('id', $resolved)->update(['status' => 'resolved', 'resolved_at' => $oldResolution]);
+
+                $this->putJson('/api/v1/admin/community/'.$kind.'/'.$id, [
+                    'status' => $status, 'expected_version' => $this->version($kind, $id),
+                ])->assertOk();
+
+                foreach ([$first, $second] as $report) {
+                    $this->assertDatabaseHas('community_reports', ['id' => $report, 'status' => 'resolved']);
+                    $this->assertNotNull(DB::table('community_reports')->where('id', $report)->value('resolved_at'));
+                    $this->assertDatabaseHas('admin_audit_logs', ['resource' => 'community-reports', 'resource_id' => (string) $report, 'action' => $decision]);
+                }
+                $this->assertDatabaseHas('community_reports', ['id' => $other, 'status' => 'pending']);
+                $this->assertDatabaseHas('community_reports', ['id' => $resolved, 'resolved_at' => $oldResolution]);
+            }
+        }
+    }
+
+    public function test_direct_pending_and_rejected_stale_moderation_leave_reports_pending(): void
+    {
+        $this->signIn();
+        $id = $this->content('posts');
+        $report = $this->report('posts', $id);
+        $version = $this->version('posts', $id);
+        $this->putJson('/api/v1/admin/community/posts/'.$id, ['status' => 'pending', 'expected_version' => $version])->assertOk();
+        $this->assertDatabaseHas('community_reports', ['id' => $report, 'status' => 'pending']);
+        DB::table('community_posts')->where('id', $id)->update(['body' => 'Changed by author']);
+        $this->putJson('/api/v1/admin/community/posts/'.$id, ['status' => 'removed', 'expected_version' => $version])->assertConflict();
+        $this->assertDatabaseHas('community_reports', ['id' => $report, 'status' => 'pending']);
+    }
+
     public function test_stale_edits_and_missing_versions_are_rejected_for_posts_and_comments(): void
     {
         $this->travelTo(now()->startOfSecond()); $this->signIn();
