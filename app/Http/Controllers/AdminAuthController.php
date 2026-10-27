@@ -27,7 +27,9 @@ class AdminAuthController extends Controller
     public function session(Request $request)
     {
         $management = $request->user()->currentAccessToken()->name === 'cozy-admin-management-v1';
-        return response()->json(['role' => 'admin', ...($management ? ['name' => $request->user()->name, 'capabilities' => $request->user()->currentAccessToken()->abilities] : [])])->header('Cache-Control', 'private, no-store');
+        $capabilities = array_values(array_diff($request->user()->currentAccessToken()->abilities, ['admin:development-access']));
+        if ($management && $request->user()->currentAccessToken()->can('admin:subscriptions') && app(\App\Services\DevelopmentTestAccess::class)->enabled()) $capabilities[] = 'admin:development-access';
+        return response()->json(['role' => 'admin', ...($management ? ['name' => $request->user()->name, 'capabilities' => $capabilities] : [])])->header('Cache-Control', 'private, no-store');
     }
 
     public function logout(Request $request)

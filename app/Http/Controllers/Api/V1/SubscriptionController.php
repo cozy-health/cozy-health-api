@@ -22,6 +22,8 @@ class SubscriptionController extends ApiController {
     }
     public function store(Request $request) { return $this->success([]); }
     public function show(Request $request) {
+        $testAccess = app(\App\Services\DevelopmentTestAccess::class)->activeFor($request->user()->id);
+        if ($testAccess) return $this->success($testAccess)->header('Cache-Control', 'private, no-store');
         $entry = \App\Models\SubscriptionStatus::where('user_id', $request->user()->id)
             ->latest('expires_at')
             ->first();

@@ -88,6 +88,9 @@ Route::prefix('v1')->group(function () {
             Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
         });
         Route::get('student-applications', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::get('development-access', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::post('development-access', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'store'])->middleware('admin.manage:subscriptions');
+        Route::delete('development-access/{id}', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'destroy'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('student-applications/{id}/evidence', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'evidence'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::post('student-applications/{id}/review', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'review'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('subscriptions', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptions'])->middleware('admin.manage:subscriptions');
