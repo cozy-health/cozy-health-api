@@ -23,9 +23,8 @@ class SendTestEmail implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBe
     public function handle(): void
     {
         if (!isset($this->deliveryId)) $this->deliveryId = (string) \Illuminate\Support\Str::uuid();
-        Mail::raw('The Cozy Health email queue is working.', function ($mail) {
-            $mail->to($this->recipient)->subject('Cozy Health queue check');
-            $mail->getSymfonyMessage()->getHeaders()->addTextHeader('X-Cozy-Delivery', $this->deliveryId);
-        });
+        $mail = new \App\Mail\BrandedNoticeMail('Cozy Health queue check', 'Your Cozy email check', ['The Cozy Health email queue is working.']);
+        $mail->deliveryId = $this->deliveryId;
+        Mail::to($this->recipient)->send($mail);
     }
 }

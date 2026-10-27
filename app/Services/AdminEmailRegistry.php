@@ -16,6 +16,7 @@ class AdminEmailRegistry
         'new-device' => ['NewDeviceLoginMail', 'New device sign-in'],
         'account-deleted' => ['AccountDeletedMail', 'Account deletion'],
         'quiz-share' => ['QuizShareMail', 'Assessment sharing invitation'],
+        'service-notice' => ['BrandedNoticeMail', 'Service notification'],
     ];
     public static function event(string $class): ?string
     {
@@ -38,6 +39,7 @@ class AdminEmailRegistry
             'new-device' => new \App\Mail\NewDeviceLoginMail('Preview device', null, now()->toIso8601String()),
             'account-deleted' => new \App\Mail\AccountDeletedMail,
             'quiz-share' => new \App\Mail\QuizShareMail('https://example.test/preview-only'),
+            'service-notice' => new \App\Mail\BrandedNoticeMail('Cozy Health update', 'An update from Cozy', ['This is a preview of a Cozy Health service email.'], [['label' => 'View update', 'url' => 'https://example.test/preview-only']]),
             default => abort(404),
         };
     }

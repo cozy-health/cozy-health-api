@@ -42,7 +42,13 @@ class StudentVerificationController extends Controller
         $token = Str::random(64);
         $application->update(['email_token_hash' => hash('sha256', $token), 'email_token_expires_at' => now()->addDay()]);
         $url = rtrim(config('app.url'), '/').'/api/v1/student-email/confirm?id='.$id.'&token='.$token;
-        try { Mail::raw('Confirm the institution email for your Cozy Health student application: '.$url.'. Email confirmation does not itself approve student eligibility.', fn ($mail) => $mail->to($application->institution_email)->subject('Confirm your institution email')); }
+        try {
+            Mail::to($application->institution_email)->send(new \App\Mail\BrandedNoticeMail(
+                'Confirm your institution email', 'Confirm your institution email',
+                ['Confirm the institution email for your Cozy Health student application.', 'Email confirmation does not itself approve student eligibility.'],
+                [['label' => 'Confirm institution email', 'url' => $url]]
+            ));
+        }
         catch (\Throwable) { abort(503, 'Could not send confirmation. Your application remains available for manual review.'); }
         return response()->json(['message' => 'Confirmation requested. Manual enrolment review is still required.']);
     }
