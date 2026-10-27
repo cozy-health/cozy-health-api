@@ -27,7 +27,7 @@ class PasswordResetRequestMail extends Mailable implements \Illuminate\Contracts
         $owner = User::find($this->user->id);
         $record = \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $owner?->email)->first();
         return $owner && $owner->is_active && ! $owner->email_invalid
-            && $record && now()->lt($record->expires_at)
+            && $record && $record->failed_attempts < 5 && now()->lt($record->expires_at)
             && \Illuminate\Support\Facades\Hash::check($this->token, $record->token);
     }
 

@@ -46,9 +46,11 @@ class DevelopmentMailSafetyTest extends TestCase
 
     public function test_log_transport_never_renders_verification_codes_into_logs(): void
     {
+        $owner = \App\Models\User::factory()->create(['email' => 'approved@example.test', 'email_verified_at' => null]);
+        DB::table('email_verification_codes')->insert(['user_id' => $owner->id, 'code_hash' => \Illuminate\Support\Facades\Hash::make('543210'), 'expires_at' => now()->addMinutes(15), 'email_key' => hash_hmac('sha256', $owner->email, config('app.key'))]);
         config(['mail.default' => 'log']); Log::spy(); Log::shouldReceive('channel')->andReturnSelf();
         try {
-            Mail::to('approved@example.test')->sendNow(new VerifyEmailMail('543210'));
+            Mail::to('approved@example.test')->sendNow(new VerifyEmailMail('543210', $owner->id, $owner->email));
             $this->fail('A code was written using log transport.');
         } catch (\RuntimeException $error) {
             $this->assertStringContainsString('Log transport cannot deliver', $error->getMessage());
