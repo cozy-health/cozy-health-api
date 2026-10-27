@@ -12,7 +12,8 @@ final class EnforcePlanAccess
     public function handle(Request $request, Closure $next)
     {
         if (!$request->user() instanceof User || $request->user()->role !== 'user' || !config('plan_access.enabled')) return $next($request);
-        $path = preg_replace('#^api/v1/#', '', $request->path());
+        // Match Laravel's URI validator, which decodes route names before matching.
+        $path = preg_replace('#^api/v1/#', '', $request->decodedPath());
         $write = in_array($request->method(), ['POST', 'PUT', 'PATCH'], true);
         $access = app(PlanAccess::class);
         $feature = null;

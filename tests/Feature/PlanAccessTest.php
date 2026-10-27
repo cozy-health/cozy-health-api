@@ -105,4 +105,13 @@ class PlanAccessTest extends TestCase
         $this->travel(2)->days();
         $this->getJson('/api/v1/me/plan-access')->assertOk()->assertJsonPath('data.plan', null);
     }
+
+    public function test_encoded_route_names_cannot_bypass_plan_permissions(): void
+    {
+        $this->account('standard');
+        $this->postJson('/api/v1/%61udio-attachments', [])->assertForbidden()->assertJsonPath('code', 'plan_required');
+        $this->postJson('/api/v1/prov%69der/request', [])->assertForbidden()->assertJsonPath('code', 'plan_required');
+        $this->account(null);
+        $this->postJson('/api/v1/%6dood-entries', [])->assertForbidden()->assertJsonPath('code', 'plan_required');
+    }
 }
