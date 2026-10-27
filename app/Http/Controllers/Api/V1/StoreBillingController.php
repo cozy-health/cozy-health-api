@@ -22,7 +22,7 @@ class StoreBillingController extends Controller
         catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) { throw $e; }
         catch (\Throwable) { abort(503, 'Store verification is temporarily unavailable. Retry without purchasing again.'); }
         $product = config('launch.products')[$purchase['product_id']] ?? null;
-        abort_unless(is_array($product) && ($product['platform'] ?? '') === $data['platform'] && in_array($product['tier'] ?? '', ['premium', 'student'], true), 422, 'Unrecognized store product.');
+        abort_unless(is_array($product) && ($product['platform'] ?? '') === $data['platform'] && in_array($product['tier'] ?? '', ['standard', 'premium', 'student'], true), 422, 'Unrecognized store product.');
         $account = DB::table('store_accounts')->where('user_id', $request->user()->id)->first();
         abort_unless($account && hash_equals($account->account_token, strtolower($purchase['account_token'])), 403, 'Purchase belongs to another account.');
         $identity = hash('sha256', $data['platform'].':'.$purchase['identity']);

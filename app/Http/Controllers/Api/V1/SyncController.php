@@ -138,6 +138,9 @@ class SyncController extends ApiController
                 $results[] = $error === null
                     ? [...$result, 'success' => true]
                     : [...$result, 'error' => $error, 'error_code' => $error === 'Conversation not found' ? 'dependency_missing' : $error];
+            } catch (\Illuminate\Http\Exceptions\HttpResponseException $e) {
+                if ($e->getResponse()->getStatusCode() !== 403) throw $e;
+                $results[] = [...$result, 'error' => 'This action needs an active eligible plan. Your local record is retained.', 'error_code' => 'plan_required'];
             } catch (ValidationException $e) {
                 $results[] = [...$result, 'error' => $type === 'user_preferences' ? 'Invalid preferences payload' : 'Invalid sync payload', 'error_code' => 'invalid_payload', 'errors' => $e->errors()];
             } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {

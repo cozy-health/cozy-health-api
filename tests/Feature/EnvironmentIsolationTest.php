@@ -15,7 +15,9 @@ class EnvironmentIsolationTest extends TestCase
         foreach (['users', 'providers', 'journals', 'quizzes', 'affirmations', 'student_applications', 'store_purchases'] as $table) {
             $this->assertSame(0, DB::table($table)->count(), "Unexpected seeded data in {$table}");
         }
-        $this->assertSame(3, DB::table('subscription_packages')->count());
+        $this->assertSame(4, DB::table('subscription_packages')->count());
+        $this->assertSame(['premium', 'standard', 'student'], DB::table('subscription_packages')->where('is_active', true)->orderBy('tier')->pluck('tier')->all());
+        $this->assertFalse((bool) DB::table('subscription_packages')->where('tier', 'free')->value('is_active'));
     }
 
     public function test_cors_only_allows_the_environment_dashboard(): void

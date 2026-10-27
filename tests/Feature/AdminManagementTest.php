@@ -52,8 +52,11 @@ class AdminManagementTest extends TestCase
     {
         $this->actingAs(User::factory()->create(), 'sanctum');
         $this->getJson('/api/v1/subscription/prices?country=NG')->assertOk()
-            ->assertJsonPath('data.packages.0.tier', 'free')
-            ->assertJsonPath('data.packages.1.yearly_price', 48000)
+            ->assertJsonPath('data.packages.0.tier', 'student')
+            ->assertJsonPath('data.packages.0.yearly_price', 48000)
+            ->assertJsonPath('data.packages.1.tier', 'standard')
+            ->assertJsonPath('data.packages.1.price', fn ($price) => (float) $price === 6500.0)
+            ->assertJsonPath('data.packages.1.yearly_price', 62400)
             ->assertJsonPath('data.packages.2.yearly_price', 96000)
             ->assertJsonPath('data.purchasing_available', false);
         $this->getJson('/api/v1/subscription/prices?country=GB')->assertOk()->assertJsonCount(0, 'data.packages');

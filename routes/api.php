@@ -136,7 +136,8 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,1');
 });
 
-Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
+Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\EnforcePlanAccess::class])->prefix('v1')->group(function () {
+    Route::get('me/plan-access', fn (\Illuminate\Http\Request $request) => response()->json(['data' => app(\App\Services\PlanAccess::class)->current($request->user())])->header('Cache-Control', 'private, no-store'));
     $retiredAge = fn () => response()->json(['message' => 'The custom age and guardian process has been retired.', 'code' => 'age_flow_retired'], 410);
     Route::get('me/eligibility', fn (\Illuminate\Http\Request $request) => response()->json(['data' => app(\App\Services\AgeEligibility::class)->state($request->user())]));
     Route::post('me/age', $retiredAge)->middleware('throttle:10,1');

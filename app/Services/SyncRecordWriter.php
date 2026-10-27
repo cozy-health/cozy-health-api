@@ -16,6 +16,10 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        $planAccess = app(PlanAccess::class);
+        if ($type === 'mood_entry') $planAccess->require($user, 'mood_checkin');
+        if ($type === 'quiz_attempt') $planAccess->require($user, 'assessments');
+        if ($type === 'journal_entry') $planAccess->journal($user, $data, $modelClass::where('user_id', $user->id)->find($data['id']));
         if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'journal_entry' && (($data['type'] ?? null) === 'voice' || array_key_exists('body', $data))) {
             $data['body'] ??= '';

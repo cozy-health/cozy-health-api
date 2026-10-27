@@ -18,6 +18,7 @@ class AppConfigService
             ...array_replace(\App\Models\Setting::DEFAULTS, \App\Models\Setting::pluck('value', 'key')->all()),
         ]);
         $config['flags']['ai_assistant'] = false; // Excluded from this release, including persisted flags.
+        $config['flags']['plan_access'] = (bool) config('plan_access.enabled');
         $config['flags']['community'] = app(CommunityAvailability::class)->effective((bool) $config['flags']['community']);
         unset($config['consent.enforce_blocking'], $config['consent.documents'], $config['consent.provider_documents']);
         return [...$config, 'age' => ['enforced' => false, 'minimum_age' => 13, 'managed_by' => 'store_ratings'], 'consent' => app(DocumentConsentService::class)->configuration(), 'server_time' => now()->toIso8601String()];

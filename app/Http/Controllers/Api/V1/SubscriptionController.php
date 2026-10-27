@@ -6,7 +6,7 @@ class SubscriptionController extends ApiController {
         $data = $request->validate(['country' => ['required', 'regex:/^[A-Z]{2}$/']]);
         $rows = \Illuminate\Support\Facades\DB::table('subscription_packages')
             ->where('audience', 'mobile')->where('country_code', $data['country'])
-            ->whereNotNull('tier')->where('is_active', true)->orderBy('sort_order')->get();
+            ->whereIn('tier', ['standard', 'student', 'premium'])->where('is_active', true)->orderBy('sort_order')->get();
         $rows->transform(function ($row) {
             $row->features = json_decode($row->features ?? '[]', true);
             $digits = $row->currency_decimals;

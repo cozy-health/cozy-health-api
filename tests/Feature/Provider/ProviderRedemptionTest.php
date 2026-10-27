@@ -46,6 +46,24 @@ class ProviderRedemptionTest extends ProviderDataTestCase
             'care_acknowledged' => true, 'revocation_acknowledged' => true];
     }
 
+    public function test_connection_rechecks_patient_plan_after_invitation_without_charging_provider(): void
+    {
+        $patient = User::factory()->create();
+        DB::table('subscription_statuses')->insert(['id' => (string) \Illuminate\Support\Str::uuid(), 'user_id' => $patient->id,
+            'plan' => 'premium', 'status' => 'active', 'started_at' => now(), 'expires_at' => now()->addMinute(), 'created_at' => now(), 'updated_at' => now()]);
+        config(['plan_access.enabled' => true]);
+        $provider = $this->provider();
+        [, $link, $code] = $this->invite($patient, $provider->email);
+        $this->providerLogin($provider);
+        $this->travel(2)->minutes();
+        $this->postJson('/api/v1/provider/invitations/connect', $this->confirmation($link, $code))->assertForbidden()
+            ->assertJsonPath('code', 'plan_required')->assertJsonPath('message', 'This patient needs an active Student or Premium plan to confirm this connection. No provider payment is required.');
+        $this->assertNull($link->fresh()->verified_at);
+        DB::table('subscription_statuses')->where('user_id', $patient->id)->update(['plan' => 'student', 'expires_at' => now()->addDay()]);
+        $this->postJson('/api/v1/provider/invitations/connect', $this->confirmation($link, $code))->assertOk();
+        $this->assertDatabaseCount('store_purchases', 0);
+    }
+
     public function test_corrected_invitation_cancels_only_the_owned_pending_link(): void
     {
         $patient = User::factory()->create();
