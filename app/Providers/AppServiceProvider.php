@@ -16,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \App\Services\DevelopmentMailSafety::register();
         \App\Services\EmailDeliveryTracking::register();
         \Illuminate\Support\Facades\RateLimiter::for('provider-invitation-code', fn ($request) =>
             \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by('provider-invitation:'.$request->user()->id));

@@ -3,7 +3,7 @@ namespace App\Mail;
 use Illuminate\Mail\Mailable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-class VerifyEmailMail extends Mailable implements ShouldQueue
+class VerifyEmailMail extends Mailable implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
     use \App\Mail\Concerns\TracksDelivery;
     use Queueable;

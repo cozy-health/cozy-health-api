@@ -5,6 +5,9 @@ use Illuminate\Support\Str;
 trait TracksDelivery
 {
     public string $deliveryId;
+    public int $tries = 3;
+    public int $timeout = 30;
+    public function backoff(): array { return [30, 120, 300]; }
     protected function initializeDelivery(): void { $this->deliveryId = (string) Str::uuid(); }
     public function headers(): Headers
     {

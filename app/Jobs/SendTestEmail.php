@@ -6,10 +6,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
 
-class SendTestEmail implements ShouldQueue
+class SendTestEmail implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
     use Queueable;
     public string $deliveryId;
+    public int $tries = 3;
+    public int $timeout = 30;
+    public function backoff(): array { return [30, 120, 300]; }
 
     public function __construct(public string $recipient)
     {

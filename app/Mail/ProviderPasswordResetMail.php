@@ -18,6 +18,14 @@ class ProviderPasswordResetMail extends Mailable implements ShouldQueue, \Illumi
         $this->initializeDelivery(); $this->onQueue('email');
     }
 
+    public function shouldSend(): bool
+    {
+        $owner = Provider::find($this->user->id);
+        $record = \Illuminate\Support\Facades\DB::table('provider_password_reset_tokens')->where('email', $owner?->email)->first();
+        return $owner && $owner->is_active && $record && now()->lt($record->expires_at)
+            && \Illuminate\Support\Facades\Hash::check($this->token, $record->token);
+    }
+
     public function build()
     {
         return $this->subject('Reset your Cozy Health provider password')
