@@ -16,6 +16,8 @@ final class StorePlanNotifications
 
     public static function fingerprint(array $details): string
     {
+        // MySQL normalizes JSON object key order on storage.
+        ksort($details);
         return hash('sha256', json_encode($details, JSON_THROW_ON_ERROR));
     }
 

@@ -35,6 +35,12 @@ function fakePlanStore(array ...$purchases): void
     app()->instance(StorePurchaseVerifier::class, $verifier);
 }
 
+it('compares plan snapshots independently of database JSON field order', function () {
+    $details = ($this->purchase)()['plan_details'];
+    expect(\App\Services\StorePlanNotifications::fingerprint($details))
+        ->toBe(\App\Services\StorePlanNotifications::fingerprint(array_reverse($details, true)));
+});
+
 it('queues one encrypted plan-status job for repeated verification without creating invoices', function () {
     fakePlanStore(($this->purchase)());
     $this->postJson('/api/v1/subscription/verify-receipt', $this->payload)->assertOk();
