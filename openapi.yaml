@@ -840,91 +840,6 @@
     }
   },
   "paths": {
-    "/api/v1/register": {
-      "post": {
-        "summary": "Register",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "name": "Jane Doe",
-                "email": "jane@example.com",
-                "password": "password123",
-                "password_confirmation": "password123"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/login": {
-      "post": {
-        "summary": "Login",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "email": "jane@example.com",
-                "password": "password123"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/logout": {
-      "post": {
-        "summary": "Logout",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
     "/api/v1/me": {
       "get": {
         "summary": "Current profile",
@@ -945,175 +860,8 @@
           }
         ]
       },
-      "put": {
-        "summary": "Update profile",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/feelings": {
-      "get": {
-        "summary": "List feelings",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/feeling-expressions": {
-      "get": {
-        "summary": "List feeling expressions",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/feeling-causes": {
-      "get": {
-        "summary": "List causes",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/coping-mechanisms": {
-      "get": {
-        "summary": "List coping mechanisms",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/mood-checkins": {
-      "get": {
-        "summary": "List mood check-ins",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "post": {
-        "summary": "Create mood check-in",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "feeling_exp_id": 1,
-                "intensity": 7,
-                "reason_ids": [
-                  1
-                ],
-                "coping_mechanism_ids": [
-                  1
-                ],
-                "journal": "Optional"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/mood-checkins/today": {
-      "get": {
-        "summary": "Today check-in",
+      "patch": {
+        "summary": "Update supported account profile fields",
         "responses": {
           "200": {
             "description": "Success"
@@ -1151,40 +899,6 @@
             "bearerAuth": []
           }
         ]
-      },
-      "post": {
-        "summary": "Create journal",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "title": "Today",
-                "content": "My thoughts"
-              }
-            }
-          }
-        }
       }
     },
     "/api/v1/quizzes": {
@@ -1211,111 +925,6 @@
     "/api/v1/quiz-results": {
       "get": {
         "summary": "List quiz results",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/activity/overview": {
-      "get": {
-        "summary": "Activity overview",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/activity/mood-chart": {
-      "get": {
-        "summary": "Mood chart",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/activity/common-triggers": {
-      "get": {
-        "summary": "Common triggers",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/activity/journal-stats": {
-      "get": {
-        "summary": "Journal stats",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/activity/recommendations": {
-      "get": {
-        "summary": "Recommendations",
         "responses": {
           "200": {
             "description": "Success"
@@ -1416,48 +1025,6 @@
     "/api/v1/subscription": {
       "get": {
         "summary": "Current subscription",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/subscription/packages": {
-      "get": {
-        "summary": "Subscription packages",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/support/my-reports": {
-      "get": {
-        "summary": "Support reports",
         "responses": {
           "200": {
             "description": "Success"
@@ -1580,98 +1147,6 @@
               },
               "example": {
                 "code": "123456"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/subscription/activate": {
-      "post": {
-        "summary": "Activate subscription",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "package_id": 1
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/subscription/cancel": {
-      "post": {
-        "summary": "Cancel subscription",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/support/report-problem": {
-      "post": {
-        "summary": "Report a problem",
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthenticated"
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {
-                "subject": "Issue",
-                "message": "Description"
               }
             }
           }
@@ -1971,19 +1446,30 @@
                 ],
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 120
                   },
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "format": "email",
+                    "maxLength": 190
                   },
                   "password": {
                     "type": "string",
-                    "format": "password"
+                    "minLength": 8,
+                    "maxLength": 255,
+                    "description": "Must include a letter and number and must not be a common password."
                   },
                   "password_confirmation": {
+                    "type": "string"
+                  },
+                  "device_id": {
                     "type": "string",
-                    "format": "password"
+                    "maxLength": 120
+                  },
+                  "device_name": {
+                    "type": "string",
+                    "maxLength": 120
                   }
                 }
               }
@@ -1992,10 +1478,13 @@
         },
         "responses": {
           "201": {
-            "description": "Account created; required document consent still applies."
+            "description": "Account created. Data contains the user and either a session or a pending sign-in challenge; a challenge is not an authenticated session."
           },
           "422": {
-            "description": "Invalid identity, credentials or device metadata."
+            "description": "Invalid input or email already registered."
+          },
+          "429": {
+            "description": "Request limit exceeded."
           }
         }
       }
@@ -3831,6 +3320,231 @@
           },
           "429": {
             "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login",
+        "responses": {
+          "200": {
+            "description": "Valid credentials return a session or challenge_required with an opaque pending challenge. Pending challenges contain no access or refresh token."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 190
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "device_id": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "device_name": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "device_proof": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Account-bound secure-storage proof, never a public device ID."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Logout",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "summary": "Account-owned Home dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account ID, today mood projection, current streak count, seven-day aggregates, latest five entry projections and timezone; no mood notes."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid query parameters."
+          }
+        }
+      }
+    },
+    "/api/v1/wellness/catalog": {
+      "get": {
+        "summary": "Active wellness reference catalog",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version-two mood recording references: moods, expressions, triggers and coping arrays, plus active package catalog metadata. Configured package values are not verified store purchase prices."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid query parameters."
+          }
+        }
+      }
+    },
+    "/api/v1/insights/weekly": {
+      "get": {
+        "summary": "Weekly mood and journal insights",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated period aggregates for the current account. See the corresponding query validator; empty data does not imply a clinical result."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid query parameters."
+          }
+        }
+      }
+    },
+    "/api/v1/insights/triggers": {
+      "get": {
+        "summary": "Trigger frequency over the requested period",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated period aggregates for the current account. See the corresponding query validator; empty data does not imply a clinical result."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid query parameters."
+          }
+        }
+      }
+    },
+    "/api/v1/insights/sleep-mood": {
+      "get": {
+        "summary": "Sleep and mood period aggregates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated period aggregates for the current account. See the corresponding query validator; empty data does not imply a clinical result."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid query parameters."
+          }
+        }
+      }
+    },
+    "/api/v1/support/reports": {
+      "post": {
+        "summary": "Submit a private support report",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "message"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 180
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 10000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Report saved for the current account. This is not a delivered support reply or an attachments service."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "422": {
+            "description": "Invalid report."
           }
         }
       }

@@ -26,7 +26,7 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $r)
     {
-        $u = DB::transaction(function () use ($r) {
+        [$u, $pair] = DB::transaction(function () use ($r) {
         $u = User::create(collect($r->validated())->except(['residence_country', 'device_id', 'device_name'])->all());
         $u->profile()->create([
             'id' => (string) Str::uuid(),
@@ -53,7 +53,7 @@ class AuthController extends Controller
             'marketing_notifications' => false,
         ]);
 
-        return $u;
+        return [$u, app(\App\Services\AuthSessions::class)->issue($u, $r)];
         });
 
         try {
@@ -64,7 +64,6 @@ class AuthController extends Controller
         }
 
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered');
-        $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
 
         return $this->success([
             'user' => $u,

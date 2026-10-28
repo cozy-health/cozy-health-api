@@ -43,7 +43,7 @@ class ProviderAuthController extends Controller
         ]);
         $data['password_hash'] = $data['password'];
         unset($data['password']);
-        $provider = DB::transaction(function () use ($data, $request) {
+        [$provider, $session] = DB::transaction(function () use ($data, $request) {
             $provider = Provider::create($data);
             $links = ProviderClientLink::whereNull('provider_id')->where('provider_email', $provider->email)
                 ->lockForUpdate()->get();
@@ -53,9 +53,8 @@ class ProviderAuthController extends Controller
                     'action' => 'link_attached', 'resource_type' => 'client', 'resource_id' => (string) $link->id,
                     'ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
             }
-            return $provider;
+            return [$provider, app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider')];
         });
-        $session = app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider');
         try {
             Mail::to($provider->email)->send(new \App\Mail\ProviderWelcomeMail($provider));
         } catch (\Throwable) {

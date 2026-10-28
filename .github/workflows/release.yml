@@ -49,4 +49,4 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter='EnvironmentIsolationTest|JournalSharingTest|DevelopmentTestAccessTest|PlanAccessTest|RecoverySafetyTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest'
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|JournalSharingTest|DevelopmentTestAccessTest|PlanAccessTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest'
