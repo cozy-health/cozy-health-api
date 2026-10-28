@@ -17,6 +17,7 @@ class AdminEmailRegistry
         'account-deleted' => ['AccountDeletedMail', 'Account deletion'],
         'quiz-share' => ['QuizShareMail', 'Assessment sharing invitation'],
         'service-notice' => ['BrandedNoticeMail', 'Service notification'],
+        'plan-status' => ['StorePlanStatusMail', 'Store subscription status'],
     ];
     public static function event(string $class): ?string
     {
@@ -40,6 +41,7 @@ class AdminEmailRegistry
             'account-deleted' => new \App\Mail\AccountDeletedMail,
             'quiz-share' => new \App\Mail\QuizShareMail('https://example.test/preview-only'),
             'service-notice' => new \App\Mail\BrandedNoticeMail('Cozy Health update', 'An update from Cozy', ['This is a preview of a Cozy Health service email.'], [['label' => 'View update', 'url' => 'https://example.test/preview-only']]),
+            'plan-status' => new \App\Mail\StorePlanStatusMail(['platform' => 'apple', 'tier' => 'premium', 'state' => 'active', 'auto_renews' => true, 'expires_at' => now()->addMonth()->toIso8601String(), 'environment' => 'sandbox']),
             default => abort(404),
         };
     }

@@ -80,3 +80,8 @@ Schedule::command('provider:prune --execute --orphan-reports')->daily()->without
     ->when(fn () => filled(config('provider-retention.approval_reference')));
 
 Schedule::command('stores:reconcile')->everyFifteenMinutes()->withoutOverlapping();
+
+Artisan::command('stores:dispatch-plan-emails', function () {
+    $this->info('Queued '.app(\App\Services\StorePlanNotifications::class)->dispatchPending().' pending plan-status emails.');
+});
+Schedule::command('stores:dispatch-plan-emails')->everyMinute()->withoutOverlapping();

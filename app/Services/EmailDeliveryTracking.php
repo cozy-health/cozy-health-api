@@ -15,6 +15,7 @@ class EmailDeliveryTracking
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Queue\Events\JobQueued::class, function ($event) {
             $mailable = $event->job instanceof \Illuminate\Mail\SendQueuedMailable ? $event->job->mailable : null;
             $name = $mailable ? AdminEmailRegistry::event(get_class($mailable)) : ($event->job instanceof \App\Jobs\SendTestEmail ? 'queue-test' : null);
+            if ($event->job instanceof \App\Jobs\SendStorePlanEmail) $name = 'plan-status';
             $id = $mailable?->deliveryId ?? ($event->job->deliveryId ?? null);
             if (!$name || !$id) return;
             self::safely(function () use ($event, $id, $name) {
