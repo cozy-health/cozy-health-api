@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Http\Requests\MoodEntryRequest;
+use App\Http\Requests\SafetyPlanRequest;
 use App\Models\User;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\Push\ReminderSettings;
@@ -16,6 +18,9 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if ($type === 'journal_entry') {
+            Validator::make($data, ['is_crisis_flagged' => ['sometimes', 'boolean']])->validate();
+        }
         $planAccess = app(PlanAccess::class);
         if ($type === 'mood_entry') $planAccess->require($user, 'mood_checkin');
         if ($type === 'quiz_attempt') $planAccess->require($user, 'assessments');
@@ -65,6 +70,17 @@ class SyncRecordWriter
         }
         if (! $record && $modelClass::withoutGlobalScope('user')->where('id', $data['id'])->exists()) {
             return 'ownership_conflict';
+        }
+        if ($type === 'mood_entry') {
+            // Sync also carries partial edits: validate the resulting record,
+            // retaining omitted fields and rejecting invalid explicit changes.
+            Validator::make(
+                [...($record?->toArray() ?? []), ...$data],
+                (new MoodEntryRequest)->rules()
+            )->validate();
+        }
+        if ($type === 'safety_plan') {
+            Validator::make($data, (new SafetyPlanRequest)->rules())->validate();
         }
         if ($type === 'saved_article') {
             // Legacy mobile bookmarks omit these non-null metadata columns.

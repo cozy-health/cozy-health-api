@@ -6,7 +6,7 @@ class ChatController extends ApiController {
         $entries = \App\Models\ChatConversation::orderBy('updated_at', 'desc')->paginate($request->input('per_page', 20));
         return $this->success($entries);
     }
-    public function store(Request $request) { return $this->success([]); }
+    public function store(Request $request) { return $this->retired(); }
     public function messages(\App\Http\Requests\PaginationRequest $request, string $id) {
         $conversation = \App\Models\ChatConversation::where('user_id', $request->user()->id)->find($id);
         if (! $conversation) {
@@ -32,6 +32,9 @@ class ChatController extends ApiController {
         }
         return $this->success($entry);
     }
-    public function update(Request $request, $id) { return $this->success([]); }
-    public function destroy($id) { return $this->success([]); }
+    public function update(Request $request, $id) { return $this->retired(); }
+    public function destroy($id) { return $this->retired(); }
+    private function retired() {
+        return $this->error('The assistant is no longer available. Historical records remain readable.', 'GONE', [], 410);
+    }
 }

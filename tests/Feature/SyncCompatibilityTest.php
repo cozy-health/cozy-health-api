@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\ChatConversation;
+use App\Models\AppNotification;
 use App\Models\MoodEntry;
 use App\Models\SafetyPlan;
 use App\Models\SavedArticle;
@@ -17,6 +17,9 @@ beforeEach(function () {
     Sanctum::actingAs($this->syncUser);
     $this->operations = json_decode(file_get_contents(base_path('tests/Fixtures/mobile_sync_operations.json')), true, flags: JSON_THROW_ON_ERROR);
     $this->operation = fn (string $type) => collect($this->operations)->firstWhere('type', $type);
+    $notification = ($this->operation)('app_notification');
+    // Notification sync acknowledges server-created records; it cannot create them.
+    AppNotification::create([...$notification['data'], 'user_id' => $this->syncUser->id]);
 });
 
 it('persists compatible payloads and rejects an unknown unversioned quiz without trusting its score', function () {
@@ -24,6 +27,10 @@ it('persists compatible payloads and rejects an unknown unversioned quiz without
         'name' => 'Before', 'email' => $this->syncUser->email]);
     $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk()->assertJsonCount(11, 'data.results');
     foreach ($this->operations as $index => $operation) {
+        if (in_array($operation['type'], ['chat_conversation', 'chat_message'], true)) {
+            $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'gone');
+            continue;
+        }
         if (in_array($operation['type'], ['subscription', 'subscription_status'], true)) { $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'access_denied'); continue; }
         if ($operation['type'] === 'quiz_attempt') {
             $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'invalid_payload');
@@ -32,7 +39,7 @@ it('persists compatible payloads and rejects an unknown unversioned quiz without
         $response->assertJsonPath("data.results.$index.success", true)
             ->assertJsonPath("data.results.$index.client_operation_id", $operation['client_operation_id']);
     }
-    foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
+    foreach (['mood_entries', 'journal_entries', 'safety_plans',
         'user_profiles', 'saved_articles', 'app_notifications'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
@@ -42,19 +49,24 @@ it('persists compatible payloads and rejects an unknown unversioned quiz without
     expect(strlen($bookmark->id))->toBe(36);
     expect($bookmark->article_slug)->toBe($bookmark->article_id);
     expect($bookmark->read_time_minutes)->toBe(0);
-    expect(ChatConversation::first()->title)->toBe('Conversation');
+    $this->assertDatabaseCount('chat_conversations', 0);
+    $this->assertDatabaseCount('chat_messages', 0);
 });
 
 it('retries all mobile payloads without duplicating singleton or bookmarked records', function () {
     for ($retry = 0; $retry < 2; $retry++) {
         $response = $this->postJson('/api/v1/sync/batch', ['operations' => $this->operations])->assertOk();
         foreach ($this->operations as $index => $operation) {
+            if (in_array($operation['type'], ['chat_conversation', 'chat_message'], true)) {
+                $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'gone');
+                continue;
+            }
             if (in_array($operation['type'], ['subscription', 'subscription_status'], true)) { $response->assertJsonPath("data.results.$index.success", false)->assertJsonPath("data.results.$index.error_code", 'access_denied'); continue; }
         if ($operation['type'] === 'quiz_attempt') { $response->assertJsonPath("data.results.$index.success", false); continue; }
             $response->assertJsonPath("data.results.$index.success", true);
         }
     }
-    foreach (['mood_entries', 'journal_entries', 'chat_conversations', 'chat_messages', 'safety_plans',
+    foreach (['mood_entries', 'journal_entries', 'safety_plans',
         'user_profiles', 'saved_articles', 'app_notifications'] as $table) {
         $this->assertDatabaseCount($table, 1);
     }
@@ -115,7 +127,9 @@ it('keeps deletions as tombstones when old updates arrive later', function () {
 
 it('returns a safe error category without exposing failed SQL payloads', function () {
     $operation = ($this->operation)('mood_entry');
-    unset($operation['data']['mood']);
+    MoodEntry::creating(function (MoodEntry $entry) use ($operation) {
+        if ($entry->id === $operation['data']['id']) $entry->mood = null;
+    });
     $response = $this->postJson('/api/v1/sync/batch', ['operations' => [$operation]])->assertOk()
         ->assertJsonPath('data.results.0.success', false)->assertJsonPath('data.results.0.error_code', 'database');
     expect($response->getContent())->not->toContain('SQLSTATE')->not->toContain('Synthetic mood');

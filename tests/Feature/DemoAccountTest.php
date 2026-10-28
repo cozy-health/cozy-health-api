@@ -197,18 +197,21 @@ test('conversation transcripts require authentication', function () {
     $this->getJson("/api/v1/conversations/{$conversation->id}/messages")->assertUnauthorized();
 });
 
-test('transcript reading and message sync also work for an ordinary users own conversation', function () {
+test('ordinary users retain their transcripts but cannot write to the retired assistant', function () {
     $real = User::factory()->create();
     Sanctum::actingAs($real);
     $conversation = ChatConversation::create(['id' => (string) Str::uuid(), 'user_id' => $real->id, 'title' => 'My conversation']);
     $this->getJson("/api/v1/conversations/{$conversation->id}/messages")->assertOk()->assertJsonCount(0, 'data.data');
     $messageId = (string) Str::uuid();
+    ChatMessage::create(['id' => $messageId, 'user_id' => $real->id, 'conversation_id' => $conversation->id,
+        'role' => 'user', 'content' => 'Historical message', 'status' => 'sent']);
     $this->postJson('/api/v1/sync/batch', ['operations' => [[
         'type' => 'chat_message', 'action' => 'upsert', 'data' => [
             'id' => $messageId, 'conversation_id' => $conversation->id, 'role' => 'user', 'content' => 'Hello',
         ],
-    ]]])->assertOk()->assertJsonPath('data.results.0.success', true);
+    ]]])->assertOk()->assertJsonPath('data.results.0.success', false)->assertJsonPath('data.results.0.error_code', 'gone');
     $this->getJson("/api/v1/conversations/{$conversation->id}/messages")->assertOk()
-        ->assertJsonCount(1, 'data.data')->assertJsonPath('data.data.0.id', $messageId);
+        ->assertJsonCount(1, 'data.data')->assertJsonPath('data.data.0.id', $messageId)
+        ->assertJsonPath('data.data.0.content', 'Historical message');
     $this->getJson("/api/v1/conversations/{$conversation->id}/messages?per_page=1000")->assertUnprocessable();
 });

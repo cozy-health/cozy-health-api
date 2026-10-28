@@ -207,7 +207,6 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::delete('me/provider/{linkId}', [PatientConsentController::class, 'destroy']);
     Route::patch('me', [ProfileController::class, 'update']);
     Route::get('mood-entries/stats', MoodStatsController::class)->middleware('throttle:60,1');
-    Route::get('mood-entries/stats', MoodStatsController::class)->middleware('throttle:60,1');
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);
     Route::get('journals', [JournalEntryController::class, 'index']);

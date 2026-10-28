@@ -66,6 +66,10 @@ class SyncController extends ApiController
             }
 
             $modelClass = self::MODELS[$type] ?? null;
+            if (in_array($type, ['chat_conversation', 'chat_message'], true)) {
+                $results[] = [...$result, 'error' => 'The assistant is no longer available. Historical records remain readable.', 'error_code' => 'gone'];
+                continue;
+            }
             if (in_array($type, ['subscription', 'subscription_status'], true)) {
                 $results[] = [...$result, 'error' => 'Subscription status is server managed', 'error_code' => 'access_denied'];
                 continue;
@@ -85,15 +89,15 @@ class SyncController extends ApiController
 
             $data['id'] = (string) $id;
             $data['user_id'] = $request->user()->id;
-            if (in_array($type, ['journal_entry', 'mood_entry'], true) && $action === 'upsert') {
-                $data['is_crisis_flagged'] = filter_var(
-                    $data['is_crisis_flagged'] ?? false,
-                    FILTER_VALIDATE_BOOLEAN
-                );
-            }
-
             try {
                 $error = DB::transaction(function () use ($modelClass, $action, $data, $request, $isCancellation, $type) {
+                    if ($type === 'app_notification' && $action === 'upsert') {
+                        $notification = AppNotification::where('user_id', $request->user()->id)->lockForUpdate()->find($data['id']);
+                        if (! $notification) return 'access_denied';
+                        $read = \Illuminate\Support\Facades\Validator::make($data, ['is_read' => ['required', 'boolean']])->validate()['is_read'];
+                        $notification->update(['is_read' => $read, 'read_at' => $read ? ($notification->read_at ?? now()) : null]);
+                        return null;
+                    }
                     if ($type === 'affirmation_read') {
                         abort_unless($action === 'upsert', 422);
                         app(\App\Services\AffirmationAssignmentService::class)->recordRead($request->user(), $data);

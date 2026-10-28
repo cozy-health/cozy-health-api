@@ -10,16 +10,7 @@ class MoodEntryController extends ApiController {
         return $this->success($entries);
     }
     public function store(\App\Http\Requests\MoodEntryRequest $request) {
-        $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
-        app(\App\Services\AchievementService::class)->retain($request->user());
-        $entry = MoodEntry::updateOrCreate(
-            ['id' => $data['id']],
-            $data
-        );
-        if ($entry->wasRecentlyCreated) { app(\App\Services\Analytics\AnalyticsService::class)->track('mood_logged'); }
-        app(\App\Services\AchievementService::class)->retain($request->user());
-        return $this->success($entry);
+        return $this->persist($request, $request->validated());
     }
     public function show($id) {
         $entry = MoodEntry::find($id);
@@ -33,6 +24,24 @@ class MoodEntryController extends ApiController {
         }
         return $this->success($entry);
     }
-    public function update(Request $request, $id) { return $this->success([]); }
-    public function destroy($id) { return $this->success([]); }
+    public function update(\App\Http\Requests\MoodEntryUpdateRequest $request, string $id) {
+        MoodEntry::where('user_id', $request->user()->id)->findOrFail($id);
+        return $this->persist($request, [...$request->validated(), 'id' => $id]);
+    }
+    public function destroy(Request $request, string $id) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
+            MoodEntry::where('user_id', $request->user()->id)->lockForUpdate()->findOrFail($id);
+            app(\App\Services\SyncRecordWriter::class)->delete(MoodEntry::class, 'mood_entry', $request->user(), $id);
+        });
+        return $this->success(['deleted' => true]);
+    }
+    private function persist(Request $request, array $data) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $data) {
+            $data['user_id'] = $request->user()->id;
+            $error = app(\App\Services\SyncRecordWriter::class)->upsert(MoodEntry::class, 'mood_entry', $request->user(), $data);
+            if ($error !== null) return $this->error('This record cannot be saved with that identifier.', 'CONFLICT', [], 409);
+            // A stale retry may acknowledge a tombstone, never resurrect it.
+            return $this->success(MoodEntry::withTrashed()->where('user_id', $request->user()->id)->findOrFail($data['id']));
+        });
+    }
 }
