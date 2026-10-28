@@ -20,15 +20,28 @@ class StreakService
             // Minimal durable history: no mood content; source IDs cannot earn twice.
             $moods = DB::table('mood_entries')->where('user_id', $user->id)
                 ->where('is_deleted', false)->whereNull('deleted_at')
+                ->whereNotExists(function ($query) {
+                    $query->selectRaw('1')->from('streak_completions')
+                        ->whereColumn('streak_completions.user_id', 'mood_entries.user_id')
+                        ->whereColumn('streak_completions.source_id', 'mood_entries.id');
+                })
                 ->select(['id', 'client_created_at', 'created_at'])->cursor();
+            $pending = [];
             foreach ($moods as $mood) {
                 $date = CarbonImmutable::parse($mood->client_created_at ?? $mood->created_at, 'UTC')
                     ->setTimezone($user->timezone ?? 'UTC')->toDateString();
                 if ($date <= $today) {
-                    DB::table('streak_completions')->insertOrIgnore([
+                    $pending[] = [
                         'user_id' => $user->id, 'source_id' => $mood->id, 'completed_date' => $date,
-                    ]);
+                    ];
+                    if (count($pending) === 250) {
+                        DB::table('streak_completions')->insertOrIgnore($pending);
+                        $pending = [];
+                    }
                 }
+            }
+            if ($pending) {
+                DB::table('streak_completions')->insertOrIgnore($pending);
             }
             $dates = DB::table('streak_completions')->where('user_id', $user->id)
                 ->distinct()->pluck('completed_date')->all();

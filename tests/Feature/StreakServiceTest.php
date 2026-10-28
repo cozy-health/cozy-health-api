@@ -28,6 +28,12 @@ it('keeps rest accounting owned, durable, and erased with the account', function
     $this->actingAs($user, 'sanctum')->getJson('/api/v1/wellness/streak')
         ->assertOk()->assertJsonPath('data.current_days', 7)->assertJsonPath('data.rest_days', 0);
     $mood->delete();
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+    $service->snapshot($user);
+    $queries = DB::getQueryLog();
+    DB::disableQueryLog();
+    expect(array_filter($queries, fn ($query) => str_contains($query['query'], 'insert') && str_contains($query['query'], 'streak_completions')))->toBeEmpty();
     expect($service->snapshot($user)['current_days'])->toBe(7)
         ->and($service->snapshot($other)['current_days'])->toBe(0);
     $user->forceDelete();
