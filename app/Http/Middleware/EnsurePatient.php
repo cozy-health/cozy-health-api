@@ -13,6 +13,7 @@ class EnsurePatient
         $user = $request->user();
         if ($user instanceof User) $user->refresh();
         abort_unless($user instanceof User && $user->is_active && $user->role === 'user', 403);
+        app(\App\Services\SignInSecurity::class)->requireSession($request);
         // Explicit recovery/privacy allowlist; all other patient routes are protected by default.
         $identityRead = $request->isMethod('GET') && $request->is('api/v1/user/profile', 'api/v1/me');
         if (! $identityRead && ! $request->is('api/v1/me/eligibility', 'api/v1/me/age', 'api/v1/me/residence', 'api/v1/me/guardian',

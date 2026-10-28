@@ -13,6 +13,7 @@ class EnsureActiveProvider
         // Sanctum may resolve a web session before inspecting a bearer token.
         abort_unless($request->user() instanceof Provider, 401, 'Unauthenticated.');
         abort_unless($request->user()->is_active, 403, 'This account has been disabled.');
+        app(\App\Services\SignInSecurity::class)->requireSession($request);
         return $next($request);
     }
 }

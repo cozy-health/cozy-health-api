@@ -615,6 +615,145 @@
             }
           }
         }
+      },
+      "SignInChallenge": {
+        "type": "object",
+        "required": [
+          "challenge_required",
+          "challenge_token",
+          "method",
+          "expires_at"
+        ],
+        "properties": {
+          "challenge_required": {
+            "const": true
+          },
+          "challenge_token": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "readOnly": true
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "email",
+              "questions"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "email_delivery": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "queued",
+              "failed",
+              "unavailable",
+              null
+            ]
+          },
+          "questions": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "prompt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "support_email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "description": "A provisional challenge, never an authenticated session. Store its opaque token only for verification/resend; never in URLs or analytics."
+      },
+      "SignInVerification": {
+        "type": "object",
+        "required": [
+          "challenge_token"
+        ],
+        "properties": {
+          "challenge_token": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6
+          },
+          "answers": {
+            "type": "object",
+            "maxProperties": 2,
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
+        "description": "Supply the email code or the two challenged answers. Verification consumes the challenge once."
+      },
+      "SignInPreferencesWrite": {
+        "type": "object",
+        "required": [
+          "method",
+          "security_settings_token"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "email",
+              "questions"
+            ]
+          },
+          "security_settings_token": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "writeOnly": true
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "answer"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 200,
+                  "writeOnly": true
+                }
+              }
+            }
+          }
+        },
+        "description": "Questions requires three distinct catalog IDs. A recently verified, email-bound, single-use settings ticket is mandatory for either method."
       }
     }
   },
@@ -3175,6 +3314,402 @@
             }
           }
         ]
+      }
+    },
+    "/api/v1/auth/challenge/verify": {
+      "post": {
+        "summary": "Complete this role?s provisional sign-in or settings challenge",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInVerification"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/challenge/resend": {
+      "post": {
+        "summary": "Resend an email code or recover forgotten answers using email",
+        "description": "Requires the opaque challenge token. Sixty-second cooldown; three email sends per account/hour. Existing question/code state is superseded; challenge expiry does not extend.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "challenge_token"
+                ],
+                "properties": {
+                  "challenge_token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/security": {
+      "get": {
+        "summary": "Get sign-in preference, prompt catalog and enrolled question IDs, never answers or hashes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      },
+      "put": {
+        "summary": "Change sign-in preference after fresh email verification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInPreferencesWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/security/reauthenticate": {
+      "post": {
+        "summary": "Request a settings email challenge after confirming the current password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/auth/challenge/verify": {
+      "post": {
+        "summary": "Complete this role?s provisional sign-in or settings challenge",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInVerification"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/auth/challenge/resend": {
+      "post": {
+        "summary": "Resend an email code or recover forgotten answers using email",
+        "description": "Requires the opaque challenge token. Sixty-second cooldown; three email sends per account/hour. Existing question/code state is superseded; challenge expiry does not extend.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "challenge_token"
+                ],
+                "properties": {
+                  "challenge_token": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/auth/security": {
+      "get": {
+        "summary": "Get sign-in preference, prompt catalog and enrolled question IDs, never answers or hashes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      },
+      "put": {
+        "summary": "Change sign-in preference after fresh email verification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInPreferencesWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
+      }
+    },
+    "/api/v1/provider/auth/security/reauthenticate": {
+      "post": {
+        "summary": "Request a settings email challenge after confirming the current password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "No-store response. A verified login returns a session pair and device_proof; email verification also returns a ten-minute security_settings_token. A settings-only challenge creates no login session."
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Owner/session/recent verification not authorized"
+          },
+          "422": {
+            "description": "Invalid payload, wrong answers/code, expired or consumed challenge"
+          },
+          "429": {
+            "description": "Attempt/send limit or cooldown"
+          },
+          "503": {
+            "description": "Staged sign-in protection is not enabled"
+          }
+        }
       }
     }
   }

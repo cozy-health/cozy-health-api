@@ -15,16 +15,27 @@ class AuthSessions
         return $owner instanceof Provider ? 'provider_refresh_tokens' : 'refresh_tokens';
     }
 
-    public function issue($owner, Request $request, ?string $name = null, bool $notify = true): array
+    public function issue($owner, Request $request, ?string $name = null, bool $notify = true, ?string $verifiedDeviceHash = null): array
     {
-        $request->validate(['device_id' => ['sometimes', 'string', 'max:120'], 'device_name' => ['sometimes', 'string', 'max:120']]);
+        $request->validate(['device_id' => ['sometimes', 'string', 'max:120'], 'device_name' => ['sometimes', 'string', 'max:120'],
+            'device_proof' => ['sometimes', 'nullable', 'string', 'size:64', 'regex:/^[a-f0-9]+$/']]);
         $name = mb_substr($name ?? $request->input('device_name', 'cozy-mobile'), 0, 120);
+        if (config('signin_security.enabled') && $verifiedDeviceHash === null) {
+            $security = app(SignInSecurity::class);
+            $verifiedDeviceHash = $security->trustedHash($owner, $request->input('device_proof'));
+            if ($verifiedDeviceHash === null) return $security->begin($owner, $request, $name);
+        }
         $expires = now()->addMinutes($name === 'cozy-provider-dashboard' ? 30 : 60);
-        $pair = DB::transaction(function () use ($owner, $request, $name, $expires) {
+        $pair = DB::transaction(function () use ($owner, $request, $name, $expires, $verifiedDeviceHash) {
             $locked = $owner->newQuery()->whereKey($owner->id)->lockForUpdate()->first();
             abort_unless($locked && $locked->is_active, 403, 'This account has been disabled.');
             $token = $owner->createToken($name, ['*'], $expires);
             $token->accessToken->forceFill(['ip_address' => $request->ip()])->save();
+            if ($verifiedDeviceHash !== null) {
+                $token->accessToken->forceFill(['security_device_hash' => $verifiedDeviceHash])->save();
+                DB::table('known_devices')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id)
+                    ->where('proof_hash', $verifiedDeviceHash)->update(['last_used_at' => now()]);
+            }
             $refresh = bin2hex(random_bytes(32));
             DB::table($this->table($owner))->insert([
                 'user_id' => $owner->id, 'access_token_id' => $token->accessToken->id,
@@ -50,6 +61,13 @@ class AuthSessions
 
     public function revoke($owner, ?int $except = null): void
     {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('known_devices', 'proof_hash')) {
+            $keep = $except !== null ? $owner->tokens()->whereKey($except)->value('security_device_hash') : null;
+            DB::table('known_devices')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id)
+                ->when($keep !== null, fn ($query) => $query->where(fn ($query) => $query->whereNull('proof_hash')->orWhere('proof_hash', '!=', $keep)))->delete();
+            DB::table('signin_challenges')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id)
+                ->update(['consumed_at' => now(), 'settings_used_at' => now()]);
+        }
         DB::table($this->table($owner))->where('user_id', $owner->id)->whereNull('revoked_at')
             ->when($except !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('access_token_id')->orWhere('access_token_id', '!=', $except)))
             ->update(['revoked_at' => now()]);

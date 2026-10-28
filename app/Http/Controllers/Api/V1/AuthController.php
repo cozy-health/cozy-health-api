@@ -90,8 +90,8 @@ class AuthController extends Controller
             ], 403);
         }
 
-        app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
         $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
+        if (isset($pair['token'])) app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
 
         return $this->success([
             'user' => $u,

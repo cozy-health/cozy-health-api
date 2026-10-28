@@ -315,6 +315,20 @@ Route::prefix('v1/guardian')->middleware('throttle:10,1')->group(function () {
     Route::post('withdrawal', $retiredAge);
 });
 Route::get('v1/crisis/public-resources', CrisisResourceController::class)->middleware('throttle:60,1');
+// Challenge credentials are scoped to one role and never authorize private APIs.
+foreach (['v1/auth', 'v1/provider/auth'] as $securityPrefix) {
+    Route::prefix($securityPrefix)->middleware('throttle:10,1')->group(function () {
+        Route::post('challenge/verify', [\App\Http\Controllers\SignInSecurityController::class, 'verify']);
+        Route::post('challenge/resend', [\App\Http\Controllers\SignInSecurityController::class, 'resend']);
+    });
+}
+foreach (['v1/auth' => ['auth:sanctum', EnsurePatient::class], 'v1/provider/auth' => ['auth:provider', EnsureActiveProvider::class]] as $securityPrefix => $securityMiddleware) {
+    Route::prefix($securityPrefix)->middleware([...$securityMiddleware, 'throttle:10,1'])->group(function () {
+        Route::get('security', [\App\Http\Controllers\SignInSecurityController::class, 'show']);
+        Route::post('security/reauthenticate', [\App\Http\Controllers\SignInSecurityController::class, 'reauthenticate']);
+        Route::put('security', [\App\Http\Controllers\SignInSecurityController::class, 'update']);
+    });
+}
 Route::prefix('v1/admin/age-cases')->middleware(['auth:sanctum', 'role:admin', 'admin.manage:guardians', 'throttle:30,1'])->group(function () {
     Route::get('/', fn () => response()->json(['code' => 'age_flow_retired'], 410));
     Route::post('{id}/resolve', fn () => response()->json(['code' => 'age_flow_retired'], 410))->whereUuid('id');

@@ -31,6 +31,9 @@ class AccountController extends Controller
             $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
             app(AuthSessions::class)->revoke($user);
             DB::table('known_devices')->where('owner_type', $user->getMorphClass())->where('owner_id', $user->id)->delete();
+            foreach (['signin_challenges', 'signin_security_preferences'] as $table) {
+                DB::table($table)->where('owner_type', $user->getMorphClass())->where('owner_id', $user->id)->delete();
+            }
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
             DB::table('notifications')->where('notifiable_type', $user->getMorphClass())
                 ->where('notifiable_id', $user->id)->delete();

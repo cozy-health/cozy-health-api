@@ -85,3 +85,10 @@ Artisan::command('stores:dispatch-plan-emails', function () {
     $this->info('Queued '.app(\App\Services\StorePlanNotifications::class)->dispatchPending().' pending plan-status emails.');
 });
 Schedule::command('stores:dispatch-plan-emails')->everyMinute()->withoutOverlapping();
+
+Artisan::command('auth:prune-challenges', function () {
+    $count = \Illuminate\Support\Facades\DB::table('signin_challenges')->where('expires_at', '<=', now())
+        ->where(fn ($query) => $query->whereNull('consumed_at')->orWhere('consumed_at', '<=', now()->subMinutes(10)))->delete();
+    $this->info('Removed '.$count.' expired sign-in checks.');
+});
+Schedule::command('auth:prune-challenges')->everyFiveMinutes()->withoutOverlapping();
