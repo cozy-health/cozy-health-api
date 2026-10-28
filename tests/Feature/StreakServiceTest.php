@@ -44,3 +44,22 @@ it('keeps rest accounting owned, durable, and erased with the account', function
 it('requires authentication to read a streak', function () {
     $this->getJson('/api/v1/wellness/streak')->assertUnauthorized();
 });
+
+it('supplies owned replay metadata without mood content for offline reconciliation', function () {
+    Carbon::setTestNow('2026-10-01 12:00:00');
+    $user = User::factory()->create(['timezone' => 'Pacific/Auckland']);
+    $other = User::factory()->create(['timezone' => 'UTC']);
+    $id = (string) Str::uuid();
+    foreach ([$user, $other] as $owner) {
+        MoodEntry::create(['id' => $owner->id === $user->id ? $id : (string) Str::uuid(),
+            'user_id' => $owner->id, 'mood' => 'good', 'intensity' => 6,
+            'note' => 'Private mood contents', 'client_created_at' => now()]);
+    }
+    $this->actingAs($user, 'sanctum')->getJson('/api/v1/wellness/streak')
+        ->assertOk()->assertJsonPath('data.account_id', (string) $user->id)
+        ->assertJsonPath('data.earning_starts', '2026-10-02')
+        ->assertJsonPath('data.accounting_version', 1)
+        ->assertJsonPath('data.credited_sources.'.$id, '2026-10-02')
+        ->assertJsonCount(1, 'data.credited_sources')
+        ->assertJsonMissing(['note' => 'Private mood contents']);
+});

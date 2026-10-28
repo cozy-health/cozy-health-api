@@ -40,6 +40,7 @@ class DashboardController extends Controller
             'success' => true,
             'message' => 'Dashboard retrieved.',
             'data' => [
+                'account_id' => (string) $user->id,
                 'today_mood' => $todayMood,
                 'streak_days' => app(\App\Services\StreakService::class)->snapshot($user)['current_days'],
                 'weekly_moods' => $weekly,

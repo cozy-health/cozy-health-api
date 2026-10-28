@@ -36,11 +36,13 @@ function dashboardMood(User $user, string $time, array $attributes = []): MoodEn
 }
 
 it('dashboard returns empty state for a new user', function () {
-    $this->actingAs(dashboardUser(), 'sanctum')->getJson('/api/v1/dashboard')
+    $user = dashboardUser();
+    $this->actingAs($user, 'sanctum')->getJson('/api/v1/dashboard')
         ->assertOk()->assertExactJson([
             'success' => true,
             'message' => 'Dashboard retrieved.',
             'data' => [
+                'account_id' => (string) $user->id,
                 'today_mood' => null,
                 'streak_days' => 0,
                 'weekly_moods' => [],

@@ -8,4 +8,6 @@ The account-owned ledger records source UUIDs and original calendar dates withou
 
 The mobile streak detail reads confirmed server progress, explains protection and shows seven calendar days. Failure offers retry; it does not invent a bank from local mood records. Offline saves are reconciled after they reach the API. A fully offline rest-bank projection and real-phone/timezone-change acceptance remain separate outstanding work. No mascot is used.
 
+P01 response revision: snapshots now include `account_id`, `accounting_version: 1`, `earning_starts`, `as_of` and `credited_sources` (owned mood UUID -> original credited date). These are minimal replay/ownership metadata, not mood contents. `/dashboard` also returns its `account_id`. The compatible mobile work caches confirmed snapshots in encrypted owner-scoped storage and marks offline replay as provisional. A credited source cannot mint another day through edits; a late genuinely new check-in can replace protection. Unknown accounting versions remain read-only until refreshed. Deploy this API revision before the compatible mobile build; native/device acceptance is separate from server tests.
+
 Migration: `2026_10_28_180000_create_streak_accounting.php`. Deploy the API migration before using the new mobile endpoint. Development only; no production or store release is authorized.

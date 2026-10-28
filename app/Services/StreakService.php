@@ -43,11 +43,15 @@ class StreakService
             if ($pending) {
                 DB::table('streak_completions')->insertOrIgnore($pending);
             }
-            $dates = DB::table('streak_completions')->where('user_id', $user->id)
-                ->distinct()->pluck('completed_date')->all();
+            $sources = DB::table('streak_completions')->where('user_id', $user->id)
+                ->pluck('completed_date', 'source_id')->all();
+            $dates = array_values(array_unique(array_values($sources)));
 
             return app(StreakAccounting::class)->calculate($dates, $today, $account->earning_starts)
-                + ['timezone' => $user->timezone ?? 'UTC', 'local_date' => $today];
+                + ['timezone' => $user->timezone ?? 'UTC', 'local_date' => $today,
+                    'account_id' => (string) $user->id, 'accounting_version' => 1,
+                    'earning_starts' => $account->earning_starts, 'as_of' => now()->utc()->toISOString(),
+                    'credited_sources' => (object) $sources];
         });
     }
 }

@@ -754,6 +754,88 @@
           }
         },
         "description": "Questions requires three distinct catalog IDs. A recently verified, email-bound, single-use settings ticket is mandatory for either method."
+      },
+      "StreakProgress": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "accounting_version",
+          "earning_starts",
+          "as_of",
+          "local_date",
+          "timezone",
+          "current_days",
+          "best_days",
+          "rest_days",
+          "earning_progress",
+          "completed_dates",
+          "protected_dates",
+          "credited_sources"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "accounting_version": {
+            "type": "integer",
+            "const": 1
+          },
+          "earning_starts": {
+            "type": "string",
+            "format": "date"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "local_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "current_days": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "best_days": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rest_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "earning_progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "completed_dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "protected_dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "credited_sources": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Owned mood source UUID to its immutable original credited calendar date. No mood contents."
+          }
+        }
       }
     }
   },
@@ -3722,7 +3804,27 @@
         ],
         "responses": {
           "200": {
-            "description": "Current and best check-in counts, bank capped at two, earning progress, completed/protected local dates, timezone and local_date. A protected day preserves the count without increasing it. No retroactive rest-day awards."
+            "description": "Current and best check-in counts, bank capped at two, earning progress, completed/protected local dates, timezone and local_date. A protected day preserves the count without increasing it. No retroactive rest-day awards.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/StreakProgress"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
