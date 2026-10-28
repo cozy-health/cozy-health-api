@@ -148,6 +148,7 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 
+    Route::get('wellness/streak', [\App\Http\Controllers\Api\V1\StreakController::class, 'show'])->middleware('throttle:60,1');
     Route::get('wellness/catalog', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'catalog'])->middleware('throttle:60,1');
     Route::get('wellness/achievements', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'achievements'])->middleware('throttle:30,1');
     Route::get('wellness/challenges', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'challenges'])->middleware('throttle:60,1');

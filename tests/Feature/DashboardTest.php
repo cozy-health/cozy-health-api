@@ -239,7 +239,7 @@ it('dashboard handles the twenty five hour fall DST day including repeated hour'
         ->assertJsonPath('data.weekly_moods.1.count', 3);
 });
 
-it('dashboard counts long streaks using bounded aggregate batches', function () {
+it('dashboard imports long streaks without fetching mood content for accounting', function () {
     $user = dashboardUser();
     for ($day = 0; $day < 100; $day++) {
         dashboardMood($user, now()->subDays($day)->toDateTimeString());
@@ -250,6 +250,9 @@ it('dashboard counts long streaks using bounded aggregate batches', function () 
         ->assertOk()->assertJsonPath('data.streak_days', 100);
     $moodQueries = array_filter(DB::getQueryLog(), fn ($query) => str_contains($query['query'], 'mood_entries'));
     DB::disableQueryLog();
-    // Weekly + today + recent + four 31-day history batches (including gap).
-    expect(count($moodQueries))->toBe(7);
+    // Weekly + today + recent + one minimal accounting projection.
+    expect(count($moodQueries))->toBe(4);
+    $accountingQueries = array_values(array_filter($moodQueries, fn ($query) => str_contains($query['query'], '"client_created_at", "created_at"')));
+    expect($accountingQueries)->toHaveCount(1);
+    expect($accountingQueries[0]['query'])->not->toContain('intensity');
 });

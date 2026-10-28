@@ -3711,6 +3711,27 @@
           }
         }
       }
+    },
+    "/api/v1/wellness/streak": {
+      "get": {
+        "summary": "Account-owned streak and automatic rest-day accounting",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current and best check-in counts, bank capped at two, earning progress, completed/protected local dates, timezone and local_date. A protected day preserves the count without increasing it. No retroactive rest-day awards."
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
     }
   }
 }
