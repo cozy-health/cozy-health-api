@@ -1,5 +1,7 @@
 # Store-confirmed plan status, without Cozy invoices
 
+Store lookups and writes are serialized per account through a shared primary-database lock. Versioned state transitions distinguish a real cancel-and-reactivate cycle from a duplicate callback, and delivery requires both the latest version and matching snapshot. No user-row transaction is held open while external store HTTP calls run.
+
 Development only. The user chose store-issued receipts instead of a second Cozy invoice or VAT calculation. Store billing remains disabled until developer accounts, products, credentials and sandbox tests are ready. `STORE_PLAN_EMAILS_ENABLED` also defaults to false; both it and `STORE_BILLING_ENABLED` must be true to record or send automatic plan emails. Tests enable these flags only in isolated fixtures.
 
 Verified store responses now preserve a safe plan snapshot: platform, state, automatic-renewal status when known, trial status when known, environment and confirmed end date. No price, VAT, proceeds, raw purchase token or clinical content enters the notification snapshot. Apple renewal information is signature-checked and bound to the same original subscription; verified grace-period expiry can preserve temporary access. Google active, canceled, grace, hold, pending, paused and expired states remain distinct. Google voided-purchase notifications trigger a fresh store lookup rather than directly changing access.

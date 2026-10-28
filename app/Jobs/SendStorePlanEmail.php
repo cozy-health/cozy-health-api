@@ -29,7 +29,8 @@ class SendStorePlanEmail implements ShouldQueue, ShouldBeEncrypted
             $current = $purchase?->plan_details ? json_decode($purchase->plan_details, true, flags: JSON_THROW_ON_ERROR) : null;
             if (!StorePlanNotifications::enabled() || !$user || !$user->is_active || !$user->email_verified_at || $user->email_invalid
                 || !hash_equals($row->email_key, hash_hmac('sha256', $user->email, config('app.key')))
-                || !$current || StorePlanNotifications::fingerprint($current) !== StorePlanNotifications::fingerprint($details)) {
+                || !$current || (int) $purchase->plan_version !== (int) $row->plan_version
+                || StorePlanNotifications::fingerprint($current) !== StorePlanNotifications::fingerprint($details)) {
                 $this->obsolete();
                 return null;
             }

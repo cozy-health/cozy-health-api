@@ -174,3 +174,24 @@ it('keeps free trials distinct and never describes them as paid purchases', func
     Mail::assertSent(StorePlanStatusMail::class, fn ($mail) => $mail->heading === 'Your Cozy trial is active'
         && str_contains(implode(' ', $mail->paragraphs), 'not a payment receipt'));
 });
+
+it('versions cancel-and-reactivate transitions and suppresses previous matching states', function () {
+    fakePlanStore(($this->purchase)(), ($this->purchase)('canceled'), ($this->purchase)(), ($this->purchase)());
+    for ($i = 0; $i < 4; $i++) $this->postJson('/api/v1/subscription/verify-receipt', $this->payload)->assertOk();
+    $this->assertDatabaseCount('store_plan_notifications', 3);
+    $this->assertDatabaseHas('store_purchases', ['plan_version' => 3]);
+    foreach (DB::table('store_plan_notifications')->orderBy('plan_version')->get() as $row) (new SendStorePlanEmail($row->id))->handle();
+    Mail::assertSent(StorePlanStatusMail::class, 1);
+    expect(DB::table('store_plan_notifications')->where('status', 'obsolete')->count())->toBe(2);
+});
+
+it('serializes concurrent verification before querying or changing access', function () {
+    $lock = \App\Services\StoreVerificationLock::forUser($this->owner->id);
+    expect($lock->get())->toBeTrue();
+    $verifier = Mockery::mock(StorePurchaseVerifier::class);
+    $verifier->shouldNotReceive('verify'); app()->instance(StorePurchaseVerifier::class, $verifier);
+    try { $this->postJson('/api/v1/subscription/verify-receipt', $this->payload)->assertStatus(503); }
+    finally { $lock->release(); }
+    $this->assertDatabaseCount('store_purchases', 0);
+    $this->assertDatabaseCount('store_plan_notifications', 0);
+});

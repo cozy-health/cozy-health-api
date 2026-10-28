@@ -20,7 +20,7 @@ final class StorePlanNotifications
     }
 
     /** Called while the purchase owner's row is locked. No client fields enter this snapshot. */
-    public function record(User $user, string $purchaseId, ?object $previous, array $details): ?string
+    public function record(User $user, string $purchaseId, ?object $previous, array $details, int $version): ?string
     {
         if (!self::enabled() || !$user->email_verified_at || $user->email_invalid || !$user->is_active) return null;
         if ($previous) {
@@ -30,20 +30,21 @@ final class StorePlanNotifications
         }
         if (!in_array($details['state'], ['active', 'trial', 'canceled', 'grace_period', 'billing_retry', 'on_hold', 'expired', 'revoked', 'paused'], true)) return null;
         if (!$previous && !in_array($details['state'], ['active', 'trial'], true)) return null;
-        $key = hash('sha256', $purchaseId.':'.self::fingerprint($details));
+        $key = hash('sha256', $purchaseId.':'.$version);
         DB::table('store_plan_notifications')->insertOrIgnore([
             'id' => (string) Str::uuid(), 'user_id' => $user->id, 'store_purchase_id' => $purchaseId,
             'dedupe_key' => $key, 'email_key' => hash_hmac('sha256', $user->email, config('app.key')),
+            'plan_version' => $version,
             'details' => json_encode($details, JSON_THROW_ON_ERROR), 'created_at' => now(), 'updated_at' => now(),
         ]);
         return DB::table('store_plan_notifications')->where('dedupe_key', $key)->value('id');
     }
 
-    public function releaseAfterAcknowledgement(string $purchaseId, array $details): void
+    public function releaseAfterAcknowledgement(string $purchaseId, int $version): void
     {
         if (!self::enabled()) return;
         DB::table('store_plan_notifications')->where('store_purchase_id', $purchaseId)
-            ->where('dedupe_key', hash('sha256', $purchaseId.':'.self::fingerprint($details)))
+            ->where('dedupe_key', hash('sha256', $purchaseId.':'.$version))
             ->whereNull('ready_at')->update(['ready_at' => now()]);
         $this->dispatchPending();
     }
