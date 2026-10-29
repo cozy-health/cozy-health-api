@@ -48,6 +48,9 @@ it('requires email proof before issuing a new device session and rejects challen
     expect($owner->tokens()->count())->toBe(1);
     expect($session[$role === 'provider' ? 'provider' : 'user']['id'])->toBe($owner->id);
     expect($session['security_enrollment_required'])->toBeTrue();
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->putJson($path.'/security', ['method' => 'email',
+        'security_settings_token' => $session['security_settings_token']])->assertOk()->assertJsonPath('data.enrolled', true);
     $this->postJson($path.'/challenge/verify', $data)->assertUnprocessable();
     $this->postJson($path.'/login', ['email' => $owner->email, 'password' => 'SecretChoice947!', 'device_proof' => $session['device_proof']])
         ->assertOk()->assertJsonStructure(['data' => ['token']])->assertJsonMissingPath('data.challenge_token');
@@ -145,7 +148,9 @@ it('blocks legacy sessions and keeps verified sessions and emergency access work
     $challenge = $this->postJson($path.'/login', ['email' => $owner->email, 'password' => 'SecretChoice947!'])->json('data');
     $session = $this->postJson($path.'/challenge/verify', ['challenge_token' => $challenge['challenge_token'], 'code' => signinCode()])->assertOk()->json('data');
     app('auth')->forgetGuards();
-    $this->withToken($session['token'])->getJson($private)->assertOk();
+    $this->withToken($session['token'])->putJson($path.'/security', ['method' => 'email',
+        'security_settings_token' => $session['security_settings_token']])->assertOk()->assertJsonPath('data.enrolled', true);
+    $this->getJson($private)->assertOk();
 })->with(['user', 'provider']);
 
 it('does not accept another accounts trusted device proof or settings ticket', function () {
@@ -210,3 +215,20 @@ it('rejects blank normalized answers and checks the entire long answer', functio
     $this->postJson('/api/v1/auth/challenge/verify', ['challenge_token' => $pending['challenge_token'], 'answers' => $wrong])->assertUnprocessable();
     $this->postJson('/api/v1/auth/challenge/verify', ['challenge_token' => $pending['challenge_token'], 'answers' => $correct])->assertOk();
 });
+
+it('keeps private APIs and trusted-device reuse locked until protection enrollment is confirmed', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $pending = $this->postJson($path.'/login', ['email' => $owner->email, 'password' => 'SecretChoice947!'])->json('data');
+    $session = $this->postJson($path.'/challenge/verify', ['challenge_token' => $pending['challenge_token'], 'code' => signinCode()])->assertOk()->json('data');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->getJson($private)->assertForbidden()->assertJsonPath('code', 'signin_verification_required');
+    $this->getJson($path.'/security')->assertOk()->assertJsonPath('data.enrolled', false);
+    $this->postJson($path.'/login', ['email' => $owner->email, 'password' => 'SecretChoice947!', 'device_proof' => $session['device_proof']])
+        ->assertOk()->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->putJson($path.'/security', ['method' => 'email', 'security_settings_token' => $session['security_settings_token']])
+        ->assertOk()->assertJsonPath('data.enrolled', true);
+    $this->getJson($private)->assertOk();
+})->with(['user', 'provider']);

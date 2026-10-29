@@ -56,7 +56,7 @@ final class SignInSecurity
             return null;
         }
         $email = $this->scope($owner)->first();
-        if (! $email || ! hash_equals((string) $email->verified_email_hash, $this->emailHash($owner))) {
+        if (! $email || ! $email->configured_at || ! hash_equals((string) $email->verified_email_hash, $this->emailHash($owner))) {
             return null;
         }
         $hash = hash('sha256', $proof);
@@ -85,7 +85,7 @@ final class SignInSecurity
         $settings = $this->scope($owner)->first();
         $device = is_string($hash) ? DB::table('known_devices')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id)
             ->where('proof_hash', $hash)->where('last_used_at', '>', now()->subDays(14))->first() : null;
-        if (! $device || ! $settings || ! hash_equals((string) $settings->verified_email_hash, $this->emailHash($owner))) {
+        if (! $device || ! $settings || ! $settings->configured_at || ! hash_equals((string) $settings->verified_email_hash, $this->emailHash($owner))) {
             throw new HttpResponseException(response()->json(['success' => false,
                 'code' => 'signin_verification_required', 'message' => 'Sign in again and complete your security check before opening private information.'], 403));
         }
