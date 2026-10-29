@@ -1,4 +1,4 @@
-# Cozy plan benefits ? approved 29 October 2026
+# Cozy plan benefits — approved 29 October 2026
 
 | Benefit | Standard | Verified Student | Premium |
 |---|---|---|---|

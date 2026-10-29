@@ -1,4 +1,4 @@
-# Cozy complete development build plan ? 29 October 2026
+# Cozy complete development build plan — 29 October 2026
 
 This is the current complete work order, incorporating the approved full plan and Premium/Student dashboard correction. Historical registers preserve evidence, not instructions to rebuild retired features. Work includes both unfinished implementation and acceptance of existing foundations.
 
@@ -76,7 +76,7 @@ Verify the five-step mood flow, drafts/history/search, journal create/edit/delet
 
 Done when each enabled control has its intended persistent effect and small-screen, keyboard, all supported themes/accents, 200% text, screen-reader and reduced-motion checks pass. Take review screenshots before any further unapproved redesign. Depends on P01/P03; no store account for implementation/simulator testing.
 
-### P05 — Students, institution offers and plan access
+### P05 — Students, institution offers, plan access and Premium dashboard
 
 Preserve locked submitted applications; show decline reason, allow a new application or another plan, and prohibit editing decided evidence. Confirm current immediate approved/rejected deletion, immediate access revocation on decision and durable physical-delete retry; expire abandoned evidence after 14 days. Finish approved 12-month eligibility, renewal opening 30 days early, 30/7/1 reminders, resubmission/reverification, reviewer concurrency and paid-period preservation. Students must prove current enrollment using accepted recent documents; email confirmation alone is not eligibility.
 
