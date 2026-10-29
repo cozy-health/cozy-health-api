@@ -17,6 +17,7 @@ final class EnforcePlanAccess
         $write = in_array($request->method(), ['POST', 'PUT', 'PATCH'], true);
         $access = app(PlanAccess::class);
         $feature = null;
+        if ($request->isMethod('GET') && str_starts_with($path, 'insights/')) $feature = 'trends_dashboard';
         if ($path === 'audio-attachments' && $write) $feature = 'voice';
         if ($path === 'mood-entries' && $write) $feature = 'mood_checkin';
         if (preg_match('#^journal-entries(?:/([^/]+))?$#', $path, $matches) && $write) {

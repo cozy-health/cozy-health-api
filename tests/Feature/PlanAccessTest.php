@@ -114,4 +114,36 @@ class PlanAccessTest extends TestCase
         $this->account(null);
         $this->postJson('/api/v1/%6dood-entries', [])->assertForbidden()->assertJsonPath('code', 'plan_required');
     }
+
+    public function test_standard_cannot_open_derived_insights_but_keeps_home_history_and_emergency(): void
+    {
+        $user = $this->account('standard');
+        \App\Models\MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'good', 'intensity' => 6, 'client_created_at' => now()]);
+        foreach (['insights/weekly', 'insights/triggers', 'insights/sleep-mood'] as $path) {
+            $this->getJson('/api/v1/'.$path)->assertForbidden()->assertJsonPath('feature', 'trends_dashboard')
+                ->assertJsonPath('allowed_plans', ['student', 'premium']);
+        }
+        $this->getJson('/api/v1/dashboard')->assertOk()->assertJsonPath('data.weekly_moods', [])
+            ->assertJsonCount(1, 'data.recent_entries')->assertJsonPath('data.today_mood.mood', 'good');
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+        $this->getJson('/api/v1/crisis/resources')->assertOk();
+    }
+
+    public function test_student_and_premium_can_open_insights_until_their_plan_expires(): void
+    {
+        foreach (['student', 'premium'] as $plan) {
+            $user = $this->account($plan);
+            \App\Models\MoodEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'mood' => 'good', 'intensity' => 6, 'client_created_at' => now()]);
+            $this->assertContains('trends_dashboard', $this->getJson('/api/v1/me/plan-access')->assertOk()->json('data.features'));
+            foreach (['insights/weekly', 'insights/triggers', 'insights/sleep-mood'] as $path) {
+                $this->getJson('/api/v1/'.$path)->assertOk();
+            }
+            $this->getJson('/api/v1/dashboard')->assertOk()->assertJsonCount(1, 'data.weekly_moods');
+            $this->travel(2)->days();
+            $this->getJson('/api/v1/insights/weekly')->assertForbidden()->assertJsonPath('feature', 'trends_dashboard');
+            $this->getJson('/api/v1/dashboard')->assertOk()->assertJsonPath('data.weekly_moods', [])
+                ->assertJsonCount(1, 'data.recent_entries');
+            $this->travelBack();
+        }
+    }
 }

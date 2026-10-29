@@ -18,7 +18,8 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = CarbonImmutable::instance($user->localToday());
         $end = $today->addDay();
-        $weekly = $this->dailyStats($user->id, $today->subDays(6), $end);
+        $weekly = app(\App\Services\PlanAccess::class)->allows($user, 'trends_dashboard')
+            ? $this->dailyStats($user->id, $today->subDays(6), $end) : [];
         $fields = ['id', 'mood', 'intensity', 'created_at', 'client_created_at'];
 
         $todayMood = $this->between($user->id, $today, $end)

@@ -9,7 +9,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 final class PlanAccess
 {
     public const STANDARD = ['written_journal', 'mood_checkin', 'community_read'];
-    public const PREMIUM = ['voice', 'provider_connect', 'provider_chat', 'journal_share', 'assessments', 'challenges', 'community_participate'];
+    public const PREMIUM = ['voice', 'provider_connect', 'provider_chat', 'journal_share', 'assessments', 'challenges', 'community_participate', 'trends_dashboard'];
 
     public function current(User $user): array
     {
@@ -26,6 +26,11 @@ final class PlanAccess
             'features' => ['emergency', 'existing_records', ...$features],
             'expires_at' => $subscription['expires_at'] ?? null,
             'source' => $subscription['source'] ?? null];
+    }
+
+    public function allows(User $user, string $feature): bool
+    {
+        return !config('plan_access.enabled') || in_array($feature, $this->current($user)['features'], true);
     }
 
     public function require(User $user, string $feature, ?string $message = null): void
