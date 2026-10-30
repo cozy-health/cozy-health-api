@@ -185,13 +185,13 @@ it('does not issue a challenge for an incorrect password or accept malformed dev
     Mail::assertNothingOutgoing();
 });
 
-it('reports email queue failure without issuing private credentials', function () {
-    $owner = signinOwner('user');
+it('reports email queue failure without issuing private credentials', function (string $role) {
+    $owner = signinOwner($role);
     Mail::shouldReceive('to')->once()->with($owner->email)->andThrow(new RuntimeException('Synthetic queue failure'));
-    $this->postJson('/api/v1/auth/login', ['email' => $owner->email, 'password' => 'SecretChoice947!'])
+    $this->postJson(signinPath($role).'/login', ['email' => $owner->email, 'password' => 'SecretChoice947!'])
         ->assertOk()->assertJsonPath('data.challenge_required', true)->assertJsonPath('data.email_delivery', 'failed')->assertJsonMissingPath('data.token');
     expect($owner->tokens()->count())->toBe(0);
-});
+})->with(['user', 'provider']);
 
 it('rejects blank normalized answers and checks the entire long answer', function () {
     $owner = signinOwner('user');

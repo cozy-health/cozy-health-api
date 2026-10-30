@@ -9,6 +9,22 @@ trait TracksDelivery
     public int $timeout = 30;
     public function backoff(): array { return [30, 120, 300]; }
     protected function initializeDelivery(): void { $this->deliveryId = (string) Str::uuid(); }
+    public function send($mailer)
+    {
+        // Laravel Mailable does not invoke application-specific shouldSend methods.
+        // Check at dispatch time, before rendering private content or reaching SMTP.
+        if (method_exists($this, 'shouldSend') && ! $this->shouldSend()) {
+            if (isset($this->deliveryId)) {
+                \App\Services\EmailDeliveryTracking::safely(function () {
+                    \Illuminate\Support\Facades\DB::table('email_delivery_logs')->where('id', $this->deliveryId)
+                        ->whereIn('status', ['queued', 'sending'])->update(['status' => 'suppressed', 'updated_at' => now()]);
+                });
+            }
+            return null;
+        }
+        return parent::send($mailer);
+    }
+
     public function headers(): Headers
     {
         // Jobs queued before this release do not have a tracking ID yet.

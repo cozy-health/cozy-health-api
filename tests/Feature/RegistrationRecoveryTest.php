@@ -26,3 +26,14 @@ it('rolls back registration when a session or challenge cannot be created', func
     Mail::assertNothingSent();
     Mail::assertNothingQueued();
 })->with(['user', 'provider']);
+
+it('keeps a created account recoverable when its welcome email cannot be queued', function (string $role) {
+    Mail::shouldReceive('to')->once()->andThrow(new RuntimeException('Synthetic welcome queue outage'));
+    $email = 'welcome-queue-fixture@example.test';
+    $prefix = $role === 'provider' ? '/api/v1/provider/auth' : '/api/v1/auth';
+    $response = $this->postJson($prefix.'/register', ['name' => 'Welcome failure fixture', 'email' => $email,
+        'password' => 'SecretChoice947!', 'password_confirmation' => 'SecretChoice947!'])->assertCreated();
+    $this->assertDatabaseHas($role === 'provider' ? 'providers' : 'users', ['email' => $email]);
+    expect($response->json('data.token'))->toBeString();
+    expect(strtolower($response->json('message')))->not->toContain('email sent', 'email delivered');
+})->with(['user', 'provider']);
