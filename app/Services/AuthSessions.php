@@ -20,8 +20,8 @@ class AuthSessions
         $request->validate(['device_id' => ['sometimes', 'string', 'max:120'], 'device_name' => ['sometimes', 'string', 'max:120'],
             'device_proof' => ['sometimes', 'nullable', 'string', 'size:64', 'regex:/^[a-f0-9]+$/']]);
         $name = mb_substr($name ?? $request->input('device_name', 'cozy-mobile'), 0, 120);
-        if (config('signin_security.enabled') && $verifiedDeviceHash === null) {
-            $security = app(SignInSecurity::class);
+        $security = app(SignInSecurity::class);
+        if ($security->requiresProtection($owner) && $verifiedDeviceHash === null) {
             $verifiedDeviceHash = $security->trustedHash($owner, $request->input('device_proof'));
             if ($verifiedDeviceHash === null) return $security->begin($owner, $request, $name);
         }

@@ -232,3 +232,96 @@ it('keeps private APIs and trusted-device reuse locked until protection enrollme
         ->assertOk()->assertJsonPath('data.enrolled', true);
     $this->getJson($private)->assertOk();
 })->with(['user', 'provider']);
+it('preserves enrolled account protection when new enrollment rollout is paused', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $pending = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->json('data');
+    $session = $this->postJson($path.'/challenge/verify', ['challenge_token'=>$pending['challenge_token'],'code'=>signinCode()])->assertOk()->json('data');
+    $questions = [['id'=>'memorable_place','answer'=>'Quiet Beach'],['id'=>'memorable_book','answer'=>'Hidden Garden'],['id'=>'memorable_word','answer'=>'Silver cloud']];
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->putJson($path.'/security', ['method'=>'questions','questions'=>$questions,'security_settings_token'=>$session['security_settings_token']])->assertOk();
+    $legacy = $owner->createToken('legacy-without-device-proof')->plainTextToken;
+    config(['signin_security.enabled'=>false]);
+    app('auth')->forgetGuards();
+    $this->withToken($legacy)->getJson($private)->assertForbidden()->assertJsonPath('code','signin_verification_required');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->getJson($path.'/security')->assertOk()->assertJsonPath('data.enabled',true)->assertJsonPath('data.enrolled',true);
+    $this->getJson($private)->assertOk();
+    $next = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonPath('data.method','questions')->assertJsonMissingPath('data.token')->json('data');
+    $answers = array_column($questions,'answer','id');
+    $this->postJson($path.'/challenge/verify', ['challenge_token'=>$next['challenge_token'],'answers'=>array_intersect_key($answers,array_flip(array_column($next['questions'],'id')))])->assertOk()->assertJsonPath('data.security_enrollment_required',false);
+})->with(['user','provider']);
+
+it('can finish a pending email enrollment after rollout pauses without exposing private content', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $pending = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->json('data');
+    $code = signinCode();
+    config(['signin_security.enabled'=>false]);
+    $this->travel(61)->seconds();
+    $this->postJson($path.'/challenge/resend', ['challenge_token'=>$pending['challenge_token']])->assertOk();
+    $code = signinCode();
+    $session = $this->postJson($path.'/challenge/verify', ['challenge_token'=>$pending['challenge_token'],'code'=>$code])->assertOk()->assertJsonPath('data.security_enrollment_required',true)->json('data');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->getJson($private)->assertForbidden();
+    $this->getJson($path.'/security')->assertOk()->assertJsonPath('data.enabled',true)->assertJsonPath('data.enrolled',false);
+    $this->putJson($path.'/security', ['method'=>'email','security_settings_token'=>$session['security_settings_token']])->assertOk()->assertJsonPath('data.enrolled',true);
+    $this->getJson($private)->assertOk();
+})->with(['user','provider']);
+it('leaves untouched accounts on the existing sign-in path while new enrollment rollout is paused', function (string $role) {
+    config(['signin_security.enabled'=>false]);
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $session = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonMissingPath('data.challenge_token')->json('data');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->getJson($private)->assertOk();
+    $this->getJson($path.'/security')->assertOk()->assertJsonPath('data.enabled',false)->assertJsonPath('data.enrolled',false);
+    $this->postJson($path.'/security/reauthenticate', ['password'=>'SecretChoice947!'])->assertStatus(503);
+    expect(DB::table('signin_security_preferences')->count())->toBe(0);
+    Mail::assertNothingQueued();
+})->with(['user','provider']);
+
+it('does not reopen a rejected legacy session when rollout pauses before enrollment starts', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $legacy = $owner->createToken('legacy')->plainTextToken;
+    $this->withToken($legacy)->getJson($private)->assertForbidden();
+    config(['signin_security.enabled'=>false]);
+    app('auth')->forgetGuards();
+    $this->withToken($legacy)->getJson($private)->assertForbidden();
+    Mail::assertNothingQueued();
+    $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonPath('data.challenge_required',true)->assertJsonMissingPath('data.token');
+})->with(['user','provider']);
+it('keeps refresh device-proof checks when enrollment rollout is paused', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $pending = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->json('data');
+    $session = $this->postJson($path.'/challenge/verify', ['challenge_token'=>$pending['challenge_token'],'code'=>signinCode()])->assertOk()->json('data');
+    app('auth')->forgetGuards();
+    $this->withToken($session['token'])->putJson($path.'/security', ['method'=>'email','security_settings_token'=>$session['security_settings_token']])->assertOk();
+    config(['signin_security.enabled'=>false]);
+    $renewed = $this->postJson($path.'/refresh', ['refresh_token'=>$session['refresh_token'],'device_proof'=>$session['device_proof']])->assertOk()->assertJsonMissingPath('data.challenge_token')->json('data');
+    app('auth')->forgetGuards();
+    $this->withToken($renewed['token'])->getJson($private)->assertOk();
+    $this->postJson($path.'/refresh', ['refresh_token'=>$renewed['refresh_token']])->assertOk()->assertJsonPath('data.challenge_required',true)->assertJsonMissingPath('data.token');
+    app('auth')->forgetGuards();
+    $this->withToken($renewed['token'])->getJson($private)->assertUnauthorized();
+})->with(['user','provider']);
+it('preserves a pending challenge created by a build without the enrollment marker', function (string $role) {
+    $owner = signinOwner($role);
+    $path = signinPath($role);
+    $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonPath('data.challenge_required',true);
+    // Reproduce the earlier staged schema usage: a challenge existed before a preference row.
+    DB::table('signin_security_preferences')->where('owner_type',$owner->getMorphClass())->where('owner_id',$owner->id)->delete();
+    config(['signin_security.enabled'=>false]);
+    $legacy = $owner->createToken('legacy')->plainTextToken;
+    app('auth')->forgetGuards();
+    $this->withToken($legacy)->getJson($path.'/security')->assertOk()->assertJsonPath('data.enabled',true)->assertJsonPath('data.enrolled',false);
+    $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonPath('data.challenge_required',true)->assertJsonMissingPath('data.token');
+    expect(DB::table('signin_security_preferences')->where('owner_type',$owner->getMorphClass())->where('owner_id',$owner->id)->exists())->toBeTrue();
+})->with(['user','provider']);

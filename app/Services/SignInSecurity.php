@@ -40,12 +40,36 @@ final class SignInSecurity
         return DB::table('signin_security_preferences')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id);
     }
 
+    public function requiresProtection(User|Provider $owner): bool
+    {
+        return (bool) config('signin_security.enabled') || $this->scope($owner)->exists() || $this->hasProtectionHistory($owner);
+    }
+
+    private function hasProtectionHistory(User|Provider $owner): bool
+    {
+        // Older staged builds created challenges before the durable preference marker.
+        return DB::table('signin_challenges')->where('owner_type', $owner->getMorphClass())->where('owner_id', $owner->id)
+            ->where('email_hash', $this->emailHash($owner))->exists();
+    }
+    private function markRequired(User|Provider $owner): void
+    {
+        // Existing rows, including in-progress enrollment, are never reset by rollout pause.
+        DB::table('signin_security_preferences')->insertOrIgnore(['owner_type' => $owner->getMorphClass(),
+            'owner_id' => $owner->id, 'method' => 'email', 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    public function hasChallenge(string $role, string $token): bool
+    {
+        $type = $role === 'provider' ? (new Provider)->getMorphClass() : (new User)->getMorphClass();
+
+        return DB::table('signin_challenges')->where('owner_type', $type)->where('token_hash', hash('sha256', $token))->exists();
+    }
     public function preferences(User|Provider $owner): array
     {
         $row = $this->scope($owner)->first();
         $questions = $row?->questions ? json_decode($row->questions, true, flags: JSON_THROW_ON_ERROR) : [];
 
-        return ['enabled' => (bool) config('signin_security.enabled'), 'method' => $row?->method ?? 'email',
+        return ['enabled' => (bool) config('signin_security.enabled') || $row !== null || $this->hasProtectionHistory($owner), 'method' => $row?->method ?? 'email',
             'question_ids' => array_keys($questions), 'enrolled' => $row?->configured_at !== null,
             'questions' => self::QUESTIONS, 'support_email' => 'team@cozyhealth.org'];
     }
@@ -68,7 +92,8 @@ final class SignInSecurity
 
     public function requireSession(Request $request): void
     {
-        if (! config('signin_security.enabled')) {
+        $owner = $request->user();
+        if ((! $owner instanceof User && ! $owner instanceof Provider) || ! $this->requiresProtection($owner)) {
             return;
         }
         // Recovery settings require password + email verification separately.
@@ -79,7 +104,7 @@ final class SignInSecurity
         if ($request->isMethod('POST') && $request->is('api/v1/support/reports')) {
             return;
         }
-        $owner = $request->user();
+        $this->markRequired($owner);
         $token = $owner->currentAccessToken();
         $hash = $token instanceof PersonalAccessToken ? $token->security_device_hash : null;
         $settings = $this->scope($owner)->first();
@@ -99,6 +124,7 @@ final class SignInSecurity
         return DB::transaction(function () use ($owner, $deviceName, $purpose) {
             $owner = $owner->newQuery()->whereKey($owner->id)->lockForUpdate()->firstOrFail();
             abort_unless($owner->is_active, 403, 'This account has been disabled.');
+            $this->markRequired($owner);
             $key = 'signin:start:'.$owner->getMorphClass().':'.$owner->id;
             abort_if(RateLimiter::tooManyAttempts($key, 5), 429, 'Please wait before requesting another sign-in check.');
             RateLimiter::hit($key, 900);
