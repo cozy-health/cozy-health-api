@@ -325,3 +325,25 @@ it('preserves a pending challenge created by a build without the enrollment mark
     $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonPath('data.challenge_required',true)->assertJsonMissingPath('data.token');
     expect(DB::table('signin_security_preferences')->where('owner_type',$owner->getMorphClass())->where('owner_id',$owner->id)->exists())->toBeTrue();
 })->with(['user','provider']);
+it('requires email and explicit enrollment for a newly registered account when rollout is enabled', function (string $role) {
+    $path = signinPath($role);
+    $email = 'new-enrollment-'.$role.'@example.test';
+    $payload = ['name' => 'New enrollment fixture', 'email' => $email, 'password' => 'SecretChoice947!', 'password_confirmation' => 'SecretChoice947!'];
+    $pending = $this->postJson($path.'/register', $payload)->assertCreated()
+        ->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token')->assertJsonMissingPath('data.refresh_token')->json('data');
+    $class = $role === 'provider' ? Provider::class : User::class;
+    $owner = $class::where('email', $email)->firstOrFail();
+    expect($owner->tokens()->count())->toBe(0);
+    $this->postJson($path.'/register', $payload)->assertUnprocessable();
+    Mail::assertQueued(SignInChallengeMail::class, 1);
+    $session = $this->postJson($path.'/challenge/verify', ['challenge_token' => $pending['challenge_token'], 'code' => signinCode()])
+        ->assertOk()->assertJsonPath('data.security_enrollment_required', true)->json('data');
+    app('auth')->forgetGuards();
+    $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
+    $this->withToken($session['token'])->getJson($private)->assertForbidden()->assertJsonPath('code', 'signin_verification_required');
+    $this->withToken($session['token'])->putJson($path.'/security', ['method' => 'questions', 'questions' => [
+        ['id' => 'memorable_place', 'answer' => 'Quiet Beach'], ['id' => 'memorable_person', 'answer' => 'Hidden Friend'],
+        ['id' => 'memorable_word', 'answer' => 'Silver Cloud']], 'security_settings_token' => $session['security_settings_token']])
+        ->assertOk()->assertJsonPath('data.enrolled', true)->assertJsonPath('data.method', 'questions');
+    $this->withToken($session['token'])->getJson($private)->assertOk();
+})->with(['user', 'provider']);
