@@ -115,7 +115,7 @@ class ProviderAuthController extends Controller
         $this->normalizeEmail($request);
         $data = $request->validate(['email' => ['required', 'email', 'max:190']]);
         $provider = Provider::where('email', $data['email'])->where('is_active', true)->first();
-        if ($provider) {
+        if ($provider && ! $provider->email_invalid) {
             $code = (string) random_int(100000, 999999);
             DB::table('provider_password_reset_tokens')->updateOrInsert(
                 ['email' => $provider->email],

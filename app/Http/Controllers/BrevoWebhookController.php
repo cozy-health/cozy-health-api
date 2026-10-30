@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use App\Http\Requests\BrevoWebhookRequest;
 use App\Models\User;
+use App\Models\Provider;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -38,11 +39,25 @@ class BrevoWebhookController extends Controller
         $key = hash_hmac('sha256', json_encode([$event, $email, $data['message-id'], $occurred->toIso8601String()]), config('app.key'));
         DB::transaction(function () use ($email, $event, $occurred, $key) {
             $user = User::whereRaw('LOWER(email) = ?', [$email])->lockForUpdate()->first();
-            $inserted = DB::table('bounces')->insertOrIgnore(['event_key' => $key, 'user_id' => $user?->id,
-                'event' => $event, 'occurred_at' => $occurred, 'created_at' => now()]);
-            if ($inserted && $user) {
-                if ($event === 'hard_bounce') { $user->forceFill(['email_invalid' => true])->save(); }
-                if (in_array($event, ['spam', 'unsubscribe'], true)) { $user->forceFill(['email_unsubscribed_at' => $occurred])->save(); }
+            $provider = Provider::whereRaw('LOWER(email) = ?', [$email])->lockForUpdate()->first();
+            // Preserve patient event keys; keep provider evidence independently owned
+            // so deleting one role cannot remove or recreate the other role's event.
+            if ($user || ! $provider) {
+                $inserted = DB::table('bounces')->insertOrIgnore(['event_key' => $key, 'user_id' => $user?->id,
+                    'event' => $event, 'occurred_at' => $occurred, 'created_at' => now()]);
+                if ($inserted && $user) {
+                    if ($event === 'hard_bounce') { $user->forceFill(['email_invalid' => true])->save(); }
+                    if (in_array($event, ['spam', 'unsubscribe'], true)) { $user->forceFill(['email_unsubscribed_at' => $occurred])->save(); }
+                }
+            }
+            if ($provider) {
+                $providerKey = hash_hmac('sha256', 'provider|'.$key, config('app.key'));
+                $inserted = DB::table('bounces')->insertOrIgnore(['event_key' => $providerKey, 'provider_id' => $provider->id,
+                    'event' => $event, 'occurred_at' => $occurred, 'created_at' => now()]);
+                if ($inserted) {
+                    if ($event === 'hard_bounce') { $provider->forceFill(['email_invalid' => true])->save(); }
+                    if (in_array($event, ['spam', 'unsubscribe'], true)) { $provider->forceFill(['email_unsubscribed_at' => $occurred])->save(); }
+                }
             }
         });
         return response()->json(['message' => 'Event acknowledged.']);

@@ -26,12 +26,28 @@ class EmailDeliveryTracking
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class, function ($event) {
             $name = AdminEmailRegistry::event($event->data['__laravel_mailable'] ?? '');
             if (!$name && $event->message->getSubject() !== 'Cozy Health queue check') return;
-            self::safely(function () use ($event, $name) {
+            if (app(DevelopmentMailSafety::class)->development()) {
+                $headers = $event->message->getHeaders();
+                $custom = $headers->get('X-Mailin-custom')?->getBodyAsString();
+                $headers->remove('X-Mailin-custom');
+                $headers->addTextHeader('X-Mailin-custom', ($custom ? $custom.'|' : '').DevelopmentMailSafety::BREVO_MARKER);
+            }
+            $blocked = false;
+            foreach ([...$event->message->getTo(), ...$event->message->getCc(), ...$event->message->getBcc()] as $recipient) {
+                $email = strtolower($recipient->getAddress());
+                if (\App\Models\User::whereRaw('LOWER(email) = ?', [$email])->where('email_invalid', true)->exists()
+                    || \App\Models\Provider::whereRaw('LOWER(email) = ?', [$email])->where('email_invalid', true)->exists()) {
+                    $blocked = true;
+                    break;
+                }
+            }
+            self::safely(function () use ($event, $name, $blocked) {
                 $id = $event->message->getHeaders()->get('X-Cozy-Delivery')?->getBodyAsString() ?? (string) Str::uuid();
                 if (!$event->message->getHeaders()->has('X-Cozy-Delivery')) $event->message->getHeaders()->addTextHeader('X-Cozy-Delivery', $id);
-                DB::table('email_delivery_logs')->insertOrIgnore(['id' => $id, 'event' => $name ?? 'queue-test', 'status' => 'sending', 'created_at' => now(), 'updated_at' => now()]);
-                DB::table('email_delivery_logs')->where('id', $id)->update(['status' => 'sending', 'updated_at' => now()]);
+                DB::table('email_delivery_logs')->insertOrIgnore(['id' => $id, 'event' => $name ?? 'queue-test', 'status' => $blocked ? 'suppressed' : 'sending', 'created_at' => now(), 'updated_at' => now()]);
+                DB::table('email_delivery_logs')->where('id', $id)->update(['status' => $blocked ? 'suppressed' : 'sending', 'updated_at' => now()]);
             });
+            if ($blocked) return false;
         });
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSent::class, function ($event) {
             $id = $event->message->getHeaders()->get('X-Cozy-Delivery')?->getBodyAsString();

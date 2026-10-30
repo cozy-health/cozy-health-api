@@ -22,7 +22,7 @@ class ProviderPasswordResetMail extends Mailable implements ShouldQueue, \Illumi
     {
         $owner = Provider::find($this->user->id);
         $record = \Illuminate\Support\Facades\DB::table('provider_password_reset_tokens')->where('email', $owner?->email)->first();
-        return $owner && $owner->is_active && $record && $record->failed_attempts < 5 && now()->lt($record->expires_at)
+        return $owner && $owner->is_active && ! $owner->email_invalid && $record && $record->failed_attempts < 5 && now()->lt($record->expires_at)
             && \Illuminate\Support\Facades\Hash::check($this->token, $record->token);
     }
 

@@ -8,6 +8,8 @@ use Symfony\Component\Mime\Email;
 
 final class DevelopmentMailSafety
 {
+    public const BREVO_MARKER = 'cozy_environment:development';
+
     public function development(): bool
     {
         $url = parse_url((string) config('app.url'));

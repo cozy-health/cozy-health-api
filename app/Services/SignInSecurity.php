@@ -159,7 +159,7 @@ final class SignInSecurity
 
     private function sendCode(User|Provider $owner, string $id): string
     {
-        if ($owner instanceof User && $owner->email_invalid) {
+        if ($owner->email_invalid) {
             return 'unavailable';
         }
         $key = 'signin:email:'.$owner->getMorphClass().':'.$owner->id;

@@ -35,7 +35,7 @@ class SignInChallengeMail extends BrandedNoticeMail implements ShouldQueue
         };
         $owner = $class ? $class::find($row->owner_id) : null;
 
-        return $owner && $owner->is_active && $owner->email === $this->recipientEmail
+        return $owner && $owner->is_active && ! $owner->email_invalid && $owner->email === $this->recipientEmail
             && hash_equals($row->email_hash, app(SignInSecurity::class)->emailHash($owner))
             && Hash::check($this->code, $row->code_hash);
     }
