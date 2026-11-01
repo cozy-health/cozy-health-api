@@ -22,10 +22,16 @@ class DocumentConsentService
         }
         unset($document);
         $enabled = Setting::find('consent.enforce_blocking')?->value === true;
-        // A misplaced flag must never block access behind unpublished drafts.
-        $ready = collect($documents)->filter(fn ($doc, $type) => $type !== 'marketing' && $doc['required'])
-            ->every(fn ($doc) => $doc['published'] && ! str_starts_with($doc['version'], 'draft-') && filled($doc['content']));
-        return ['enforce_blocking' => $enabled && $ready, 'documents' => $documents,
+        // Publication readiness must not silently disable an explicitly required policy.
+        $requiredTypes = collect(config('consent.'.$key))
+            ->filter(fn ($doc, $type) => $type !== 'marketing' && $doc['required'])->keys();
+        $ready = $requiredTypes->isNotEmpty() && $requiredTypes->every(function ($type) use ($documents) {
+            $doc = $documents[$type] ?? [];
+            return ($doc['required'] ?? false) === true && ($doc['published'] ?? false) === true
+                && is_string($doc['version'] ?? null) && ! str_starts_with($doc['version'], 'draft-')
+                && is_string($doc['content'] ?? null) && filled($doc['content']);
+        });
+        return ['enforce_blocking' => $enabled, 'documents_ready' => $ready, 'documents' => $documents,
             'current_versions' => array_map(fn ($doc) => $doc['version'], $documents)];
     }
 
@@ -33,6 +39,7 @@ class DocumentConsentService
     {
         $configuration = $this->configuration();
         if (! $configuration['enforce_blocking']) return true;
+        if (! $configuration['documents_ready']) return false;
         foreach ($configuration['documents'] as $type => $document) {
             if ($type === 'marketing' || ! $document['required']) continue;
             if (! DB::table('user_consents')->where([

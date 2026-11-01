@@ -65,10 +65,50 @@ class DocumentConsentTest extends TestCase
         $this->assertDatabaseCount('user_consent_events', 2);
     }
 
-    public function test_blocking_requires_published_documents_and_marketing_stays_optional(): void
+    public function test_required_consent_fails_closed_when_documents_are_unavailable_and_recovers(): void
+    {
+        $this->login();
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', true)->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->postJson('/api/v1/sync/batch', ['operations' => []])->assertForbidden();
+        $this->getJson('/api/v1/me/consents')->assertOk();
+        $documents = config('consent.documents');
+        foreach ($documents as $type => &$doc) {
+            if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved fixture text.'];
+        }
+        unset($doc);
+        app(SettingsService::class)->set('consent.documents', $documents);
+        foreach ($documents as $type => $doc) {
+            if ($type !== 'marketing' && $doc['required']) $this->postJson('/api/v1/me/consents', ['document_type' => $type, 'version' => '1.0', 'accepted' => true])->assertOk();
+        }
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+        $published = $documents;
+        // Simulate damaged stored configuration, bypassing the guarded settings writer.
+        $documents['health_data']['content'] = null;
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($documents)]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        unset($documents['health_data']);
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($documents)]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode([])]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($published)]);
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+    }
+
+    public function test_paused_consent_rollout_does_not_block_private_features_on_drafts(): void
+    {
+        $this->login();
+        app(SettingsService::class)->set('consent.enforce_blocking', false);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', false)->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+    }
+
+    public function test_blocking_policy_preserves_readiness_and_marketing_stays_optional(): void
     {
         app(SettingsService::class)->set('consent.enforce_blocking', true);
-        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', false);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', true)->assertJsonPath('consent.documents_ready', false);
         $documents = config('consent.documents');
         foreach ($documents as $type => &$doc) {
             if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved document text for this test.'];
