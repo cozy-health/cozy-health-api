@@ -153,4 +153,4 @@ Publishing, production promotion, enabling production flags or inviting a live c
 
 ## Outstanding owner/external inputs
 
-Exact monthly USD Student/Standard/Premium amounts; any missing approved assessment/article material and rights; vendor/retention/13+ privacy readiness evidence; actual operating limits and named support/moderation/incident coverage; final device/signing/integration access. These inputs hold only dependent work, not unrelated development.
+Native store product configuration in S01 (no separate fixed USD rate); any missing approved assessment/article material and rights; vendor/retention/13+ privacy readiness evidence; actual operating limits and named support/moderation/incident coverage; final device/signing/integration access. These inputs hold only dependent work, not unrelated development.
