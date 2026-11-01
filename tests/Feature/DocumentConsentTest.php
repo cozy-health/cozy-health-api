@@ -147,6 +147,48 @@ class DocumentConsentTest extends TestCase
         $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
     }
 
+    public function test_provider_private_features_require_current_documents_and_recover_without_locking_logout(): void
+    {
+        $provider = Provider::create(['name' => 'Provider', 'email' => 'consent-provider@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $this->withToken($provider->createToken('device')->plainTextToken);
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/provider/consent-config')->assertOk()->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/provider/me')->assertOk();
+        $this->postJson('/api/v1/provider/me/consents', $this->draft())->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertForbidden();
+        $documents = config('consent.provider_documents');
+        foreach ($documents as &$doc) $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved provider fixture.'];
+        unset($doc);
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        foreach ($documents as $type => $doc) $this->postJson('/api/v1/provider/me/consents', ['document_type' => $type, 'version' => $doc['version'], 'accepted' => true])->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        $documents['privacy_policy']['version'] = '1.1';
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden();
+        $this->getJson('/api/v1/provider/me/consents')->assertOk();
+        $this->postJson('/api/v1/provider/auth/logout')->assertOk();
+    }
+
+    public function test_one_providers_acceptance_never_authorizes_another_provider(): void
+    {
+        $documents = config('consent.provider_documents');
+        foreach ($documents as &$doc) $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved provider fixture.'];
+        unset($doc);
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $first = Provider::create(['name' => 'First', 'email' => 'first-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $second = Provider::create(['name' => 'Second', 'email' => 'second-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $this->withToken($first->createToken('first')->plainTextToken);
+        foreach ($documents as $type => $doc) $this->postJson('/api/v1/provider/me/consents', ['document_type' => $type, 'version' => $doc['version'], 'accepted' => true])->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        app('auth')->forgetGuards();
+        $this->withToken($second->createToken('second')->plainTextToken);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/provider/me/consents')->assertOk()->assertJsonPath('owner_id', $second->id)->assertJsonCount(0, 'data');
+    }
+
     public function test_provider_documents_have_separate_records_and_draft_config(): void
     {
         $provider = Provider::create(['name' => 'Provider', 'email' => 'provider@example.test', 'password_hash' => 'Fixture7!Strong']);

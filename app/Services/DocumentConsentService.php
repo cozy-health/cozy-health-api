@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Provider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -37,13 +38,24 @@ class DocumentConsentService
 
     public function patientConsentCurrent(User $user): bool
     {
-        $configuration = $this->configuration();
+        return $this->consentCurrent($user, false);
+    }
+
+    public function providerConsentCurrent(Provider $provider): bool
+    {
+        return $this->consentCurrent($provider, true);
+    }
+
+    private function consentCurrent(User|Provider $user, bool $provider): bool
+    {
+        $configuration = $this->configuration($provider);
         if (! $configuration['enforce_blocking']) return true;
         if (! $configuration['documents_ready']) return false;
+        $owner = $provider ? 'provider' : 'user';
         foreach ($configuration['documents'] as $type => $document) {
             if ($type === 'marketing' || ! $document['required']) continue;
-            if (! DB::table('user_consents')->where([
-                'user_id' => $user->id, 'document_type' => $type,
+            if (! DB::table($owner.'_consents')->where([
+                $owner.'_id' => $user->id, 'document_type' => $type,
                 'version' => $document['version'], 'status' => 'accepted',
             ])->exists()) {
                 return false;
@@ -54,7 +66,17 @@ class DocumentConsentService
 
     public function requirePatientConsent(User $user): void
     {
-        if (! $this->patientConsentCurrent($user)) {
+        $this->requireCurrentConsent($this->patientConsentCurrent($user));
+    }
+
+    public function requireProviderConsent(Provider $provider): void
+    {
+        $this->requireCurrentConsent($this->providerConsentCurrent($provider));
+    }
+
+    private function requireCurrentConsent(bool $current): void
+    {
+        if (! $current) {
             throw new HttpResponseException(response()->json([
                 'message' => 'Review and accept the required documents before using private features.',
                 'code' => 'consent_required',
