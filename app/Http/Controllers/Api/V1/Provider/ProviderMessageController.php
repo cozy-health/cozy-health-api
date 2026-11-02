@@ -31,7 +31,10 @@ class ProviderMessageController extends Controller
     public function index(Request $request)
     {
         return DB::transaction(function () use ($request) {
-            return response()->json($this->links($request)->with(['user', 'provider'])->lockForUpdate()->get()->filter(fn ($link) => app(\App\Services\AgeEligibility::class)->allows($link->user))->map(function ($link) use ($request) {
+            $links = $this->provider($request)
+                ? app(\App\Services\Provider\ProviderOverviewData::class)->links($request->user())
+                : $this->links($request)->with(['user', 'provider'])->lockForUpdate()->get()->filter(fn ($link) => app(\App\Services\AgeEligibility::class)->allows($link->user));
+            return response()->json($links->values()->map(function ($link) use ($request) {
                 $messages = ProviderMessage::where('provider_client_link_id', $link->id);
 
                 return ['id' => $link->id, 'name' => $this->provider($request) ? preg_split('/\\s+/u', trim($link->user->name))[0] : $link->provider->name,

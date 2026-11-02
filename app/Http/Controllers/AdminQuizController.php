@@ -13,45 +13,76 @@ class AdminQuizController extends Controller
         $query = DB::table('admin_quiz_drafts');
         if (!empty($data['search'])) $query->where('title', 'like', '%'.$data['search'].'%');
         $rows = $query->orderByDesc('id')->paginate($data['per_page'] ?? 10);
-        $rows->through(function ($row) { $row->definition = json_decode($row->definition, true); return $row; });
+        $rows->through(function ($row) { $row->version = $this->version($row); $row->definition = json_decode($row->definition, true); return $row; });
         return response()->json(['data' => $rows])->header('Cache-Control', 'private, no-store');
     }
     public function store(Request $request) { return $this->save($request); }
     public function update(Request $request, string $id) { return $this->save($request, $id); }
-    private function save(Request $request, ?string $id = null)
+    private function definition(Request $request): array
     {
         $data = $request->validate(['title' => 'required|string|max:100', 'definition' => 'required|array', 'definition.title' => 'required|string|max:100', 'definition.slug' => 'required|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|max:100',
             'definition.type' => 'required|string|max:50', 'definition.description' => 'nullable|string|max:5000', 'definition.estimated_minutes' => 'required|integer|min:1|max:120',
             'definition.disclaimer' => 'required|string|max:5000', 'definition.scoring_rules' => 'required|array', 'definition.scoring_rules.timeframe' => 'required|string|max:200',
             'definition.scoring_rules.bands' => 'required|array|min:1|max:50', 'definition.scoring_rules.bands.*.max' => 'required|integer|min:0|max:10000',
             'definition.scoring_rules.bands.*.label' => 'required|string|max:50', 'definition.scoring_rules.bands.*.recommendation' => 'nullable|string|max:2000',
-            'definition.scoring_rules.crisis_threshold' => 'sometimes|integer|min:0|max:10000', 'definition.questions' => 'required|array|min:1|max:100',
+            'definition.scoring_rules.crisis_threshold' => 'sometimes|integer|min:0|max:10000', 'definition.questions' => 'required|array|list|min:1|max:100',
             'definition.scoring_rules.recommendation' => 'sometimes|nullable|string|max:2000', 'definition.sort_order' => 'sometimes|integer|min:0|max:10000',
-            'definition.questions.*.question' => 'required|string|max:2000', 'definition.questions.*.options' => 'required|array|min:2|max:10',
+            'definition.scoring_rules.provenance' => 'sometimes|array:license,source_url,approval_reference',
+            'definition.scoring_rules.provenance.license' => 'sometimes|nullable|string|max:2000',
+            'definition.scoring_rules.provenance.source_url' => 'sometimes|nullable|url:https|max:2000',
+            'definition.scoring_rules.provenance.approval_reference' => 'sometimes|nullable|string|max:2000',
+            'definition.questions.*.question' => 'required|string|max:2000', 'definition.questions.*.options' => 'required|array|list|min:2|max:10',
             'definition.questions.*.options.*.label' => 'required|string|max:500', 'definition.questions.*.options.*.score' => 'required|integer|min:0|max:100']);
         $definition = $data['definition']; $definition['title'] = $data['title'];
         // IDs in imported files are not trusted. They are generated on publication.
         foreach ($definition['questions'] as $q => $question) foreach ($question['options'] ?? [] as $i => $option) $definition['questions'][$q]['options'][$i]['id'] = $i + 1;
         try { app(AssessmentService::class)->validateDefinition($definition); }
         catch (\Symfony\Component\HttpKernel\Exception\HttpException $error) { throw \Illuminate\Validation\ValidationException::withMessages(['definition' => $error->getMessage()]); }
+        return $definition;
+    }
+    public function preview(Request $request)
+    {
+        $request->merge(['title' => $request->input('definition.title')]);
+        $definition = $this->definition($request);
+        $data = $request->validate(['answers' => 'required|array|list|min:1|max:100', 'answers.*' => 'required|integer|min:0|max:9']);
+        $answers = array_map(fn ($index) => $index + 1, $data['answers']);
+        $result = app(AssessmentService::class)->score($definition, $answers);
+        // Preview is ephemeral: no attempts, audit answers or analytics.
+        return response()->json(['data' => [
+            ...\Illuminate\Support\Arr::only($result, ['score', 'maximum_score', 'interpretation', 'is_crisis_flagged']),
+            'recommendation' => $result['result_snapshot']['recommendation'], 'disclaimer' => $definition['disclaimer'],
+        ]])->header('Cache-Control', 'private, no-store');
+    }
+    private function save(Request $request, ?string $id = null)
+    {
+        $definition = $this->definition($request);
+        $data = ['title' => $definition['title']];
         $key = DB::transaction(function () use ($request, $id, $definition, $data) {
             if ($id) {
                 $draft = DB::table('admin_quiz_drafts')->where('id', $id)->lockForUpdate()->firstOrFail();
                 abort_if($draft->status === 'archived', 422, 'Archived drafts cannot be edited.');
+                $this->check($request, $draft);
                 DB::table('admin_quiz_drafts')->where('id', $id)->update(['title' => $data['title'], 'definition' => json_encode($definition), 'status' => 'draft', 'updated_at' => now()]);
                 $key = $id;
             } else $key = DB::table('admin_quiz_drafts')->insertGetId(['title' => $data['title'], 'definition' => json_encode($definition), 'status' => 'draft', 'created_at' => now(), 'updated_at' => now()]);
             AdminAudit::record($request->user()->id, 'save-draft', 'quizzes', (string) $key, ['definition']);
             return $key;
         });
-        return response()->json(['data' => ['id' => $key]], $id ? 200 : 201);
+        return response()->json(['data' => ['id' => $key, 'version' => $this->version(DB::table('admin_quiz_drafts')->where('id', $key)->firstOrFail())]], $id ? 200 : 201)
+            ->header('Cache-Control', 'private, no-store');
     }
     public function publish(Request $request, string $id)
     {
         $version = DB::transaction(function () use ($request, $id) {
             $draft = DB::table('admin_quiz_drafts')->where('id', $id)->lockForUpdate()->firstOrFail();
             abort_unless($draft->status === 'draft', 409, 'Only drafts can be published.');
+            $this->check($request, $draft);
+            $request->validate(['approved' => 'required|accepted']);
             $definition = json_decode($draft->definition, true);
+            \Illuminate\Support\Facades\Validator::make($definition, [
+                'scoring_rules.provenance.license' => 'required|string|max:2000',
+                'scoring_rules.provenance.approval_reference' => 'required|string|max:2000',
+            ])->validate();
             app(AssessmentService::class)->validateDefinition($definition);
             $quiz = $draft->quiz_id ? Quiz::whereKey($draft->quiz_id)->lockForUpdate()->firstOrFail() : new Quiz;
             abort_if($quiz->exists && $quiz->slug !== $definition['slug'], 422, 'An existing quiz key cannot change.');
@@ -73,10 +104,20 @@ class AdminQuizController extends Controller
     {
         DB::transaction(function () use ($request, $id) {
             $draft = DB::table('admin_quiz_drafts')->where('id', $id)->lockForUpdate()->firstOrFail();
+            $this->check($request, $draft);
             if ($draft->quiz_id) Quiz::whereKey($draft->quiz_id)->update(['is_active' => false]);
             DB::table('admin_quiz_drafts')->where('id', $id)->update(['status' => 'archived', 'updated_at' => now()]);
             AdminAudit::record($request->user()->id, 'archive', 'quizzes', $id);
         });
         return response()->json(['message' => 'Archived.']);
+    }
+    private function version(object $draft): string
+    {
+        return hash('sha256', json_encode([$draft->id, $draft->title, $draft->definition, $draft->status, $draft->quiz_id, $draft->updated_at], JSON_THROW_ON_ERROR));
+    }
+    private function check(Request $request, object $draft): void
+    {
+        $data = $request->validate(['expected_version' => 'required|string|size:64']);
+        abort_unless(hash_equals($this->version($draft), $data['expected_version']), 409, 'This assessment changed. Reload the list and reopen it before trying again.');
     }
 }

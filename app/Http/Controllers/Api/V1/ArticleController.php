@@ -73,6 +73,7 @@ class ArticleController extends ApiController
             $saved->fill(['article_slug' => $article->slug, 'title' => $article->title,
                 'category' => $article->category, 'read_time_minutes' => $article->read_time_minutes,
                 'excerpt' => $article->excerpt, 'body' => $article->body,
+                'license' => $article->license, 'source_url' => $article->source_url,
                 'saved_at' => now(), 'client_created_at' => now()]);
             $saved->deleted_at = null;
             $saved->save();

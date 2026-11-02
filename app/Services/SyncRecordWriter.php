@@ -83,6 +83,7 @@ class SyncRecordWriter
             Validator::make($data, (new SafetyPlanRequest)->rules())->validate();
         }
         if ($type === 'saved_article') {
+            Validator::make($data, ['license' => 'sometimes|nullable|string|max:2000', 'source_url' => 'sometimes|nullable|url:https|max:2000'])->validate();
             // Legacy mobile bookmarks omit these non-null metadata columns.
             $data['article_slug'] ??= $record?->article_slug ?? (string) ($data['article_id'] ?? '');
             $data['category'] ??= $record?->category ?? '';

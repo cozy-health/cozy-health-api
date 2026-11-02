@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'archive'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::get('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'index']);
             Route::post('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'store']);
+            Route::post('quizzes/preview', [\App\Http\Controllers\AdminQuizController::class, 'preview']);
             Route::put('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'update'])->whereNumber('id');
             Route::post('quizzes/{id}/publish', [\App\Http\Controllers\AdminQuizController::class, 'publish'])->whereNumber('id');
             Route::delete('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'archive'])->whereNumber('id');
@@ -355,6 +356,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('invitations/connect', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'connect'])->middleware('throttle:provider-invitation-code');
         Route::post('auth/revoke-refresh', [AuthSessionController::class, 'revokeRefresh'])->middleware('throttle:30,1');
         Route::get('me', [$controller, 'me']);
+        Route::get('overview', \App\Http\Controllers\Api\V1\Provider\ProviderOverviewController::class)->middleware('throttle:60,1');
         Route::get('consent-config', [DocumentConsentController::class, 'configuration'])->middleware('throttle:60,1');
         Route::get('me/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
         Route::post('me/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');

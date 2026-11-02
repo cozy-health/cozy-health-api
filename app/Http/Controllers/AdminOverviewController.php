@@ -46,11 +46,13 @@ class AdminOverviewController extends Controller
             $resources = [...$resources, 'community-reports', 'support-reports', 'community-posts', 'community-comments', 'community-members'];
         }
         if ($token->can('admin:subscriptions')) {
-            $totals['active_subscriptions'] = DB::table('subscription_statuses')->where('status', 'active')->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count();
+            $totals['active_subscriptions'] = DB::table('subscription_statuses')->join('users', 'users.id', '=', 'subscription_statuses.user_id')
+                ->where('users.role', 'user')->where('users.is_demo', false)->whereNull('users.deleted_at')
+                ->where('subscription_statuses.status', 'active')->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count();
             $resources[] = 'packages';
         }
         if ($token->can('admin:content')) {
-            $resources = [...$resources, 'moods', 'expressions', 'triggers', 'coping', 'communities', 'challenges', 'quizzes'];
+            $resources = [...$resources, 'articles', 'moods', 'expressions', 'triggers', 'coping', 'communities', 'challenges', 'quizzes'];
         }
         if ($token->can('admin:email')) {
             $resources[] = 'email';

@@ -22,7 +22,7 @@ class AdminArticleTest extends TestCase
     private function draft(): array
     {
         return ['title' => 'Synthetic article', 'slug' => 'synthetic-article', 'category' => 'sleep',
-            'excerpt' => 'Synthetic test excerpt.', 'body' => 'Synthetic original article body.', 'read_time_minutes' => 3];
+            'excerpt' => 'Synthetic test excerpt.', 'body' => 'Synthetic original article body.', 'read_time_minutes' => 3, 'source_url' => 'https://example.test/synthetic-source'];
     }
 
     public function test_drafts_require_content_capability_and_never_become_public_on_save(): void
@@ -56,6 +56,11 @@ class AdminArticleTest extends TestCase
         app('auth')->forgetGuards();
         $this->withToken($patient->createToken('fixture')->plainTextToken);
         $this->getJson('/api/v1/content/articles/synthetic-article')->assertOk()->assertJsonPath('data.body', 'Synthetic original article body.')->assertJsonMissingPath('data.draft_payload');
+        $this->getJson('/api/v1/content/articles?category=sleep&q=Synthetic&per_page=1')->assertOk()
+            ->assertJsonPath('data.data.0.id', $record['id'])->assertJsonPath('data.total', 1);
+        $this->postJson('/api/v1/content/articles/'.$record['id'].'/bookmark')->assertOk()
+            ->assertJsonPath('data.license', 'Original synthetic fixture')->assertJsonPath('data.source_url', 'https://example.test/synthetic-source')
+            ->assertJsonPath('data.body', 'Synthetic original article body.');
         $this->admin();
         $this->putJson($path, [...$this->draft(), 'expected_version' => $published['version']])->assertConflict();
         $revised = $this->postJson($path.'/publish', ['expected_version' => $edited['version'], 'approved' => true])->assertOk()->json('data');

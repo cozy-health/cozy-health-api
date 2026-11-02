@@ -102,7 +102,7 @@ class AdminManagementTest extends TestCase
     private function definition(): array
     {
         return ['title' => 'Wellbeing', 'slug' => 'wellbeing', 'type' => 'wellness', 'description' => 'Reflection', 'estimated_minutes' => 2,
-            'disclaimer' => 'Not a diagnosis', 'scoring_rules' => ['timeframe' => 'Today', 'bands' => [['max' => 1, 'label' => 'Reflection', 'recommendation' => 'Rest']]],
+            'disclaimer' => 'Not a diagnosis', 'scoring_rules' => ['timeframe' => 'Today', 'provenance' => ['license' => 'Original engineering fixture', 'approval_reference' => 'Automated test only'], 'bands' => [['max' => 1, 'label' => 'Reflection', 'recommendation' => 'Rest']]],
             'questions' => [['question' => 'Support today?', 'options' => [['label' => 'Some', 'score' => 0], ['label' => 'More', 'score' => 1]]]]];
     }
     public function test_management_login_identity_and_legacy_token_boundaries(): void
@@ -136,15 +136,18 @@ class AdminManagementTest extends TestCase
         $this->admin(); $definition = $this->definition();
         $id = $this->postJson('/api/v1/admin/quizzes', ['title' => 'Wellbeing', 'definition' => $definition])->assertCreated()->json('data.id');
         $this->assertDatabaseCount('quizzes', 0);
-        $version = $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish')->assertOk()->json('data.definition_version');
+        $expected = $this->getJson('/api/v1/admin/quizzes')->assertOk()->json('data.data.0.version');
+        $version = $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish', ['approved' => true, 'expected_version' => $expected])->assertOk()->json('data.definition_version');
         $old = DB::table('quiz_definitions')->where('id', $version)->value('definition');
         $definition['questions'][0]['question'] = 'A revised question?';
-        $this->putJson('/api/v1/admin/quizzes/'.$id, ['title' => 'Wellbeing', 'definition' => $definition])->assertOk();
+        $expected = $this->getJson('/api/v1/admin/quizzes')->assertOk()->json('data.data.0.version');
+        $saved = $this->putJson('/api/v1/admin/quizzes/'.$id, ['title' => 'Wellbeing', 'definition' => $definition, 'expected_version' => $expected])->assertOk()->json('data.version');
         $this->assertSame('Support today?', DB::table('quiz_questions')->value('question'));
-        $newVersion = $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish')->assertOk()->json('data.definition_version');
+        $newVersion = $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish', ['approved' => true, 'expected_version' => $saved])->assertOk()->json('data.definition_version');
         $this->assertNotSame($version, $newVersion);
         $this->assertSame($old, DB::table('quiz_definitions')->where('id', $version)->value('definition'));
-        $this->deleteJson('/api/v1/admin/quizzes/'.$id)->assertOk();
+        $expected = $this->getJson('/api/v1/admin/quizzes')->assertOk()->json('data.data.0.version');
+        $this->deleteJson('/api/v1/admin/quizzes/'.$id, ['expected_version' => $expected])->assertOk();
         $this->assertDatabaseHas('quizzes', ['slug' => 'wellbeing', 'is_active' => false]);
         $this->putJson('/api/v1/admin/quizzes/'.$id, ['title' => 'Wellbeing', 'definition' => $definition])->assertUnprocessable();
         $this->postJson('/api/v1/admin/quizzes/'.$id.'/publish')->assertConflict();
@@ -193,7 +196,15 @@ class AdminManagementTest extends TestCase
         $response = $this->getJson('/api/v1/admin/metrics/insights?range=30d')->assertOk()->assertJsonPath('data.triggers.0.count', 10)->assertJsonPath('data.coping.0.label', 'Box breathing');
         foreach (['PRIVATE', 'user_id', 'note', 'email'] as $secret) $this->assertStringNotContainsString($secret, $response->getContent());
         DB::table('mood_entries')->delete();
-        $this->assertSame($response->json(), $this->getJson('/api/v1/admin/metrics/insights?range=30d')->json());
+        // MySQL JSON storage can reorder object keys. Preserve list order and
+        // scalar types while checking that every frozen value is unchanged.
+        $normalize = function ($value) use (&$normalize) {
+            if (! is_array($value)) return $value;
+            if (! array_is_list($value)) ksort($value);
+            foreach ($value as $key => $item) $value[$key] = $normalize($item);
+            return $value;
+        };
+        $this->assertSame($normalize($response->json()), $normalize($this->getJson('/api/v1/admin/metrics/insights?range=30d')->json()));
         $this->getJson('/api/v1/admin/metrics/insights?user_id=1')->assertUnprocessable();
     }
     public function test_small_groups_are_hidden_even_with_many_records(): void
