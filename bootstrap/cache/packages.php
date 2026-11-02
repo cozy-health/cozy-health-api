@@ -1,60 +1,72 @@
 <?php return array (
-  'barryvdh/laravel-dompdf' => 
+  'barryvdh/laravel-dompdf' =>
   array (
-    'aliases' => 
+    'aliases' =>
     array (
       'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
       'Pdf' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
     ),
-    'providers' => 
+    'providers' =>
     array (
       0 => 'Barryvdh\\DomPDF\\ServiceProvider',
     ),
   ),
-  'darkaonline/l5-swagger' => 
+  'darkaonline/l5-swagger' =>
   array (
-    'aliases' => 
+    'aliases' =>
     array (
       'L5Swagger' => 'L5Swagger\\L5SwaggerFacade',
     ),
-    'providers' => 
+    'providers' =>
     array (
       0 => 'L5Swagger\\L5SwaggerServiceProvider',
     ),
   ),
-  'laravel/sanctum' => 
+  'laravel/sanctum' =>
   array (
-    'providers' => 
+    'providers' =>
     array (
       0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
     ),
   ),
-  'nesbot/carbon' => 
+  'nesbot/carbon' =>
   array (
-    'providers' => 
+    'providers' =>
     array (
       0 => 'Carbon\\Laravel\\ServiceProvider',
     ),
   ),
-  'nunomaduro/collision' => 
+  'nunomaduro/collision' =>
   array (
-    'providers' => 
+    'providers' =>
     array (
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     ),
   ),
-  'nunomaduro/termwind' => 
+  'nunomaduro/termwind' =>
   array (
-    'providers' => 
+    'providers' =>
     array (
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
-  'pestphp/pest-plugin-laravel' => 
+  'pestphp/pest-plugin-laravel' =>
   array (
-    'providers' => 
+    'providers' =>
     array (
       0 => 'Pest\\Laravel\\PestServiceProvider',
+    ),
+  ),
+  'sentry/sentry-laravel' =>
+  array (
+    'aliases' =>
+    array (
+      'Sentry' => 'Sentry\\Laravel\\Facade',
+    ),
+    'providers' =>
+    array (
+      0 => 'Sentry\\Laravel\\ServiceProvider',
+      1 => 'Sentry\\Laravel\\Tracing\\ServiceProvider',
     ),
   ),
 );

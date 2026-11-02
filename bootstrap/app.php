@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        \Sentry\Laravel\Integration::handles($exceptions);
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*', 'admin/*', 'webhooks/*'));
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {

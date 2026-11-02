@@ -18,7 +18,8 @@
         "firebase/php-jwt": "^7.2",
         "laravel/framework": "^12.1",
         "laravel/sanctum": "^4.0",
-        "league/flysystem-aws-s3-v3": "^3.0"
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "sentry/sentry-laravel": "^4.29"
     },
 
     "require-dev": {
