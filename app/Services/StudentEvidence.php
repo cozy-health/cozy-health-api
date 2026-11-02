@@ -33,6 +33,7 @@ final class StudentEvidence
     public static function expireForUser(int $userId): void
     {
         $expired = DB::transaction(function () use ($userId) {
+            \App\Models\User::whereKey($userId)->lockForUpdate()->first();
             $applications = StudentApplication::where('user_id', $userId)->where('status', 'pending')->lockForUpdate()->get();
             return $applications->filter(function ($application) {
                 if (self::current($application)) return false;

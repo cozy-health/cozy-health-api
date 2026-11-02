@@ -1335,6 +1335,166 @@
           }
         }
       ]
+    },
+    {
+      "name": "Student eligibility",
+      "description": "Development fixtures only. Use a consumer token for own-account verification and a scoped admin:subscriptions token for domains. No request grants paid access. Domain approval requires prior confirmation that addresses are issued only to students. Do not approve a real domain from this example.",
+      "item": [
+        {
+          "name": "Student verification status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/student-verification"
+          }
+        },
+        {
+          "name": "Request school email proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/student-verification/email",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"learner@students.synthetic.example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Confirm school email proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/student-verification/email/confirm",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{student_challenge_id}}\",\n  \"token\": \"{{student_verification_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List student-only domains",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/student-email-domains?page=1"
+          }
+        },
+        {
+          "name": "Approve student-only domain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/student-email-domains",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"students.synthetic.example\",\n  \"institution\": \"Synthetic College\",\n  \"student_only_confirmed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disable student-only domain",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/student-email-domains/{{student_domain_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"version\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

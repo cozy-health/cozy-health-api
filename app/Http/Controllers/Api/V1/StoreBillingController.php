@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
-use App\Models\StudentApplication;
+use App\Services\StudentEligibility;
 use App\Models\SubscriptionStatus;
 use App\Services\StorePurchaseVerifier;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ class StoreBillingController extends Controller
     public function configuration(Request $request)
     {
         DB::table('store_accounts')->insertOrIgnore(['user_id' => $request->user()->id, 'account_token' => (string) Str::uuid()]);
-        return response()->json(['enabled' => (bool) config('launch.billing_enabled'), 'account_token' => DB::table('store_accounts')->where('user_id', $request->user()->id)->value('account_token'), 'products' => config('launch.products'), 'student_eligible' => StudentApplication::where('user_id', $request->user()->id)->where('status', 'approved')->where('eligible_until', '>', now())->exists()]);
+        return response()->json(['enabled' => (bool) config('launch.billing_enabled'), 'account_token' => DB::table('store_accounts')->where('user_id', $request->user()->id)->value('account_token'), 'products' => config('launch.products'), 'student_eligible' => app(StudentEligibility::class)->current($request->user()->id) !== null]);
     }
     public function verify(Request $request, StorePurchaseVerifier $verifier)
     {
@@ -43,7 +43,7 @@ class StoreBillingController extends Controller
             $request->user()->newQuery()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $existing = DB::table('store_purchases')->where('purchase_hash', $identity)->lockForUpdate()->first();
             abort_if($existing && $existing->user_id !== $request->user()->id, 403, 'Purchase is already associated with another account.');
-            if (!$existing && $product['tier'] === 'student') abort_unless(StudentApplication::where('user_id', $request->user()->id)->where('status', 'approved')->where('eligible_until', '>', now())->exists(), 403, 'Current student approval is required.');
+            if (!$existing && $product['tier'] === 'student') abort_unless(app(StudentEligibility::class)->current($request->user()->id), 403, 'Current student approval is required.');
             $id = $existing->id ?? (string) Str::uuid();
             $purchaseId = $id;
             $previousDetails = ($existing->plan_details ?? null) ? json_decode($existing->plan_details, true, flags: JSON_THROW_ON_ERROR) : null;

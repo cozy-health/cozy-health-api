@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\StudentApplication;
 use App\Services\StudentEvidence;
+use App\Services\StudentEligibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -17,7 +18,8 @@ class StudentVerificationController extends Controller
         $application = StudentApplication::where('user_id', $request->user()->id)
             ->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
             ->latest()->orderByDesc($latestReview)->first();
-        return response()->json(['enabled' => (bool) config('launch.student.enabled'), 'application' => $application, 'appeals_email' => 'Team@cozyhealth.org'])->header('Cache-Control', 'private, no-store');
+        $challenge = DB::table('student_email_challenges')->where('user_id', $request->user()->id)->where('expires_at', '>', now())->where('attempts', '<', 5)->first(['id', 'expires_at']);
+        return response()->json(['enabled' => (bool) config('launch.student.enabled'), 'application' => $application, 'eligibility' => app(StudentEligibility::class)->status($request->user()->id), 'email_challenge' => $challenge, 'appeals_email' => 'Team@cozyhealth.org'])->header('Cache-Control', 'private, no-store');
     }
     public function store(Request $request)
     {
@@ -27,9 +29,8 @@ class StudentVerificationController extends Controller
         $path = $request->file('evidence')->store('student-evidence', 'local');
         try {
             $application = DB::transaction(function () use ($request, $data, $path) {
-                $request->user()->newQuery()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
-                abort_if(StudentApplication::where('user_id', $request->user()->id)->where('status', 'pending')->exists(), 409, 'An application is already awaiting review.');
-                abort_if(StudentApplication::where('user_id', $request->user()->id)->where('status', 'approved')->where('eligible_until', '>', now())->exists(), 409, 'Your Student eligibility is still active. Renew after it expires.');
+                app(StudentEligibility::class)->assertCanApply($request->user()->id);
+                DB::table('student_email_challenges')->where('user_id', $request->user()->id)->delete();
                 return StudentApplication::create(['id' => (string) Str::uuid(), 'user_id' => $request->user()->id, 'institution' => $data['institution'], 'institution_email' => $data['institution_email'] ?? null, 'evidence_path' => $path, 'evidence_delete_at' => now()->addDays(config('launch.student.evidence_retention_days')), 'status' => 'pending']);
             });
         } catch (\Throwable $e) { Storage::disk('local')->delete($path); throw $e; }
@@ -55,6 +56,9 @@ class StudentVerificationController extends Controller
     public function confirm(Request $request)
     {
         $data = $request->validate(['id' => ['required', 'uuid'], 'token' => ['required', 'string', 'size:64']]);
+        if (DB::table('student_email_challenges')->where('id', $data['id'])->exists()) {
+            return response()->json(['message' => 'Open Student verification in the Cozy Health account that requested this email. Enter the code from your email or paste this link there. Opening a link does not grant eligibility.'])->header('Cache-Control', 'private, no-store')->header('Referrer-Policy', 'no-referrer');
+        }
         $application = StudentApplication::findOrFail($data['id']);
         abort_unless(StudentEvidence::current($application) && $application->email_token_hash && hash_equals($application->email_token_hash, hash('sha256', $data['token'])) && $application->email_token_expires_at?->isFuture(), 404);
         $application->update(['email_verified_at' => now(), 'email_token_hash' => null, 'email_token_expires_at' => null]);
@@ -82,11 +86,17 @@ class StudentVerificationController extends Controller
         $data = $request->validate(['decision' => ['required', 'in:approved,rejected'], 'note' => ['required', 'string', 'min:5', 'max:2000'], 'current_enrolment_verified' => ['required_if:decision,approved', 'boolean']]);
         if ($data['decision'] === 'approved') abort_unless($data['current_enrolment_verified'] ?? false, 422, 'Current enrolment must be verified; an email address alone is insufficient.');
         $application = DB::transaction(function () use ($request, $data, $id) {
+            $owner = StudentApplication::findOrFail($id)->user_id;
+            \App\Models\User::whereKey($owner)->lockForUpdate()->firstOrFail();
             $application = StudentApplication::lockForUpdate()->findOrFail($id);
             abort_unless($application->status === 'pending', 409, 'This application was already reviewed.');
             abort_unless(StudentEvidence::current($application), 422, 'This evidence expired. Ask the student to submit a new application.');
-            $application->update(['status' => $data['decision'], 'reviewer_id' => $request->user()->id, 'review_note' => $data['note'], 'reviewed_at' => now(), 'eligible_until' => $data['decision'] === 'approved' ? now()->addMonths(config('launch.student.eligibility_months')) : null, 'evidence_delete_at' => now(), 'email_token_hash' => null, 'email_token_expires_at' => null]);
-            DB::table('student_review_events')->insert(['application_id' => $id, 'reviewer_id' => $request->user()->id, 'decision' => $data['decision'], 'note' => encrypt($data['note']), 'created_at' => now()]);
+            if ($data['decision'] === 'approved') {
+                app(StudentEligibility::class)->approve($application, $request->user()->id, $data['note']);
+            } else {
+                $application->update(['status' => 'rejected', 'reviewer_id' => $request->user()->id, 'review_note' => $data['note'], 'reviewed_at' => now(), 'eligible_until' => null, 'evidence_delete_at' => now(), 'email_token_hash' => null, 'email_token_expires_at' => null]);
+                DB::table('student_review_events')->insert(['application_id' => $id, 'reviewer_id' => $request->user()->id, 'decision' => 'rejected', 'note' => encrypt($data['note']), 'created_at' => now()]);
+            }
             return $application;
         });
         $deleted = StudentEvidence::delete($application);

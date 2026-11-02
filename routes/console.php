@@ -73,6 +73,10 @@ Artisan::command('audio:cleanup', function () { $this->info('Removed '.app(\App\
 Schedule::command('audio:cleanup')->daily()->withoutOverlapping();
 
 Schedule::command('launch:prune')->everyFiveMinutes()->withoutOverlapping();
+Artisan::command('students:renewal-reminders', function () {
+    $this->info('Queued '.app(\App\Services\StudentRenewalReminders::class)->tick().' Student renewal reminders.');
+});
+Schedule::command('students:renewal-reminders')->everyFiveMinutes()->withoutOverlapping();
 
 // Retention is approved, but deployment must record the approval reference.
 // The command also validates limits and holds before any destructive action.

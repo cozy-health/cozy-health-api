@@ -3548,6 +3548,391 @@
           }
         }
       }
+    },
+    "/api/v1/student-verification": {
+      "get": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Student verification status",
+        "description": "Returns application, eligibility {active, verification_method, expires_at, renewal_available, renewal_reminder}, email_challenge {id, expires_at} or null, enabled and appeals_email. Approved legacy applications are document verification. Email verification and documents establish eligibility only; neither creates paid access.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. Responses are private and not cached."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Wrong role or missing admin:subscriptions capability."
+          },
+          "409": {
+            "description": "Review already pending, renewal not open, or domain version changed."
+          },
+          "422": {
+            "description": "Validation failed, domain not approved, proof invalid/expired, or email unavailable."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "Student verification disabled or email unavailable."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Submit current enrolment documents for manual review",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Upload recent current-term enrollment letter, registration record or student ID showing current validity. Submitted evidence is locked. Approval or rejection immediately closes access and attempts physical deletion with durable cleanup retry; abandoned evidence expires after 14 days. Renewal opens 30 days early and adds 12 months from the current expiry; rejection leaves an existing eligibility period intact. No paid receipt or subscription is created.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "institution",
+                  "acknowledged",
+                  "evidence"
+                ],
+                "properties": {
+                  "institution": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "institution_email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "acknowledged": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF, PNG or JPEG, at most 3 MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending application created."
+          },
+          "409": {
+            "description": "Pending application exists or renewal has not opened."
+          },
+          "422": {
+            "description": "Invalid fields or evidence."
+          },
+          "503": {
+            "description": "Student verification is not open."
+          }
+        }
+      }
+    },
+    "/api/v1/student-verification/email": {
+      "post": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Request student email verification",
+        "description": "School email can differ from login. Requires an exact enabled student-only domain. Sends a 15-minute single-use code and verification link; returns challenge_id. Two requests per hour per account. Replaces prior proof. Unknown domains return code student_domain_unapproved and must use document review.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success. Responses are private and not cached."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Wrong role or missing admin:subscriptions capability."
+          },
+          "409": {
+            "description": "Review already pending, renewal not open, or domain version changed."
+          },
+          "422": {
+            "description": "Validation failed, domain not approved, proof invalid/expired, or email unavailable."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "Student verification disabled or email unavailable."
+          }
+        }
+      }
+    },
+    "/api/v1/student-verification/email/confirm": {
+      "post": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Confirm school email on the requesting account",
+        "description": "Accepts a six-digit code or the 64-character token from the email link. Proof is account-bound and limited to five wrong attempts; disabled domains are rejected. Successful verification returns application and eligibility, grants 12-month Student purchase eligibility only, and consumes the proof. Opening the public instruction link alone does not approve eligibility.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "token"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "token": {
+                    "type": "string",
+                    "pattern": "^(?:[0-9]{6}|[A-Za-z0-9]{64})$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success. Responses are private and not cached."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Wrong role or missing admin:subscriptions capability."
+          },
+          "409": {
+            "description": "Review already pending, renewal not open, or domain version changed."
+          },
+          "422": {
+            "description": "Validation failed, domain not approved, proof invalid/expired, or email unavailable."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "Student verification disabled or email unavailable."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/student-email-domains": {
+      "get": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "List approved student-only domains",
+        "description": "Requires an admin management token with admin:subscriptions. Returns paginated data containing id, domain, institution, enabled and version.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. Responses are private and not cached."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Wrong role or missing admin:subscriptions capability."
+          },
+          "409": {
+            "description": "Review already pending, renewal not open, or domain version changed."
+          },
+          "422": {
+            "description": "Validation failed, domain not approved, proof invalid/expired, or email unavailable."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "Student verification disabled or email unavailable."
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Approve a student-only email domain",
+        "description": "Requires admin:subscriptions and explicit student-only attestation. Exact normalized domain only; no wildcard or automatic subdomain approval. Creates an audit record. Starts with no approved domains.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "domain",
+                  "institution",
+                  "student_only_confirmed"
+                ],
+                "properties": {
+                  "domain": {
+                    "type": "string",
+                    "maxLength": 253
+                  },
+                  "institution": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "student_only_confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Domain created."
+          },
+          "403": {
+            "description": "Admin capability required."
+          },
+          "422": {
+            "description": "Invalid, duplicate or unattested domain."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/student-email-domains/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      ],
+      "put": {
+        "tags": [
+          "Students"
+        ],
+        "summary": "Enable or disable a student-only domain",
+        "description": "Requires admin:subscriptions. Version provides concurrency protection; stale updates return 409. Disabling prevents automatic approvals and renewal but preserves existing eligibility until its recorded expiry. Changes are audited.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "enabled",
+                  "version"
+                ],
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success. Responses are private and not cached."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Wrong role or missing admin:subscriptions capability."
+          },
+          "409": {
+            "description": "Review already pending, renewal not open, or domain version changed."
+          },
+          "422": {
+            "description": "Validation failed, domain not approved, proof invalid/expired, or email unavailable."
+          },
+          "429": {
+            "description": "Rate limited."
+          },
+          "503": {
+            "description": "Student verification disabled or email unavailable."
+          }
+        }
+      }
     }
   }
 }
