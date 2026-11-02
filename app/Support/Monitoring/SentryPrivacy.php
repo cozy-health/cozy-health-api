@@ -39,6 +39,9 @@ final class SentryPrivacy
                 if (str_starts_with($file, $root)) {
                     $file = substr($file, strlen($root));
                 }
+                // The SDK removes the project prefix but can retain its leading
+                // separator (for example \app\Console\... on Windows).
+                $file = ltrim($file, '/');
                 if (!preg_match('~^(app|routes|bootstrap)/[A-Za-z0-9_./-]+\.php$~D', $file) || str_contains($file, '..')) {
                     continue;
                 }

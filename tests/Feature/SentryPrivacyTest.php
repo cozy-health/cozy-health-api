@@ -11,6 +11,25 @@ use Tests\TestCase;
 
 final class SentryPrivacyTest extends TestCase
 {
+    public function test_sdk_prefix_relative_source_paths_retain_safe_file_and_line(): void
+    {
+        config(['app.env' => 'development', 'monitoring.sentry_development_enabled' => true]);
+        $event = Event::createEvent();
+        $event->setExceptions([new ExceptionDataBag(new \RuntimeException('private'), new Stacktrace([
+            new Frame('private', '\\app\\Console\\Commands\\MonitoringFailure.php', 19, null, null, ['secret' => 'private']),
+            new Frame(null, '/storage/private-patient.php', 1),
+            new Frame(null, '/app/../storage/private-patient.php', 1),
+        ]))]);
+        $safe = SentryPrivacy::beforeSend($event);
+        $this->assertNotNull($safe);
+        $frames = $safe->getExceptions()[0]->getStacktrace()->getFrames();
+        $this->assertCount(1, $frames);
+        $this->assertSame('app/Console/Commands/MonitoringFailure.php', $frames[0]->getFile());
+        $this->assertSame(19, $frames[0]->getLine());
+        $this->assertSame([], $frames[0]->getVars());
+        $this->assertNull($frames[0]->getFunctionName());
+    }
+
     public function test_railway_activation_requires_exact_development_identity(): void
     {
         $names = ['APP_ENV', 'APP_URL', 'RAILWAY_PROJECT_ID', 'RAILWAY_ENVIRONMENT_ID', 'SENTRY_DEVELOPMENT_ENABLED'];
@@ -45,22 +64,28 @@ final class SentryPrivacyTest extends TestCase
     {
         config(['monitoring.sentry_development_enabled' => true]);
         $original = getenv('SENTRY_LARAVEL_DSN');
+        $originalEnv = $_ENV['SENTRY_LARAVEL_DSN'] ?? null;
+        $originalServer = $_SERVER['SENTRY_LARAVEL_DSN'] ?? null;
         try {
             foreach (['https://key@attacker.example/4512362654990416',
                 'https://key@o4512334056128512.ingest.de.sentry.io/production',
                 'https://key:secret@o4512334056128512.ingest.de.sentry.io/4512362654990416',
                 'https://key@o4512334056128512.ingest.de.sentry.io/4512362654990416?secret=value'] as $dsn) {
                 putenv('SENTRY_LARAVEL_DSN='.$dsn);
+                $_ENV['SENTRY_LARAVEL_DSN'] = $_SERVER['SENTRY_LARAVEL_DSN'] = $dsn;
                 $settings = require base_path('config/sentry.php');
                 $this->assertNull($settings['dsn']);
             }
             $dsn = 'https://key@o4512334056128512.ingest.de.sentry.io/4512362654990416';
             putenv('SENTRY_LARAVEL_DSN='.$dsn);
+            $_ENV['SENTRY_LARAVEL_DSN'] = $_SERVER['SENTRY_LARAVEL_DSN'] = $dsn;
             $this->assertSame($dsn, (require base_path('config/sentry.php'))['dsn']);
             config(['monitoring.sentry_development_enabled' => false]);
             $this->assertNull((require base_path('config/sentry.php'))['dsn']);
         } finally {
             $original === false ? putenv('SENTRY_LARAVEL_DSN') : putenv('SENTRY_LARAVEL_DSN='.$original);
+            if ($originalEnv === null) { unset($_ENV['SENTRY_LARAVEL_DSN']); } else { $_ENV['SENTRY_LARAVEL_DSN'] = $originalEnv; }
+            if ($originalServer === null) { unset($_SERVER['SENTRY_LARAVEL_DSN']); } else { $_SERVER['SENTRY_LARAVEL_DSN'] = $originalServer; }
         }
     }
 
