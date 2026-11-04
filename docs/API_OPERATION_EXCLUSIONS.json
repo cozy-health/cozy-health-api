@@ -1,0 +1,12 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/documentation",
+    "reason": "Package-owned Swagger HTML interface, not a Cozy Health JSON API operation."
+  },
+  {
+    "method": "GET",
+    "path": "/api/oauth2-callback",
+    "reason": "Package-owned Swagger browser OAuth callback, not a Cozy Health application authentication endpoint."
+  }
+]

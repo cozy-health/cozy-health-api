@@ -1,0 +1,3296 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/operations/summary",
+    "operation_id": "get_admin__operations__summary",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOverviewController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOverviewController.php:11"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/articles",
+    "operation_id": "get_admin__articles",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:56"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles",
+    "operation_id": "post_admin__articles",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:66"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/articles/{id}",
+    "operation_id": "get_admin__articles___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:77"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/articles/{id}",
+    "operation_id": "put_admin__articles___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:82"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles/{id}/publish",
+    "operation_id": "post_admin__articles___id___publish",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@publish",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:95"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/articles/{id}",
+    "operation_id": "delete_admin__articles___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminArticleController@unpublish",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminArticleController.php:109"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/content/{resource}",
+    "operation_id": "get_admin__content___resource",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminContentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminContentController.php:21"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/content/{resource}/{id}",
+    "operation_id": "get_admin__content___resource____id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminContentController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminContentController.php:33"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/content/{resource}",
+    "operation_id": "post_admin__content___resource",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminContentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminContentController.php:64"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/content/{resource}/{id}",
+    "operation_id": "put_admin__content___resource____id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminContentController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminContentController.php:65"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/content/{resource}/{id}",
+    "operation_id": "delete_admin__content___resource____id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminContentController@archive",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminContentController.php:97"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/quizzes",
+    "operation_id": "get_admin__quizzes",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:10"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/quizzes",
+    "operation_id": "post_admin__quizzes",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:19"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/quizzes/preview",
+    "operation_id": "post_admin__quizzes__preview",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@preview",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:43"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/quizzes/{id}",
+    "operation_id": "put_admin__quizzes___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:20"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/quizzes/{id}/publish",
+    "operation_id": "post_admin__quizzes___id___publish",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@publish",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:74"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/quizzes/{id}",
+    "operation_id": "delete_admin__quizzes___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQuizController@archive",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQuizController.php:103"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/users",
+    "operation_id": "get_admin__users",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminUsersController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminUsersController.php:7"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/support",
+    "operation_id": "get_admin__support",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@support",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:120"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/support/{id}",
+    "operation_id": "get_admin__support___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@supportDetail",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:30"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/support/{id}",
+    "operation_id": "put_admin__support___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@resolveSupport",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:134"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/support/{id}/thread",
+    "operation_id": "get_admin__support___id___thread",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminSupportController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminSupportController.php:14"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/support/{id}/replies",
+    "operation_id": "post_admin__support___id___replies",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminSupportController@reply",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminSupportController.php:22"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/support/{id}/messages/{messageId}/retry",
+    "operation_id": "post_admin__support___id___messages___messageId___retry",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminSupportController@retry",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminSupportController.php:29"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/privacy-requests",
+    "operation_id": "get_admin__privacy_requests",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminPrivacyController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminPrivacyController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/privacy-requests/{id}",
+    "operation_id": "get_admin__privacy_requests___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminPrivacyController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminPrivacyController.php:27"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/privacy-requests/{id}/process",
+    "operation_id": "post_admin__privacy_requests___id___process",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminPrivacyController@process",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminPrivacyController.php:35"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/community/{kind}",
+    "operation_id": "get_admin__community___kind",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminCommunityController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminCommunityController.php:8"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/community/{kind}/{id}",
+    "operation_id": "get_admin__community___kind____id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminCommunityController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminCommunityController.php:30"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/community/{kind}/{id}",
+    "operation_id": "put_admin__community___kind____id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminCommunityController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminCommunityController.php:41"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/community/members/{id}",
+    "operation_id": "delete_admin__community__members___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminCommunityController@removeMember",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminCommunityController.php:65"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/reports",
+    "operation_id": "get_admin__reports",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@reports",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:38"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/reports/{id}",
+    "operation_id": "get_admin__reports___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@reportDetail",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/reports/{id}/target",
+    "operation_id": "get_admin__reports___id___target",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@target",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:85"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/reports/{id}",
+    "operation_id": "put_admin__reports___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@review",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:56"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/student-applications",
+    "operation_id": "get_admin__student_applications",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:67"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/student-email-domains",
+    "operation_id": "get_admin__student_email_domains",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminStudentDomainController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminStudentDomainController.php:11"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/student-email-domains",
+    "operation_id": "post_admin__student_email_domains",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminStudentDomainController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminStudentDomainController.php:17"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/student-email-domains/{id}",
+    "operation_id": "put_admin__student_email_domains___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminStudentDomainController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminStudentDomainController.php:30"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/development-access",
+    "operation_id": "get_admin__development_access",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminDevelopmentAccessController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminDevelopmentAccessController.php:17"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/development-access",
+    "operation_id": "post_admin__development_access",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminDevelopmentAccessController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminDevelopmentAccessController.php:35"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/development-access/{id}",
+    "operation_id": "delete_admin__development_access___id",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminDevelopmentAccessController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminDevelopmentAccessController.php:57"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/student-applications/{id}/evidence",
+    "operation_id": "get_admin__student_applications___id___evidence",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@evidence",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:78"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/student-applications/{id}/review",
+    "operation_id": "post_admin__student_applications___id___review",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@review",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:84"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/subscriptions",
+    "operation_id": "get_admin__subscriptions",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@subscriptions",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:98"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/subscriptions/history",
+    "operation_id": "get_admin__subscriptions__history",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminOperationsController@subscriptionHistory",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminOperationsController.php:109"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/emails",
+    "operation_id": "get_admin__emails",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminEmailController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminEmailController.php:8"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/emails/{event}/preview",
+    "operation_id": "get_admin__emails___event___preview",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminEmailController@preview",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminEmailController.php:17"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/emails/test",
+    "operation_id": "post_admin__emails__test",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminEmailController@test",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminEmailController.php:21"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/metrics/insights",
+    "operation_id": "get_admin__metrics__insights",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminInsightsController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminInsightsController.php:11"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/notifications/cleanup",
+    "operation_id": "post_notifications__cleanup",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PushDeviceController@cleanup",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PushDeviceController.php:53"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/refresh",
+    "operation_id": "post_auth__refresh",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@refresh",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/health/queue-depth",
+    "operation_id": "get_admin__health__queue_depth",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminQueueHealthController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminQueueHealthController.php:9"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/auth/login",
+    "operation_id": "post_admin__auth__login",
+    "classification": "admin",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\AdminAuthController@login",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminAuthController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/metrics/{metric}",
+    "operation_id": "get_admin__metrics___metric",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminMetricsController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminMetricsController.php:13"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/auth/session",
+    "operation_id": "get_admin__auth__session",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminAuthController@session",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminAuthController.php:30"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/auth/logout",
+    "operation_id": "post_admin__auth__logout",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminAuthController@logout",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AdminAuthController.php:40"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/metrics/analytics",
+    "operation_id": "get_admin__metrics__analytics",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AnalyticsMetricsController",
+    "validation_sources": [
+      "app/Http/Requests/AnalyticsMetricsRequest.php"
+    ],
+    "source": "app/Http/Controllers/AnalyticsMetricsController.php:7"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/settings/{key}",
+    "operation_id": "put_admin__settings___key",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\AdminSettingsController@update",
+    "validation_sources": [
+      "app/Http/Requests/SettingRequest.php"
+    ],
+    "source": "app/Http/Controllers/AdminSettingsController.php:7"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/config",
+    "operation_id": "get_config",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ConfigController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ConfigController.php:9"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/queue/test-email",
+    "operation_id": "post_admin__queue__test_email",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "Closure",
+    "validation_sources": [
+      "app/Http/Requests/TestEmailRequest.php"
+    ],
+    "source": "routes/api.php:136"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/register",
+    "operation_id": "post_auth__register",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AuthController@register",
+    "validation_sources": [
+      "app/Http/Requests/RegisterRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/AuthController.php:27"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/login",
+    "operation_id": "post_auth__login",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AuthController@login",
+    "validation_sources": [
+      "app/Http/Requests/LoginRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/AuthController.php:75"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/google",
+    "operation_id": "post_auth__google",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AuthController@googleSignIn",
+    "validation_sources": [
+      "app/Http/Requests/GoogleSignInRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/AuthController.php:102"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/apple",
+    "operation_id": "post_auth__apple",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AuthController@appleSignIn",
+    "validation_sources": [
+      "app/Http/Requests/AppleSignInRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/AuthController.php:204"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/forgot-password",
+    "operation_id": "post_auth__forgot_password",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PasswordResetController@forgotPassword",
+    "validation_sources": [
+      "app/Http/Requests/ForgotPasswordRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/PasswordResetController.php:20"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/reset-password",
+    "operation_id": "post_auth__reset_password",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PasswordResetController@resetPassword",
+    "validation_sources": [
+      "app/Http/Requests/ResetPasswordRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/PasswordResetController.php:49"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/plan-access",
+    "operation_id": "get_me__plan_access",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:154"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/eligibility",
+    "operation_id": "get_me__eligibility",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:156"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/age",
+    "operation_id": "post_me__age",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:155"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/residence",
+    "operation_id": "put_me__residence",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:155"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/guardian",
+    "operation_id": "post_me__guardian",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:155"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/guardian",
+    "operation_id": "delete_me__guardian",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:155"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/age-support",
+    "operation_id": "post_me__age_support",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:155"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/audio-attachments",
+    "operation_id": "post_audio_attachments",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AudioAttachmentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AudioAttachmentController.php:17"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/audio-attachments/{id}",
+    "operation_id": "get_audio_attachments___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AudioAttachmentController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AudioAttachmentController.php:65"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/wellness/streak",
+    "operation_id": "get_wellness__streak",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StreakController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StreakController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/wellness/catalog",
+    "operation_id": "get_wellness__catalog",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\WellnessCatalogController@catalog",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/WellnessCatalogController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/wellness/achievements",
+    "operation_id": "get_wellness__achievements",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\WellnessCatalogController@achievements",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/WellnessCatalogController.php:7"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/wellness/challenges",
+    "operation_id": "get_wellness__challenges",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\WellnessCatalogController@challenges",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/WellnessCatalogController.php:23"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/wellness/challenges/{id}/enroll",
+    "operation_id": "post_wellness__challenges___id___enroll",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\WellnessCatalogController@enroll",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/WellnessCatalogController.php:37"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/wellness/challenges/{id}/complete",
+    "operation_id": "post_wellness__challenges___id___complete",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\WellnessCatalogController@complete",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/WellnessCatalogController.php:44"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/email-verification/resend",
+    "operation_id": "post_auth__email_verification__resend",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmailVerificationController@resend",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmailVerificationController.php:13"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/email-verification/verify",
+    "operation_id": "post_auth__email_verification__verify",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmailVerificationController@verify",
+    "validation_sources": [
+      "app/Http/Requests/EmailVerificationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/EmailVerificationController.php:25"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard",
+    "operation_id": "get_dashboard",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\DashboardController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/DashboardController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/affirmations/today",
+    "operation_id": "get_affirmations__today",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AffirmationController@today",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AffirmationController.php:18"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/affirmations/read",
+    "operation_id": "post_affirmations__read",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AffirmationController@read",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AffirmationController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/insights/weekly",
+    "operation_id": "get_insights__weekly",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\InsightsController@weekly",
+    "validation_sources": [
+      "app/Http/Requests/WeeklyInsightsRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/InsightsController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/insights/triggers",
+    "operation_id": "get_insights__triggers",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\InsightsController@triggers",
+    "validation_sources": [
+      "app/Http/Requests/DailyInsightsRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/InsightsController.php:53"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/insights/sleep-mood",
+    "operation_id": "get_insights__sleep_mood",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\InsightsController@sleepMood",
+    "validation_sources": [
+      "app/Http/Requests/DailyInsightsRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/InsightsController.php:84"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/logout",
+    "operation_id": "post_auth__logout",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AuthController@logout",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AuthController.php:318"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/revoke-refresh",
+    "operation_id": "post_auth__revoke_refresh",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@revokeRefresh",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:31"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/logout-all",
+    "operation_id": "post_auth__logout_all",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@destroyAll",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:55"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/sessions",
+    "operation_id": "get_me__sessions",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:39"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/user/sessions",
+    "operation_id": "get_user__sessions",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:39"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/user/sessions/{id}",
+    "operation_id": "delete_user__sessions___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:48"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/sessions/{id}",
+    "operation_id": "delete_me__sessions___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:48"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/sessions",
+    "operation_id": "delete_me__sessions",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@destroyAll",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:55"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/password",
+    "operation_id": "post_me__password",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@password",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:61"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/device-security",
+    "operation_id": "post_me__device_security",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\DeviceSecurityController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DeviceSecurityController.php:10"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/account",
+    "operation_id": "delete_account",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AccountController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AccountController.php:15"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me",
+    "operation_id": "get_me",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProfileController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/student-verification",
+    "operation_id": "get_student_verification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:14"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/student-verification/email",
+    "operation_id": "post_student_verification__email",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentEmailController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentEmailController.php:17"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/student-verification/email/confirm",
+    "operation_id": "post_student_verification__email__confirm",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentEmailController@confirm",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentEmailController.php:49"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/student-verification",
+    "operation_id": "post_student_verification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:24"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/student-verification/{id}/verify-email",
+    "operation_id": "post_student_verification___id___verify_email",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@sendVerification",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:39"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/config",
+    "operation_id": "get_store__config",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StoreBillingController@configuration",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StoreBillingController.php:13"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/verify-receipt",
+    "operation_id": "post_subscription__verify_receipt",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StoreBillingController@verify",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StoreBillingController.php:18"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/emergency-email",
+    "operation_id": "get_emergency_email",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:13"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/emergency-email",
+    "operation_id": "post_emergency_email",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:17"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/emergency-email",
+    "operation_id": "delete_emergency_email",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:40"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/emergency-email/alerts",
+    "operation_id": "post_emergency_email__alerts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@alert",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:63"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/consents",
+    "operation_id": "get_me__consents",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:19"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/consents",
+    "operation_id": "post_me__consents",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:25"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/user/consents",
+    "operation_id": "get_user__consents",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:19"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/user/consents",
+    "operation_id": "post_user__consents",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:25"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations",
+    "operation_id": "get_provider_conversations",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:31"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations/{linkId}/journal-shares/preview",
+    "operation_id": "previewProviderJournalShare",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@preview",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:12"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider-conversations/{linkId}/journal-shares",
+    "operation_id": "createProviderJournalShare",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:19"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}",
+    "operation_id": "getPatientJournalSharedCopy",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}",
+    "operation_id": "revokeProviderJournalShare",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:33"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations/{linkId}/messages",
+    "operation_id": "get_provider_conversations___linkId___messages",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@messages",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:110"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider-conversations/{linkId}/messages",
+    "operation_id": "post_provider_conversations___linkId___messages",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:143"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider-conversations/{linkId}/read",
+    "operation_id": "post_provider_conversations___linkId___read",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@read",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:186"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations/{linkId}/records",
+    "operation_id": "get_provider_conversations___linkId___records",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@records",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:93"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/provider/links",
+    "operation_id": "get_me__provider__links",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\PatientConsentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/PatientConsentController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/provider-access-log",
+    "operation_id": "get_me__provider_access_log",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAccessLogController@patient",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAccessLogController.php:32"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/resources",
+    "operation_id": "get_me__resources",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAssignmentController@patientIndex",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAssignmentController.php:55"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/resources/{assignmentId}",
+    "operation_id": "patch_me__resources___assignmentId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAssignmentController@patientUpdate",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAssignmentController.php:61"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/provider/{linkId}/consent",
+    "operation_id": "patch_me__provider___linkId___consent",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\PatientConsentController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/PatientConsentController.php:20"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/provider/{linkId}",
+    "operation_id": "delete_me__provider___linkId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\PatientConsentController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/PatientConsentController.php:41"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me",
+    "operation_id": "patch_me",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileController@update",
+    "validation_sources": [
+      "app/Http/Requests/UpdateProfileRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ProfileController.php:21"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mood-entries/stats",
+    "operation_id": "get_mood_entries__stats",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodStatsController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/MoodStatsController.php:10"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mood-entries",
+    "operation_id": "get_mood_entries",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:7"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/mood-entries",
+    "operation_id": "post_mood_entries",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@store",
+    "validation_sources": [
+      "app/Http/Requests/MoodEntryRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mood-entries/{mood_entry}",
+    "operation_id": "get_mood_entries___mood_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:15"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/mood-entries/{mood_entry}",
+    "operation_id": "put_mood_entries___mood_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@update",
+    "validation_sources": [
+      "app/Http/Requests/MoodEntryUpdateRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:27"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/mood-entries/{mood_entry}",
+    "operation_id": "patch_mood_entries___mood_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@update",
+    "validation_sources": [
+      "app/Http/Requests/MoodEntryUpdateRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:27"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/mood-entries/{mood_entry}",
+    "operation_id": "delete_mood_entries___mood_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\MoodEntryController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/MoodEntryController.php:31"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/journal-entries",
+    "operation_id": "get_journal_entries",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:12"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/journal-entries",
+    "operation_id": "post_journal_entries",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@store",
+    "validation_sources": [
+      "app/Http/Requests/JournalEntryRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:17"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/journal-entries/{journal_entry}",
+    "operation_id": "get_journal_entries___journal_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:29"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/journal-entries/{journal_entry}",
+    "operation_id": "put_journal_entries___journal_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@update",
+    "validation_sources": [
+      "app/Http/Requests/JournalEntryRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:35"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/journal-entries/{journal_entry}",
+    "operation_id": "patch_journal_entries___journal_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@update",
+    "validation_sources": [
+      "app/Http/Requests/JournalEntryRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:35"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/journal-entries/{journal_entry}",
+    "operation_id": "delete_journal_entries___journal_entry",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:51"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/journals",
+    "operation_id": "get_journals",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\JournalEntryController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/JournalEntryController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/conversations",
+    "operation_id": "get_conversations",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:5"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/conversations",
+    "operation_id": "post_conversations",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:9"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/conversations/{conversation}",
+    "operation_id": "get_conversations___conversation",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:23"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/conversations/{conversation}",
+    "operation_id": "put_conversations___conversation",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:35"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/conversations/{conversation}",
+    "operation_id": "patch_conversations___conversation",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:35"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/conversations/{conversation}",
+    "operation_id": "delete_conversations___conversation",
+    "classification": "retired",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:36"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/conversations/{id}/messages",
+    "operation_id": "get_conversations___id___messages",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ChatController@messages",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ChatController.php:10"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/user/profile/avatar",
+    "operation_id": "get_user__profile__avatar",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileAvatarController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProfileAvatarController.php:18"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/user/profile/avatar",
+    "operation_id": "post_user__profile__avatar",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileAvatarController@upload",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProfileAvatarController.php:25"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/user/profile/avatar",
+    "operation_id": "put_user__profile__avatar",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileAvatarController@preset",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProfileAvatarController.php:34"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/user/profile/avatar",
+    "operation_id": "delete_user__profile__avatar",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProfileAvatarController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProfileAvatarController.php:43"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/next-of-kin",
+    "operation_id": "get_next_of_kin",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NextOfKinController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NextOfKinController.php:10"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/next-of-kin",
+    "operation_id": "put_next_of_kin",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NextOfKinController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NextOfKinController.php:15"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/next-of-kin",
+    "operation_id": "delete_next_of_kin",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NextOfKinController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NextOfKinController.php:22"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/safety-plan",
+    "operation_id": "get_safety_plan",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SafetyPlanController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SafetyPlanController.php:19"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/safety-plan",
+    "operation_id": "put_safety_plan",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SafetyPlanController@store",
+    "validation_sources": [
+      "app/Http/Requests/SafetyPlanRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/SafetyPlanController.php:9"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/user/profile",
+    "operation_id": "get_user__profile",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:47"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/user/profile",
+    "operation_id": "patch_user__profile",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@update",
+    "validation_sources": [
+      "app/Http/Requests/UserProfileRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:57"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/user/preferences",
+    "operation_id": "patch_user__preferences",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@updatePreferences",
+    "validation_sources": [
+      "app/Http/Requests/UserDisplayPreferencesRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:81"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/user/notification-preferences",
+    "operation_id": "patch_user__notification_preferences",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@updateNotificationPreferences",
+    "validation_sources": [
+      "app/Http/Requests/NotificationPreferencesRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:92"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider/invitations/{linkId}",
+    "operation_id": "delete_provider__invitations___linkId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderController@cancelInvitation",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProviderController.php:133"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider",
+    "operation_id": "get_provider",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProviderController.php:24"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/request",
+    "operation_id": "post_provider__request",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderController@requestCode",
+    "validation_sources": [
+      "app/Http/Requests/ProviderRequestRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ProviderController.php:31"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/verify",
+    "operation_id": "post_provider__verify",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderController@verify",
+    "validation_sources": [
+      "app/Http/Requests/ProviderVerifyRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ProviderController.php:108"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider",
+    "operation_id": "delete_provider",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ProviderController.php:150"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quiz-attempts",
+    "operation_id": "get_quiz_attempts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:8"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quiz-attempts",
+    "operation_id": "post_quiz_attempts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quiz-attempts/{quiz_attempt}",
+    "operation_id": "get_quiz_attempts___quiz_attempt",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:13"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/quiz-attempts/{quiz_attempt}",
+    "operation_id": "put_quiz_attempts___quiz_attempt",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:15"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/quiz-attempts/{quiz_attempt}",
+    "operation_id": "patch_quiz_attempts___quiz_attempt",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:15"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/quiz-attempts/{quiz_attempt}",
+    "operation_id": "delete_quiz_attempts___quiz_attempt",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes",
+    "operation_id": "get_quizzes",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:13"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/attempts",
+    "operation_id": "get_quizzes__attempts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@attempts",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:60"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/attempts/{id}",
+    "operation_id": "get_quizzes__attempts___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@attempt",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:67"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/attempts/{id}/share",
+    "operation_id": "post_quizzes__attempts___id___share",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@provider",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:33"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/versions/{id}",
+    "operation_id": "get_quizzes__versions___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@version",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:34"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/submit-offline",
+    "operation_id": "post_quizzes__submit_offline",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@offline",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:59"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/recipients/resolve",
+    "operation_id": "get_quizzes__recipients__resolve",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@resolve",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:20"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/shared",
+    "operation_id": "get_quizzes__shared",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@received",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:109"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/shared/{id}",
+    "operation_id": "get_quizzes__shared___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@receivedDetail",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:121"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/quizzes/shared/{id}",
+    "operation_id": "delete_quizzes__shared___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@dismiss",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:132"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/invitations/claim",
+    "operation_id": "post_quizzes__invitations__claim",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@claim",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:68"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/attempts/{id}/friends",
+    "operation_id": "post_quizzes__attempts___id___friends",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@friend",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:27"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/attempts/{id}/invitations",
+    "operation_id": "post_quizzes__attempts___id___invitations",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@invitation",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:54"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/attempts/{id}/grants",
+    "operation_id": "get_quizzes__attempts___id___grants",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@grants",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:94"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/quizzes/attempts/{id}/grants/{kind}/{shareId}",
+    "operation_id": "delete_quizzes__attempts___id___grants___kind____shareId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@revoke",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:104"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/attempts/{id}/pdf",
+    "operation_id": "get_quizzes__attempts___id___pdf",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizSharingController@pdf",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizSharingController.php:137"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quizzes/{slug}",
+    "operation_id": "get_quizzes___slug",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:28"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/{id}/start",
+    "operation_id": "post_quizzes___id___start",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@start",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:40"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/quizzes/{id}/submit",
+    "operation_id": "post_quizzes___id___submit",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizCatalogController@submit",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/QuizCatalogController.php:50"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/quiz-results",
+    "operation_id": "get_quiz_results",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\QuizController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/QuizController.php:8"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/saved",
+    "operation_id": "get_content__saved",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ContentController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ContentController.php:5"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/articles",
+    "operation_id": "get_content__articles",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:15"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/categories",
+    "operation_id": "get_content__categories",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@categories",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:42"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/search",
+    "operation_id": "get_content__search",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@search",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:35"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/bookmarks",
+    "operation_id": "get_content__bookmarks",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ContentController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ContentController.php:5"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/content/articles/{slug}",
+    "operation_id": "get_content__articles___slug",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:57"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/content/articles/{id}/bookmark",
+    "operation_id": "post_content__articles___id___bookmark",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@bookmark",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:62"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/content/articles/{id}/bookmark",
+    "operation_id": "delete_content__articles___id___bookmark",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@unbookmark",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:85"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/content/articles/{id}/save",
+    "operation_id": "post_content__articles___id___save",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@bookmark",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:62"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/content/articles/{id}/save",
+    "operation_id": "delete_content__articles___id___save",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ArticleController@unbookmark",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/ArticleController.php:85"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/notifications/register-token",
+    "operation_id": "post_notifications__register_token",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PushDeviceController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PushDeviceController.php:12"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/notifications/devices/{deviceId}",
+    "operation_id": "delete_notifications__devices___deviceId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PushDeviceController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PushDeviceController.php:45"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/preferences",
+    "operation_id": "get_notifications__preferences",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@notificationPreferences",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:103"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/notifications/preferences",
+    "operation_id": "patch_notifications__preferences",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\UserProfileController@updateNotificationPreferences",
+    "validation_sources": [
+      "app/Http/Requests/NotificationPreferencesRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/UserProfileController.php:92"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/crisis/resources",
+    "operation_id": "get_crisis__resources",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CrisisResourceController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CrisisResourceController.php:10"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/posts",
+    "operation_id": "get_community__posts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:59"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/community/{kind}/{id}/reaction",
+    "operation_id": "put_community___kind____id___reaction",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@reaction",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:68"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/users/{id}/posts",
+    "operation_id": "get_community__users___id___posts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@userPosts",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:86"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/posts",
+    "operation_id": "post_community__posts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:121"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/posts/{id}",
+    "operation_id": "get_community__posts___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:94"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/community/posts/{id}",
+    "operation_id": "patch_community__posts___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:149"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/community/posts/{id}",
+    "operation_id": "delete_community__posts___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:170"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/posts/{id}/comments",
+    "operation_id": "get_community__posts___id___comments",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@comments",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:179"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/posts/{id}/comments",
+    "operation_id": "post_community__posts___id___comments",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@comment",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:189"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/community/comments/{id}",
+    "operation_id": "delete_community__comments___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@deleteComment",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:210"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/posts/{id}/report",
+    "operation_id": "post_community__posts___id___report",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@reportPost",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:218"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/comments/{id}/report",
+    "operation_id": "post_community__comments___id___report",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@reportComment",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:223"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/users/{id}/block",
+    "operation_id": "post_community__users___id___block",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@block",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:242"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/community/users/{id}/block",
+    "operation_id": "delete_community__users___id___block",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@unblock",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:253"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/blocked",
+    "operation_id": "get_community__blocked",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@blocked",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:260"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/groups",
+    "operation_id": "get_community__groups",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@groups",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:267"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/groups/{id}/join",
+    "operation_id": "post_community__groups___id___join",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@join",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:284"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/community/groups/{id}/leave",
+    "operation_id": "delete_community__groups___id___leave",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@leave",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:292"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/groups/{id}/posts",
+    "operation_id": "get_community__groups___id___posts",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@groupPosts",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:299"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/posts/{id}/image",
+    "operation_id": "post_community__posts___id___image",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CommunityController@image",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CommunityController.php:308"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/unread-count",
+    "operation_id": "get_notifications__unread_count",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@unreadCount",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:5"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/notifications/read-all",
+    "operation_id": "patch_notifications__read_all",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@markAllAsRead",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:54"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/notifications/{id}/read",
+    "operation_id": "patch_notifications___id___read",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@markAsRead",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:41"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "operation_id": "get_notifications",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@index",
+    "validation_sources": [
+      "app/Http/Requests/PaginationRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:12"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/notifications",
+    "operation_id": "post_notifications",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/{notification}",
+    "operation_id": "get_notifications___notification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:19"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/notifications/{notification}",
+    "operation_id": "put_notifications___notification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:31"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/notifications/{notification}",
+    "operation_id": "patch_notifications___notification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:31"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/notifications/{notification}",
+    "operation_id": "delete_notifications___notification",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\NotificationController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/NotificationController.php:37"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscription",
+    "operation_id": "get_subscription",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SubscriptionController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SubscriptionController.php:24"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/support/reports",
+    "operation_id": "post_support__reports",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SupportController@store",
+    "validation_sources": [
+      "app/Http/Requests/SupportReportRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/SupportController.php:15"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/support/reports",
+    "operation_id": "get_support__reports",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SupportController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SupportController.php:33"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/privacy-requests",
+    "operation_id": "get_privacy_requests",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PrivacyRequestController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PrivacyRequestController.php:17"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/privacy-requests",
+    "operation_id": "post_privacy_requests",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PrivacyRequestController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PrivacyRequestController.php:24"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/privacy-requests/{id}/download",
+    "operation_id": "post_privacy_requests___id___download",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\PrivacyRequestController@download",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/PrivacyRequestController.php:48"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/support/reports/{id}",
+    "operation_id": "get_support__reports___id",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SupportController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SupportController.php:40"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/support/reports/{id}/replies",
+    "operation_id": "post_support__reports___id___replies",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SupportController@reply",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SupportController.php:45"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscription/prices",
+    "operation_id": "get_subscription__prices",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SubscriptionController@prices",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/SubscriptionController.php:5"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/sync/batch",
+    "operation_id": "post_sync__batch",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\SyncController@batch",
+    "validation_sources": [
+      "app/Http/Requests/SyncBatchRequest.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/SyncController.php:41"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/guardian/confirm",
+    "operation_id": "post_guardian__confirm",
+    "classification": "retired",
+    "authentication": "public",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:334"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/guardian/review",
+    "operation_id": "post_guardian__review",
+    "classification": "retired",
+    "authentication": "public",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:334"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/guardian/decision",
+    "operation_id": "post_guardian__decision",
+    "classification": "retired",
+    "authentication": "public",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:334"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/guardian/withdrawal",
+    "operation_id": "post_guardian__withdrawal",
+    "classification": "retired",
+    "authentication": "public",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:334"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/crisis/public-resources",
+    "operation_id": "get_crisis__public_resources",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\CrisisResourceController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/CrisisResourceController.php:10"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/challenge/verify",
+    "operation_id": "post_auth__challenge__verify",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@verify",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:23"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/challenge/resend",
+    "operation_id": "post_auth__challenge__resend",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@resend",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:34"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/challenge/verify",
+    "operation_id": "post_provider__auth__challenge__verify",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@verify",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:23"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/challenge/resend",
+    "operation_id": "post_provider__auth__challenge__resend",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@resend",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:34"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/security",
+    "operation_id": "get_auth__security",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:43"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/security/reauthenticate",
+    "operation_id": "post_auth__security__reauthenticate",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@reauthenticate",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:48"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/auth/security",
+    "operation_id": "put_auth__security",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:58"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/auth/security",
+    "operation_id": "get_provider__auth__security",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:43"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/security/reauthenticate",
+    "operation_id": "post_provider__auth__security__reauthenticate",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@reauthenticate",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:48"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/provider/auth/security",
+    "operation_id": "put_provider__auth__security",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\SignInSecurityController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/SignInSecurityController.php:58"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/age-cases",
+    "operation_id": "get_admin__age_cases",
+    "classification": "retired",
+    "authentication": "admin",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:356"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/age-cases/{id}/resolve",
+    "operation_id": "post_admin__age_cases___id___resolve",
+    "classification": "retired",
+    "authentication": "admin",
+    "handler": "Closure",
+    "validation_sources": [],
+    "source": "routes/api.php:357"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/refresh",
+    "operation_id": "post_provider__auth__refresh",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@refresh",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:14"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/register",
+    "operation_id": "post_provider__auth__register",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@register",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:30"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/login",
+    "operation_id": "post_provider__auth__login",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@login",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:69"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/forgot-password",
+    "operation_id": "post_provider__auth__forgot_password",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@forgotPassword",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:113"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/reset-password",
+    "operation_id": "post_provider__auth__reset_password",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@resetPassword",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:129"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/audio-attachments",
+    "operation_id": "post_provider__audio_attachments",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AudioAttachmentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AudioAttachmentController.php:17"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/audio-attachments/{id}",
+    "operation_id": "get_provider__audio_attachments___id",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\AudioAttachmentController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/AudioAttachmentController.php:65"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/logout",
+    "operation_id": "post_provider__auth__logout",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@logout",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:91"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/invitations/preview",
+    "operation_id": "post_provider__invitations__preview",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderInvitationController@preview",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderInvitationController.php:32"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/invitations/connect",
+    "operation_id": "post_provider__invitations__connect",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderInvitationController@connect",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderInvitationController.php:43"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/auth/revoke-refresh",
+    "operation_id": "post_provider__auth__revoke_refresh",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\AuthSessionController@revokeRefresh",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/AuthSessionController.php:31"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/me",
+    "operation_id": "get_provider__me",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@me",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:97"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/overview",
+    "operation_id": "get_provider__overview",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderOverviewController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderOverviewController.php:13"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/consent-config",
+    "operation_id": "get_provider__consent_config",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@configuration",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:14"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/me/consents",
+    "operation_id": "get_provider__me__consents",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:19"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/me/consents",
+    "operation_id": "post_provider__me__consents",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\DocumentConsentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/DocumentConsentController.php:25"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/provider/me",
+    "operation_id": "patch_provider__me",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAuthController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:102"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/conversations",
+    "operation_id": "get_provider__conversations",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:31"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/conversations/{linkId}/journal-shares/{shareId}",
+    "operation_id": "getProviderJournalSharedCopy",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/conversations/{linkId}/messages",
+    "operation_id": "get_provider__conversations___linkId___messages",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@messages",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:110"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/conversations/{linkId}/messages",
+    "operation_id": "post_provider__conversations___linkId___messages",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:143"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/conversations/{linkId}/read",
+    "operation_id": "post_provider__conversations___linkId___read",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderMessageController@read",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderMessageController.php:186"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/quiz-shares",
+    "operation_id": "get_provider__quiz_shares",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderQuizSharingController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderQuizSharingController.php:16"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/quiz-shares/{id}",
+    "operation_id": "get_provider__quiz_shares___id",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderQuizSharingController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderQuizSharingController.php:25"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients",
+    "operation_id": "get_provider__clients",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:17"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}",
+    "operation_id": "get_provider__clients___userId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:35"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/moods",
+    "operation_id": "get_provider__clients___userId___moods",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@moods",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:57"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/journals",
+    "operation_id": "get_provider__clients___userId___journals",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@journals",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:62"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/quizzes",
+    "operation_id": "get_provider__clients___userId___quizzes",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@quizzes",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:67"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/consents",
+    "operation_id": "get_provider__clients___userId___consents",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@consents",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:47"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/notes",
+    "operation_id": "get_provider__clients___userId___notes",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderNotesController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderNotesController.php:14"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/clients/{userId}/notes",
+    "operation_id": "post_provider__clients___userId___notes",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderNotesController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderNotesController.php:26"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider/clients/{userId}/notes/{noteId}",
+    "operation_id": "delete_provider__clients___userId___notes___noteId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderNotesController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderNotesController.php:38"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/access-log",
+    "operation_id": "get_provider__access_log",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAccessLogController@provider",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAccessLogController.php:12"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/resources",
+    "operation_id": "get_provider__resources",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderResourceController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderResourceController.php:15"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/resources",
+    "operation_id": "post_provider__resources",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderResourceController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderResourceController.php:20"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/provider/resources/{resourceId}",
+    "operation_id": "patch_provider__resources___resourceId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderResourceController@update",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderResourceController.php:27"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider/resources/{resourceId}",
+    "operation_id": "delete_provider__resources___resourceId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderResourceController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderResourceController.php:38"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/resources",
+    "operation_id": "get_provider__clients___userId___resources",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAssignmentController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAssignmentController.php:16"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/clients/{userId}/resources",
+    "operation_id": "post_provider__clients___userId___resources",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAssignmentController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAssignmentController.php:28"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider/clients/{userId}/resources/{assignmentId}",
+    "operation_id": "delete_provider__clients___userId___resources___assignmentId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderAssignmentController@destroy",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderAssignmentController.php:43"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/reports",
+    "operation_id": "get_provider__reports",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderReportController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderReportController.php:23"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/reports",
+    "operation_id": "post_provider__reports",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderReportController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderReportController.php:38"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/reports/{reportId}",
+    "operation_id": "get_provider__reports___reportId",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderReportController@show",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderReportController.php:51"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/reports/{reportId}/download",
+    "operation_id": "get_provider__reports___reportId___download",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderReportController@download",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderReportController.php:61"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/reports/{reportId}/file",
+    "operation_id": "get_provider__reports___reportId___file",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderReportController@file",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderReportController.php:75"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/emergency-email/{action}",
+    "operation_id": "get_emergency_email___action",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@tokenPage",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:45"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/emergency-email/{action}",
+    "operation_id": "post_emergency_email___action",
+    "classification": "supported",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\EmergencyEmailController@tokenAction",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/EmergencyEmailController.php:52"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/student-email/confirm",
+    "operation_id": "get_student_email__confirm",
+    "classification": "callback",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StudentVerificationController@confirm",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StudentVerificationController.php:56"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store-events/{platform}",
+    "operation_id": "post_store_events___platform",
+    "classification": "callback",
+    "authentication": "public",
+    "handler": "App\\Http\\Controllers\\StoreWebhookController",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/StoreWebhookController.php:14"
+  }
+]

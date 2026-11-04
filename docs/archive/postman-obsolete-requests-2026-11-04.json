@@ -1,0 +1,424 @@
+[
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Feelings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/feelings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "feelings"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Expressions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/feeling-expressions",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "feeling-expressions"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Causes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/feeling-causes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "feeling-causes"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Coping",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/coping-mechanisms",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "coping-mechanisms"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Overview",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/activity/overview",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "activity",
+            "overview"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Mood chart",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/activity/mood-chart?days=7",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "activity",
+            "mood-chart?days=7"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Triggers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/activity/common-triggers",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "activity",
+            "common-triggers"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Journal stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/activity/journal-stats",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "activity",
+            "journal-stats"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/activity/recommendations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "activity",
+            "recommendations"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Packages",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/subscription/packages",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "subscription",
+            "packages"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Activate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/subscription/activate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "subscription",
+            "activate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"package_id\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "reason": "Obsolete prototype route has no current operation. Preserved here for traceability; do not send it or infer a replacement with different semantics.",
+    "request": {
+      "name": "Cancel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/subscription/cancel",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "subscription",
+            "cancel"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  }
+]
