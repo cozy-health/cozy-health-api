@@ -49,7 +49,7 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest'
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|AdminRefinementTest'
       - name: Student review, email and reminder MySQL concurrency
         env:
           APP_ENV: testing
@@ -65,3 +65,18 @@ jobs:
           CACHE_STORE: array
           MAIL_MAILER: array
         run: php tests/Concurrency/mysql_students.php
+      - name: Support reply and privacy review MySQL concurrency
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: cozy_release_test
+          DB_USERNAME: root
+          DB_PASSWORD: isolated-test-password
+          DB_URL: ''
+          DB_TLS_ENFORCE: 'false'
+          QUEUE_CONNECTION: database
+          CACHE_STORE: array
+          MAIL_MAILER: array
+        run: php tests/Concurrency/mysql_customer_operations.php

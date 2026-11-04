@@ -20,30 +20,33 @@ class AdminOverviewController extends Controller
             $totals['consumer_accounts'] = DB::table('users')->where('role', 'user')->where('is_demo', false)->whereNull('deleted_at')->count();
             $resources[] = 'users';
         }
-        if ($token->can('admin:moderation')) {
+        $moderation = $token->can('admin:moderation');
+        $support = $token->can('admin:support') && in_array($request->user()->id, config('operations.support_reviewers', []), true);
+        if ($moderation || $support) {
             $windowStart = now('UTC')->subDays(30);
-            $resolution = [];
+            $resolution = ['reports' => ['median_seconds' => null, 'sample_count' => 0], 'support' => ['median_seconds' => null, 'sample_count' => 0]];
             foreach (['reports' => 'community_reports', 'support' => 'support_reports'] as $kind => $table) {
+                if ($kind === 'reports' ? !$moderation : !$support) continue;
                 $durations = DB::table($table)->where('status', 'resolved')->where('resolved_at', '>=', $windowStart)->where('resolved_at', '<=', now('UTC'))->get(['created_at', 'resolved_at'])
                     ->map(fn ($row) => max(0, CarbonImmutable::parse($row->resolved_at, 'UTC')->timestamp - CarbonImmutable::parse($row->created_at, 'UTC')->timestamp))->sort()->values();
                 $n = $durations->count();
                 $resolution[$kind] = ['median_seconds' => $n ? ($durations[(int) floor(($n - 1) / 2)] + $durations[(int) floor($n / 2)]) / 2 : null, 'sample_count' => $n];
             }
-            $oldest = DB::table('support_reports')->where('status', 'open')->min('created_at');
-            $queue = ['overdue_reports' => DB::table('community_reports')->where('status', 'pending')->where('due_at', '<', now('UTC'))->count(),
-                'oldest_open_support_seconds' => $oldest ? max(0, now('UTC')->timestamp - CarbonImmutable::parse($oldest, 'UTC')->timestamp) : null,
+            $oldest = $support ? DB::table('support_reports')->where('status', 'open')->min('created_at') : null;
+            $queue = [...($moderation ? ['overdue_reports' => DB::table('community_reports')->where('status', 'pending')->where('due_at', '<', now('UTC'))->count()] : []),
+                ...($support ? ['oldest_open_support_seconds' => $oldest ? max(0, now('UTC')->timestamp - CarbonImmutable::parse($oldest, 'UTC')->timestamp) : null] : []),
                 'resolution' => [...$resolution, 'window' => ['from' => $windowStart->toIso8601String(), 'to' => now('UTC')->toIso8601String()]]];
-            $totals['pending_reports'] = DB::table('community_reports')->where('status', 'pending')->count();
-            $totals['open_support'] = DB::table('support_reports')->where('status', 'open')->count();
+            if ($moderation) $totals['pending_reports'] = DB::table('community_reports')->where('status', 'pending')->count();
+            if ($support) $totals['open_support'] = DB::table('support_reports')->where('status', 'open')->count();
             // Return operational metadata only, never report bodies or author identity.
-            foreach (DB::table('community_reports')->where('status', 'pending')->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')->orderBy('due_at')->orderBy('created_at')->limit(5)->get(['id', 'created_at', 'due_at']) as $row) {
+            if ($moderation) foreach (DB::table('community_reports')->where('status', 'pending')->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')->orderBy('due_at')->orderBy('created_at')->limit(5)->get(['id', 'created_at', 'due_at']) as $row) {
                 $attention[] = ['kind' => 'reports', 'label' => 'Community report', 'id' => $row->id, 'created_at' => $row->created_at, 'due_at' => $row->due_at];
             }
-            foreach (DB::table('support_reports')->where('status', 'open')->orderBy('created_at')->limit(5)->get(['id', 'created_at']) as $row) {
+            if ($support) foreach (DB::table('support_reports')->where('status', 'open')->orderBy('created_at')->limit(5)->get(['id', 'created_at']) as $row) {
                 $attention[] = ['kind' => 'support', 'label' => 'Support request', 'id' => $row->id, 'created_at' => $row->created_at, 'due_at' => null];
             }
             usort($attention, fn ($a, $b) => strcmp($a['due_at'] ?? '9999', $b['due_at'] ?? '9999') ?: strcmp($a['created_at'], $b['created_at']));
-            $resources = [...$resources, 'community-reports', 'support-reports', 'community-posts', 'community-comments', 'community-members'];
+            $resources = [...$resources, ...($moderation ? ['community-reports', 'community-posts', 'community-comments', 'community-members'] : []), ...($support ? ['support-reports'] : [])];
         }
         if ($token->can('admin:subscriptions')) {
             $totals['active_subscriptions'] = DB::table('subscription_statuses')->join('users', 'users.id', '=', 'subscription_statuses.user_id')

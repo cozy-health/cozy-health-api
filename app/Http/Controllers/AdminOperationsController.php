@@ -10,7 +10,7 @@ class AdminOperationsController extends Controller
 {
     private function supportVersion(object $row): string
     {
-        return hash('sha256', json_encode([$row->id, $row->status, $row->admin_notes, $row->updated_at, $row->resolved_at], JSON_THROW_ON_ERROR));
+        return \App\Services\SupportThreads::recordVersion((array) $row);
     }
 
     public function reportDetail(Request $request, string $id)
@@ -29,7 +29,7 @@ class AdminOperationsController extends Controller
 
     public function supportDetail(Request $request, string $id)
     {
-        $row = DB::table('support_reports')->where('id', $id)->firstOrFail(['id', 'subject', 'message', 'status', 'admin_notes', 'created_at', 'updated_at', 'resolved_at']);
+        $row = DB::table('support_reports')->where('id', $id)->firstOrFail(['id', 'subject', 'message', 'status', 'admin_notes', 'created_at', 'updated_at', 'resolved_at', 'support_revision']);
         AdminAudit::record($request->user()->id, 'review-content', 'support-reports', $id);
 
         return response()->json(['data' => [...(array) $row, 'version' => $this->supportVersion($row)]])->header('Cache-Control', 'private, no-store');
@@ -142,7 +142,7 @@ class AdminOperationsController extends Controller
             if ($old->status !== $data['status']) {
                 $data['resolved_at'] = $data['status'] === 'resolved' ? now('UTC') : null;
             }
-            DB::table('support_reports')->where('id', $id)->update([...$data, 'updated_at' => now()]);
+            DB::table('support_reports')->where('id', $id)->update([...$data, 'support_revision' => DB::raw('support_revision + 1'), 'updated_at' => now()]);
             AdminAudit::record($request->user()->id, 'review', 'support-reports', $id, array_keys($data));
         });
 

@@ -1,5 +1,7 @@
 <?php
 
+\Illuminate\Support\Facades\Route::get('/support-inbox', fn () => response('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cozy Health support</title><main><h1>Your Cozy Health support inbox</h1><p>Open the app and sign in to read your private conversations.</p><p><a href="cozyhealth://support-inbox">Open Cozy Health</a></p><p>If the app does not open, go to Help &amp; Support, then My support conversations in your installed app.</p><p>This page contains no conversation details. Support is not an emergency service.</p></main></html>')->header('Content-Type', 'text/html; charset=utf-8')->header('Cache-Control', 'no-store')->header('Content-Security-Policy', "default-src 'none'; base-uri 'none'; frame-ancestors 'none'"))->withoutMiddleware('web')->middleware('api');
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/quiz-invite/{token}', fn () => response()->view('quiz.invitation')->header('Cache-Control', 'no-store')->header('Referrer-Policy', 'no-referrer')->header('X-Robots-Tag', 'noindex, nofollow'))

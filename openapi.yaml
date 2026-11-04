@@ -3506,7 +3506,10 @@
     },
     "/api/v1/support/reports": {
       "post": {
-        "summary": "Submit a private support report",
+        "summary": "Submit support report idempotently",
+        "tags": [
+          "Support"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -3530,6 +3533,10 @@
                   "message": {
                     "type": "string",
                     "maxLength": 10000
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "format": "uuid"
                   }
                 }
               }
@@ -3538,13 +3545,69 @@
         },
         "responses": {
           "201": {
-            "description": "Report saved for the current account. This is not a delivered support reply or an attachments service."
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
           },
           "401": {
             "description": "Authentication required."
           },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
           "422": {
-            "description": "Invalid report."
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      },
+      "get": {
+        "summary": "List own support conversations",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
           }
         }
       }
@@ -3930,6 +3993,941 @@
           },
           "503": {
             "description": "Student verification disabled or email unavailable."
+          }
+        }
+      }
+    },
+    "/api/v1/support/reports/{id}": {
+      "get": {
+        "summary": "Read own support conversation",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/support/reports/{id}/replies": {
+      "post": {
+        "summary": "Reply and reopen own support conversation",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "body",
+                  "request_id",
+                  "expected_version"
+                ],
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/support": {
+      "get": {
+        "summary": "List support requests; assigned support capability required",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "open",
+                "resolved"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                10,
+                20,
+                50
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/support/{id}": {
+      "get": {
+        "summary": "Read support review record and optimistic token",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      },
+      "put": {
+        "summary": "Save private notes or explicitly resolve/reopen",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "open",
+                      "resolved"
+                    ]
+                  },
+                  "admin_notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "expected_version": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/support/{id}/thread": {
+      "get": {
+        "summary": "Read support thread with private notes and notification states",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/support/{id}/replies": {
+      "post": {
+        "summary": "Save customer-visible staff reply",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "body",
+                  "request_id",
+                  "expected_version"
+                ],
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/support/{id}/messages/{messageId}/retry": {
+      "post": {
+        "summary": "Retry only confirmed failed notification; never duplicate reply",
+        "tags": [
+          "Support"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/privacy-requests": {
+      "get": {
+        "summary": "List own privacy requests",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit identity-verified customer privacy request",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "request_id",
+                  "password",
+                  "confirmed"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "export",
+                      "correction",
+                      "deletion"
+                    ]
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "writeOnly": true,
+                    "maxLength": 255
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "changes": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "username": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "bio": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "timezone": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "country_code": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/privacy-requests/{id}/download": {
+      "post": {
+        "summary": "Download own approved cloud ZIP with current password",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "maxLength": 255
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted.",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          },
+          "503": {
+            "description": "Archive preparation failed; no partial export returned."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/privacy-requests": {
+      "get": {
+        "summary": "List requests; assigned privacy capability required",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "pending",
+                "processing",
+                "held",
+                "completed",
+                "declined",
+                "failed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/privacy-requests/{id}": {
+      "get": {
+        "summary": "Read verified customer privacy request",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
+          }
+        }
+      }
+    },
+    "/api/v1/admin/privacy-requests/{id}/process": {
+      "post": {
+        "summary": "Approve, hold or decline verified request; deletion queues durable work",
+        "tags": [
+          "Privacy requests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "decision",
+                  "expected_version",
+                  "outcome"
+                ],
+                "properties": {
+                  "decision": {
+                    "enum": [
+                      "approve",
+                      "hold",
+                      "decline"
+                    ]
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation; customer records are owner-scoped; processing/queued does not mean delivered or deleted."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Role, capability or current reviewer assignment denied."
+          },
+          "404": {
+            "description": "Owned resource not found."
+          },
+          "409": {
+            "description": "Stale state, altered idempotency reuse, changed identity or unavailable action."
+          },
+          "422": {
+            "description": "Invalid input or failed current-password/email verification."
+          },
+          "429": {
+            "description": "Request rate exceeded."
           }
         }
       }

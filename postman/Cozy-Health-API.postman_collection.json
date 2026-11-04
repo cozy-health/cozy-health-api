@@ -1495,6 +1495,388 @@
           }
         }
       ]
+    },
+    {
+      "name": "Customer support and privacy",
+      "description": "Development only. Use customer token for owner routes and separately assigned support/privacy admin token for admin routes. See docs/CUSTOMER_OPERATIONS.md. Password fields are placeholders, never committed secrets.",
+      "item": [
+        {
+          "name": "List own support conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/support/reports"
+          }
+        },
+        {
+          "name": "Submit support report idempotently",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/support/reports",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Support request\",\n  \"message\": \"{{support_message}}\",\n  \"request_id\": \"{{request_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Read own support conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/support/reports/{{support_report_id}}"
+          }
+        },
+        {
+          "name": "Reply and reopen own support conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/support/reports/{{support_report_id}}/replies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"{{support_reply}}\",\n  \"request_id\": \"{{request_id}}\",\n  \"expected_version\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List support requests; assigned support capability required",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support"
+          }
+        },
+        {
+          "name": "Read support review record and optimistic token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support/{{support_report_id}}"
+          }
+        },
+        {
+          "name": "Save private notes or explicitly resolve/reopen",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support/{{support_report_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"open\",\n  \"admin_notes\": \"{{private_staff_note}}\",\n  \"expected_version\": \"{{record_version}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Read support thread with private notes and notification states",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support/{{support_report_id}}/thread"
+          }
+        },
+        {
+          "name": "Save customer-visible staff reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support/{{support_report_id}}/replies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"{{support_reply}}\",\n  \"request_id\": \"{{request_id}}\",\n  \"expected_version\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Retry only confirmed failed notification; never duplicate reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support/{{support_report_id}}/messages/{{support_message_id}}/retry",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List own privacy requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{base_url}}/privacy-requests"
+          }
+        },
+        {
+          "name": "Submit identity-verified customer privacy request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/privacy-requests",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"export\",\n  \"request_id\": \"{{request_id}}\",\n  \"password\": \"{{current_password}}\",\n  \"confirmed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Download own approved cloud ZIP with current password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/zip"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/privacy-requests/{{privacy_request_id}}/download",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{current_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List requests; assigned privacy capability required",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/privacy-requests"
+          }
+        },
+        {
+          "name": "Read verified customer privacy request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/privacy-requests/{{privacy_request_id}}"
+          }
+        },
+        {
+          "name": "Approve, hold or decline verified request; deletion queues durable work",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/privacy-requests/{{privacy_request_id}}/process",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"hold\",\n  \"expected_version\": 1,\n  \"outcome\": \"Awaiting customer clarification.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

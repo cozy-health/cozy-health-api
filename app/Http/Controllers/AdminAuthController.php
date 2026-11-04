@@ -20,6 +20,9 @@ class AdminAuthController extends Controller
         $expires = now()->addMinutes(30);
         $management = $request->input('session_mode') === 'management-v1';
         $abilities = $management ? ['admin:metrics', 'admin:users', 'admin:content', 'admin:moderation', 'admin:subscriptions', 'admin:email', ...(in_array($user->id, array_map('intval', array_filter(explode(',', (string) config('age.reviewers')))), true) ? ['admin:guardians'] : [])] : ['admin:metrics'];
+        if ($management) foreach (['support', 'privacy'] as $capability) {
+            if (in_array($user->id, config('operations.'.$capability.'_reviewers', []), true)) $abilities[] = 'admin:'.$capability;
+        }
         return response()->json(['token' => $user->createToken($management ? 'cozy-admin-management-v1' : 'cozy-admin-dashboard', $abilities, $expires)->plainTextToken,
             'expires_at' => $expires->toIso8601String()])->header('Cache-Control', 'private, no-store');
     }
@@ -28,6 +31,8 @@ class AdminAuthController extends Controller
     {
         $management = $request->user()->currentAccessToken()->name === 'cozy-admin-management-v1';
         $capabilities = array_values(array_diff($request->user()->currentAccessToken()->abilities, ['admin:development-access']));
+        $capabilities = array_values(array_filter($capabilities, fn ($capability) => !in_array($capability, ['admin:support', 'admin:privacy'], true)
+            || in_array($request->user()->id, config('operations.'.substr($capability, 6).'_reviewers', []), true)));
         if ($management && $request->user()->currentAccessToken()->can('admin:subscriptions') && app(\App\Services\DevelopmentTestAccess::class)->enabled()) $capabilities[] = 'admin:development-access';
         return response()->json(['role' => 'admin', ...($management ? ['name' => $request->user()->name, 'capabilities' => $capabilities] : [])])->header('Cache-Control', 'private, no-store');
     }

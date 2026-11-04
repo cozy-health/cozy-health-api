@@ -15,6 +15,7 @@ class AdminOverviewTest extends TestCase
     private function signIn(array $abilities, string $name = 'cozy-admin-management-v1'): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        config(['operations.support_reviewers' => [$admin->id]]);
         app('auth')->forgetGuards();
         $this->withToken($admin->createToken($name, $abilities, now()->addMinutes(30))->plainTextToken);
     }
@@ -39,7 +40,7 @@ class AdminOverviewTest extends TestCase
     {
         $user = User::factory()->create();
         $id = DB::table('support_reports')->insertGetId(['user_id' => $user->id, 'subject' => 'Local request', 'message' => 'Test', 'admin_notes' => 'Keep this note', 'status' => 'open', 'created_at' => now(), 'updated_at' => now()]);
-        $this->signIn(['admin:moderation']);
+        $this->signIn(['admin:support', 'admin:moderation']);
         $this->getJson('/api/v1/admin/support?status=open')->assertOk()->assertJsonPath('data.data.0.admin_notes', 'Keep this note');
         $this->putJson('/api/v1/admin/support/'.$id, ['status' => 'resolved'])->assertOk();
         $this->getJson('/api/v1/admin/support?status=resolved')->assertOk()->assertJsonPath('data.data.0.admin_notes', 'Keep this note');

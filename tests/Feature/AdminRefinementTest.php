@@ -13,9 +13,10 @@ class AdminRefinementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function signIn(array $abilities = ['admin:metrics', 'admin:moderation']): void
+    private function signIn(array $abilities = ['admin:metrics', 'admin:moderation', 'admin:support']): void
     {
         $user = User::factory()->create(['role' => 'admin']);
+        config(['operations.support_reviewers' => [$user->id]]);
         app('auth')->forgetGuards();
         $this->withToken($user->createToken('cozy-admin-management-v1', $abilities, now()->addMinutes(30))->plainTextToken);
     }

@@ -75,6 +75,19 @@ Route::prefix('v1')->group(function () {
         Route::middleware('admin.manage:users')->group(function () {
             Route::get('users', [\App\Http\Controllers\AdminUsersController::class, 'index']);
         });
+        Route::middleware('admin.manage:support')->group(function () {
+            Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
+            Route::get('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'supportDetail'])->whereNumber('id');
+            Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
+            Route::get('support/{id}/thread', [\App\Http\Controllers\AdminSupportController::class, 'show'])->whereNumber('id');
+            Route::post('support/{id}/replies', [\App\Http\Controllers\AdminSupportController::class, 'reply'])->whereNumber('id');
+            Route::post('support/{id}/messages/{messageId}/retry', [\App\Http\Controllers\AdminSupportController::class, 'retry'])->whereNumber('id')->whereUuid('messageId');
+        });
+        Route::middleware('admin.manage:privacy')->group(function () {
+            Route::get('privacy-requests', [\App\Http\Controllers\AdminPrivacyController::class, 'index']);
+            Route::get('privacy-requests/{id}', [\App\Http\Controllers\AdminPrivacyController::class, 'show'])->whereUuid('id');
+            Route::post('privacy-requests/{id}/process', [\App\Http\Controllers\AdminPrivacyController::class, 'process'])->whereUuid('id');
+        });
         Route::middleware('admin.manage:moderation')->group(function () {
             Route::get('community/{kind}', [\App\Http\Controllers\AdminCommunityController::class, 'index'])->where('kind', 'posts|comments|members');
             Route::get('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'show'])->where('kind', 'posts|comments')->whereUuid('id');
@@ -82,11 +95,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('community/members/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'removeMember'])->whereNumber('id');
             Route::get('reports', [\App\Http\Controllers\AdminOperationsController::class, 'reports']);
             Route::get('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'reportDetail'])->whereNumber('id');
-            Route::get('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'supportDetail'])->whereNumber('id');
             Route::get('reports/{id}/target', [\App\Http\Controllers\AdminOperationsController::class, 'target'])->whereNumber('id');
             Route::put('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'review'])->whereNumber('id');
-            Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
-            Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
         });
         Route::get('student-applications', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'index'])->middleware('admin.manage:subscriptions');
         Route::get('student-email-domains', [\App\Http\Controllers\AdminStudentDomainController::class, 'index'])->middleware('admin.manage:subscriptions');
@@ -309,6 +319,12 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::apiResource('notifications', NotificationController::class);
     Route::get('subscription', [SubscriptionController::class, 'show']);
     Route::post('support/reports', [\App\Http\Controllers\Api\V1\SupportController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('support/reports', [\App\Http\Controllers\Api\V1\SupportController::class, 'index']);
+    Route::get('privacy-requests', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'index']);
+    Route::post('privacy-requests', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'store'])->middleware('throttle:5,60,privacy-submit-');
+    Route::post('privacy-requests/{id}/download', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'download'])->whereUuid('id')->middleware('throttle:3,60,privacy-download-');
+    Route::get('support/reports/{id}', [\App\Http\Controllers\Api\V1\SupportController::class, 'show'])->whereNumber('id');
+    Route::post('support/reports/{id}/replies', [\App\Http\Controllers\Api\V1\SupportController::class, 'reply'])->whereNumber('id')->middleware('throttle:10,1');
     Route::get('subscription/prices', [SubscriptionController::class, 'prices'])->middleware('throttle:60,1');
     Route::post('sync/batch', [SyncController::class, 'batch'])->middleware('throttle:60,1');
 });
