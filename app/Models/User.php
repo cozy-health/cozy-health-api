@@ -117,7 +117,8 @@ class User extends Authenticatable
 
     public function providerConnection()
     {
-        return $this->hasOne(ProviderClientLink::class)->ofMany(['id' => 'max'], fn ($query) => $query->whereNull('revoked_at'));
+        return $this->hasOne(ProviderClientLink::class)->ofMany(['id' => 'max'], fn ($query) => $query->whereNull('revoked_at')
+            ->where(fn ($eligible) => $eligible->whereNull('replacement_of_link_id')->orWhereNotNull('verified_at')));
     }
 
     public function subscription()

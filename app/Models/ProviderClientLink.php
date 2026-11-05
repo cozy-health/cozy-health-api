@@ -22,6 +22,11 @@ class ProviderClientLink extends Model
     protected static function booted(): void
     {
         static::updated(function (self $link) {
+            if ($link->isDirty('revoked_at') && $link->revoked_at) {
+                static::where('replacement_of_link_id', $link->id)->where('replacement_status', 'pending')
+                    ->whereNull('revoked_at')->update(['replacement_status' => 'cancelled', 'revoked_at' => now(),
+                        'verification_code' => null, 'invitation_code_secret' => null, 'invitation_code_lookup' => null, 'verification_expires_at' => null]);
+            }
             if (($link->isDirty('consent_journals') && ! $link->consent_journals)
                 || ($link->isDirty('revoked_at') && $link->revoked_at)
                 || $link->isDirty('provider_id') || ($link->isDirty('verified_at') && ! $link->verified_at)) {

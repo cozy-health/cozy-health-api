@@ -58,6 +58,7 @@ class ProviderInvitationController extends Controller
             foreach ($link->consentFlags() as $type => $allowed) {
                 abort_unless($allowed === (bool) $request->input('consent_flags.'.$type), 409, 'The patient changed their sharing choices. Review the invitation again.');
             }
+            app(\App\Services\Provider\ProviderReplacementService::class)->accept($request, $link);
             $link->update(['provider_id' => $request->user()->id, 'verified_at' => now(), 'linked_at' => now(),
                 'provider_acknowledged_at' => now(), 'verification_code' => null,
                 'invitation_code_lookup' => null, 'verification_expires_at' => null]);

@@ -3312,5 +3312,29 @@
     "handler": "App\\Http\\Controllers\\StoreWebhookController",
     "validation_sources": [],
     "source": "app/Http/Controllers/StoreWebhookController.php:14"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/provider/replacements",
+    "operation_id": "post_provider__replacements",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderReplacementController@store",
+    "validation_sources": [
+      "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/provider/replacements/{requestId}",
+    "operation_id": "delete_provider__replacements__requestId",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\ProviderReplacementController@destroy",
+    "validation_sources": [
+      "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
+    ],
+    "source": "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
   }
 ]

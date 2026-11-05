@@ -38,6 +38,8 @@ class ProviderController extends Controller
         $connection = DB::transaction(function () use ($r, $email, $provider, $validated, &$code) {
             // Serialize requests for a patient, including retries of a revoked invitation.
             $r->user()->newQuery()->whereKey($r->user()->id)->lockForUpdate()->firstOrFail();
+            abort_if(ProviderClientLink::where('user_id', $r->user()->id)->where('replacement_status', 'pending')
+                ->whereNull('revoked_at')->where('verification_expires_at', '>', now())->exists(), 409, 'Finish or cancel the pending replacement first.');
             $existing = ProviderClientLink::where('user_id', $r->user()->id)
                 ->where(function ($query) use ($email, $provider) {
                     $query->where('provider_email', $email);
@@ -55,6 +57,8 @@ class ProviderController extends Controller
                 $code = (string) random_int(100000, 999999);
             }
             $connection = $existing ?? new ProviderClientLink(['user_id' => $r->user()->id]);
+            $connection->forceFill(['replacement_of_link_id' => null, 'replacement_request_id' => null,
+                'replacement_qualifying_message_id' => null, 'replacement_started_at' => null, 'replacement_status' => null]);
             $connection->fill([
                 'provider_id' => $provider?->id,
                 'provider_email' => $email,
@@ -132,6 +136,10 @@ class ProviderController extends Controller
 
     public function cancelInvitation(Request $request, string $linkId)
     {
+        $replacement = $request->user()->providerClientLinks()->whereKey($linkId)->whereNotNull('replacement_of_link_id')->first();
+        if ($replacement) {
+            abort(409, 'Use the replacement invitation controls to cancel this request.');
+        }
         return DB::transaction(function () use ($request, $linkId) {
             $link = $request->user()->providerClientLinks()->whereKey($linkId)->lockForUpdate()->firstOrFail();
             abort_if($link->verified_at && ! $link->revoked_at, 409, 'This provider has already accepted. Refresh the connection before making changes.');
@@ -164,6 +172,7 @@ class ProviderController extends Controller
     private function providerPayload(?ProviderClientLink $connection): array
     {
         return [
+            'replacement' => app(\App\Services\Provider\ProviderReplacementService::class)->state(request()->user(), $connection),
             'has_provider' => $connection?->verified_at !== null,
             'provider' => $connection === null ? null : [
                 ...$connection->toArray(),

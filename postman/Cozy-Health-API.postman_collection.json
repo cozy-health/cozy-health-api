@@ -12735,6 +12735,48 @@
           }
         }
       ]
+    },
+    {
+      "name": "Provider replacements",
+      "item": [
+        {
+          "name": "Start a provider replacement after 168 unanswered hours",
+          "x-cozy-operation-id": "post_provider__replacements",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/replacements",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"original_link_id\": 1,\n  \"provider_email\": \"replacement@example.test\",\n  \"request_id\": \"bda07b0e-a209-4862-bbc8-b04c46b62bd3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel a pending provider replacement by request UUID",
+          "x-cozy-operation-id": "delete_provider__replacements__requestId",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/replacements/{{replacement_request_id}}"
+          }
+        }
+      ]
     }
   ],
   "variable": [

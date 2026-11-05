@@ -253,5 +253,6 @@ it('returns the empty mobile state after deleting the connection', function () {
     ProviderClientLink::create(['user_id' => $user->id, 'provider_email' => 'therapist@example.com', 'verified_at' => now()]);
     $this->deleteJson('/api/v1/provider')->assertExactJson(['success' => true,
         'message' => 'Provider connection removed.', 'data' => null]);
-    $this->getJson('/api/v1/provider')->assertExactJson(['has_provider' => false, 'provider' => null]);
+    $this->getJson('/api/v1/provider')->assertExactJson(['has_provider' => false, 'provider' => null,
+        'replacement' => ['eligible' => false, 'qualifying_message_id' => null, 'eligible_at' => null, 'pending' => null]]);
 });

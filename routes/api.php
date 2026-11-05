@@ -245,6 +245,8 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
     Route::delete('provider/invitations/{linkId}', [ProviderController::class, 'cancelInvitation'])->middleware('throttle:30,1');
     Route::get('provider', [ProviderController::class, 'show']);
+    Route::post('provider/replacements', [\App\Http\Controllers\Api\V1\ProviderReplacementController::class, 'store'])->middleware('throttle:5,1');
+    Route::delete('provider/replacements/{requestId}', [\App\Http\Controllers\Api\V1\ProviderReplacementController::class, 'destroy'])->whereUuid('requestId')->middleware('throttle:30,1');
     Route::post('provider/request', [ProviderController::class, 'requestCode'])->middleware('throttle:5,1');
     Route::post('provider/verify', [ProviderController::class, 'verify'])->middleware('throttle:10,1');
     Route::delete('provider', [ProviderController::class, 'destroy']);
