@@ -30,9 +30,17 @@ jobs:
           php-version: '8.2'
           extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd
           coverage: none
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Prepare application and required audio tooling
+        run: |
+          # The Azure archive stalled FFmpeg installation until the job timed out.
+          # Keep Ubuntu's signed packages and suites; use the primary archive.
+          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          fi
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y ffmpeg
+          ffmpeg -version
+          ffprobe -version
           mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
           cp .env.example .env
           composer install --no-interaction --prefer-dist
