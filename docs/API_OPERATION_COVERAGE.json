@@ -1246,6 +1246,16 @@
     "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28"
   },
   {
+    "method": "GET",
+    "path": "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}/audio",
+    "operation_id": "getPatientJournalSharedAudio",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@audio",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:40"
+  },
+  {
     "method": "DELETE",
     "path": "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}",
     "operation_id": "revokeProviderJournalShare",
@@ -2982,6 +2992,16 @@
     "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@show",
     "validation_sources": [],
     "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/conversations/{linkId}/journal-shares/{shareId}/audio",
+    "operation_id": "getProviderJournalSharedAudio",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@audio",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:40"
   },
   {
     "method": "GET",

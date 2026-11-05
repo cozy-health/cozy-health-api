@@ -2,7 +2,7 @@
 
 namespace App\Services\Provider;
 
-use App\Models\{JournalEntry, JournalShare, Provider, ProviderClientLink, ProviderMessage, User};
+use App\Models\{AudioAttachment, JournalEntry, JournalShare, Provider, ProviderClientLink, ProviderMessage, User};
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -29,12 +29,22 @@ class JournalSharingService
 
     private function written(JournalEntry $entry): void
     {
+        if ($entry->type === 'voice') {
+            abort_if($entry->is_draft || ! $entry->audio_attachment_id, 422, 'Save and sync the voice entry before sharing.');
+            app(\App\Services\AudioAttachmentService::class)->reference(User::findOrFail($entry->user_id), $entry->audio_attachment_id, 'journal');
+            return;
+        }
         abort_if($entry->is_draft || ! in_array($entry->type, ['free', 'guided', 'text'], true) || filled($entry->audio_attachment_id)
-            || filled($entry->voice_url) || blank($entry->body), 422, 'Save and sync a written entry before sharing. Audio sharing is unavailable.');
+            || filled($entry->voice_url) || blank($entry->body), 422, 'Save and sync the entry before sharing.');
     }
 
     private function snapshot(JournalEntry $entry): array
     {
+        if ($entry->type === 'voice') {
+            $audio = AudioAttachment::findOrFail($entry->audio_attachment_id);
+            return ['kind' => 'voice', 'title' => (string) $entry->title, 'body' => '',
+                'audio' => ['id' => $audio->id, 'duration' => $audio->duration, 'media_type' => $audio->media_type]];
+        }
         return ['title' => (string) $entry->title, 'body' => (string) $entry->body];
     }
 
@@ -115,7 +125,17 @@ class JournalSharingService
         $base = ['type' => 'journal_shares', 'id' => $shareId];
         $share = JournalShare::whereKey($shareId)->first();
         if (! $share || ! $this->visible($link, $share)) return $base + ['unavailable' => true];
-        return $base + ['data' => ['requires_online_review' => true, 'label' => 'Shared written journal entry']];
+        return $base + ['data' => ['requires_online_review' => true, 'label' => ($share->snapshot['kind'] ?? null) === 'voice' ? 'Shared voice journal entry' : 'Shared written journal entry']];
+    }
+
+    public function audio(User|Provider $actor, string $linkId, string $shareId): AudioAttachment
+    {
+        $copy = $this->read($actor, $linkId, $shareId);
+        abort_unless(($copy['entry']['kind'] ?? null) === 'voice', 404);
+        $audio = AudioAttachment::findOrFail($copy['entry']['audio']['id'] ?? null);
+        $share = JournalShare::findOrFail($shareId);
+        abort_unless($audio->owner_type === 'patient' && (int) $audio->owner_id === (int) $share->user_id && $audio->purpose === 'journal', 404);
+        return $audio;
     }
 
     public function revoke(User $actor, string $linkId, string $shareId): void

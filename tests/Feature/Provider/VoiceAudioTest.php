@@ -119,6 +119,85 @@ class VoiceAudioTest extends ProviderDataTestCase
         return $path;
     }
 
+    public function test_saved_voice_journal_can_be_explicitly_shared_without_opening_owner_audio_route(): void
+    {
+        Storage::fake('local');
+        $provider = $this->provider(); $user = User::factory()->create();
+        $link = $this->link($provider, $user, ['consent_journals' => true]);
+        $this->withToken($user->createToken('patient')->plainTextToken);
+        $audioId = $this->upload('journal')->assertCreated()->json('id');
+        $entry = JournalEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id,
+            'type' => 'voice', 'title' => 'Voice reflection', 'body' => '', 'is_draft' => false,
+            'audio_attachment_id' => $audioId]);
+        $path = "/api/v1/provider-conversations/{$link->id}/journal-shares";
+        $preview = $this->getJson("$path/preview?journal_id={$entry->id}")->assertOk()
+            ->assertJsonPath('entry.kind', 'voice')->assertJsonPath('entry.audio.id', $audioId);
+        $payload = ['journal_id' => $entry->id, 'client_id' => (string) Str::uuid(),
+            'expected_revision' => $preview->json('revision'), 'confirmed' => true];
+        $shareId = $this->postJson($path, $payload)->assertCreated()->json('share_id');
+        $this->postJson($path, $payload)->assertOk()->assertJsonPath('share_id', $shareId);
+        $providerPath = "/api/v1/provider/conversations/{$link->id}/journal-shares/$shareId";
+        $this->asProvider($provider)->getJson($providerPath)->assertOk()->assertJsonPath('entry.audio.id', $audioId);
+        $this->get("$providerPath/audio", ['Range' => 'bytes=0-3'])->assertStatus(206)->assertHeader('Content-Length', '4');
+        $this->getJson('/api/v1/provider/audio-attachments/'.$audioId)->assertNotFound();
+        $this->asProvider($this->provider())->getJson("$providerPath/audio")->assertNotFound();
+        $this->withToken($user->createToken('withdraw')->plainTextToken)->deleteJson("$path/$shareId")->assertOk();
+        $this->asProvider($provider)->getJson("$providerPath/audio")->assertNotFound();
+    }
+
+    public function test_voice_share_snapshot_retains_original_audio_until_withdrawal(): void
+    {
+        Storage::fake('local');
+        $provider = $this->provider(); $user = User::factory()->create();
+        $link = $this->link($provider, $user, ['consent_journals' => true]);
+        $this->withToken($user->createToken('patient')->plainTextToken);
+        $audioId = $this->upload('journal')->assertCreated()->json('id');
+        $entry = JournalEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id,
+            'type' => 'voice', 'title' => 'Original', 'body' => '', 'is_draft' => false, 'audio_attachment_id' => $audioId]);
+        $path = "/api/v1/provider-conversations/{$link->id}/journal-shares";
+        $preview = $this->getJson("$path/preview?journal_id={$entry->id}")->assertOk();
+        $payload = ['journal_id' => $entry->id, 'client_id' => (string) Str::uuid(),
+            'expected_revision' => $preview->json('revision'), 'confirmed' => true];
+        $shareId = $this->postJson($path, $payload)->assertCreated()->json('share_id');
+        $nextAudio = $this->upload('journal')->assertCreated()->json('id');
+        $entry->update(['title' => 'Private edit', 'voice_url' => '/audio-attachments/'.$nextAudio]);
+        $this->postJson($path, [...$payload, 'client_id' => (string) Str::uuid()])->assertConflict();
+        $this->getJson("$path/$shareId")->assertOk()->assertJsonPath('entry.title', 'Original')->assertJsonPath('entry.audio.id', $audioId);
+        $this->travel(8)->days();
+        $this->assertSame(0, app(AudioAttachmentService::class)->cleanup());
+        $this->get("$path/$shareId/audio")->assertOk();
+        $this->deleteJson("$path/$shareId")->assertOk();
+        $this->assertSame(1, app(AudioAttachmentService::class)->cleanup());
+        $this->assertDatabaseMissing('audio_attachments', ['id' => $audioId]);
+    }
+
+    public function test_voice_share_access_ends_with_consent_relationship_or_source_deletion(): void
+    {
+        Storage::fake('local');
+        $provider = $this->provider(); $user = User::factory()->create();
+        $link = $this->link($provider, $user, ['consent_journals' => true]);
+        $this->withToken($user->createToken('patient')->plainTextToken);
+        $audioId = $this->upload('journal')->assertCreated()->json('id');
+        $entry = JournalEntry::create(['id' => (string) Str::uuid(), 'user_id' => $user->id,
+            'type' => 'voice', 'title' => 'Voice', 'body' => '', 'is_draft' => false, 'audio_attachment_id' => $audioId]);
+        $path = "/api/v1/provider-conversations/{$link->id}/journal-shares";
+        $preview = $this->getJson("$path/preview?journal_id={$entry->id}")->assertOk();
+        $shareId = $this->postJson($path, ['journal_id' => $entry->id, 'client_id' => (string) Str::uuid(),
+            'expected_revision' => $preview->json('revision'), 'confirmed' => true])->assertCreated()->json('share_id');
+        $audioPath = "/api/v1/provider/conversations/{$link->id}/journal-shares/$shareId/audio";
+        $this->asProvider($provider)->get($audioPath)->assertOk();
+        $this->get($audioPath, ['Range' => 'bytes=999999999-'])->assertStatus(416);
+        $link->update(['consent_journals' => false]);
+        $this->getJson($audioPath)->assertNotFound();
+        $link->update(['consent_journals' => true, 'revoked_at' => now()]);
+        $this->getJson($audioPath)->assertNotFound();
+        $link->update(['revoked_at' => null]);
+        $entry->delete();
+        $this->getJson($audioPath)->assertNotFound();
+        $this->getJson("/api/v1/provider/conversations/{$link->id}/messages")->assertOk()
+            ->assertJsonMissingPath('data.0.records.0.data.audio');
+    }
+
     public function test_browser_webm_is_converted_to_m4a_with_measured_duration(): void
     {
         Storage::fake('local');

@@ -5372,7 +5372,7 @@
                 }
               ]
             },
-            "description": "Preview one saved written entry for one active connected provider. Does not send or grant access. Audio is excluded.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:12. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+            "description": "Preview one saved written or voice entry for one active connected provider. Does not send or grant access. Voice preview includes the selected audio identity and duration; nothing is sent until confirmation.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:12. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
           }
         },
         {
@@ -5473,6 +5473,58 @@
               ]
             },
             "description": "Read an explicitly shared copy online. Full text is excluded from conversation-message responses and must not be durably cached. Later edits are not reflected.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+          }
+        },
+        {
+          "name": "GET provider-conversations/{linkId}/journal-shares/{shareId}/audio",
+          "x-cozy-operation-id": "getPatientJournalSharedAudio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "audio/mp4"
+              },
+              {
+                "key": "Range",
+                "value": "bytes=0-3",
+                "disabled": true
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/provider-conversations/:linkId/journal-shares/:shareId/audio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider-conversations",
+                ":linkId",
+                "journal-shares",
+                ":shareId",
+                "audio"
+              ],
+              "variable": [
+                {
+                  "key": "linkId",
+                  "value": "{{linkId}}"
+                },
+                {
+                  "key": "shareId",
+                  "value": "{{shareId}}"
+                }
+              ]
+            },
+            "description": "Authenticated online-only playback of the audio snapshot explicitly shared with this provider. Rechecks ownership, active relationship, journal consent, source existence and withdrawal on every request. Later edits remain private. Supports one byte range; never cache the bytes. Use only owned synthetic development fixtures."
           }
         },
         {
@@ -11327,6 +11379,59 @@
               ]
             },
             "description": "Read an explicitly shared copy online. Full text is excluded from conversation-message responses and must not be durably cached. Later edits are not reflected.\n\nCurrent provider operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:28. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+          }
+        },
+        {
+          "name": "GET provider/conversations/{linkId}/journal-shares/{shareId}/audio",
+          "x-cozy-operation-id": "getProviderJournalSharedAudio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "audio/mp4"
+              },
+              {
+                "key": "Range",
+                "value": "bytes=0-3",
+                "disabled": true
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{provider_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/provider/conversations/:linkId/journal-shares/:shareId/audio",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "conversations",
+                ":linkId",
+                "journal-shares",
+                ":shareId",
+                "audio"
+              ],
+              "variable": [
+                {
+                  "key": "linkId",
+                  "value": "{{linkId}}"
+                },
+                {
+                  "key": "shareId",
+                  "value": "{{shareId}}"
+                }
+              ]
+            },
+            "description": "Authenticated online-only playback of the audio snapshot explicitly shared with this provider. Rechecks ownership, active relationship, journal consent, source existence and withdrawal on every request. Later edits remain private. Supports one byte range; never cache the bytes. Use only owned synthetic development fixtures."
           }
         },
         {

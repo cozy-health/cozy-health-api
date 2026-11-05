@@ -227,19 +227,7 @@
             }
           },
           "entry": {
-            "type": "object",
-            "required": [
-              "title",
-              "body"
-            ],
-            "properties": {
-              "title": {
-                "type": "string"
-              },
-              "body": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/JournalSharedEntry"
           },
           "later_edits_shared": {
             "const": false
@@ -287,19 +275,7 @@
             "format": "uuid"
           },
           "entry": {
-            "type": "object",
-            "required": [
-              "title",
-              "body"
-            ],
-            "properties": {
-              "title": {
-                "type": "string"
-              },
-              "body": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/JournalSharedEntry"
           },
           "shared_at": {
             "type": "string",
@@ -930,6 +906,75 @@
           }
         },
         "description": "Pending proof does not grant private access. No access or refresh credential is issued in this response."
+      },
+      "JournalSharedEntry": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "title",
+              "body"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "written"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "title",
+              "body",
+              "audio"
+            ],
+            "properties": {
+              "kind": {
+                "const": "voice"
+              },
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string",
+                "const": ""
+              },
+              "audio": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "duration",
+                  "media_type"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 300
+                  },
+                  "media_type": {
+                    "type": "string",
+                    "const": "audio/mp4"
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   },
@@ -3290,7 +3335,7 @@
     "/api/v1/provider-conversations/{linkId}/journal-shares/preview": {
       "get": {
         "operationId": "previewProviderJournalShare",
-        "description": "Preview one saved written entry for one active connected provider. Does not send or grant access. Audio is excluded.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:12. ",
+        "description": "Preview one saved written or voice entry for one active connected provider. Does not send or grant access. Voice preview includes the selected audio identity and duration; nothing is sent until confirmation.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:12. ",
         "security": [
           {
             "bearerAuth": []
@@ -3344,7 +3389,7 @@
             "description": "Record or connection unavailable"
           },
           "422": {
-            "description": "Invalid or unavailable written entry"
+            "description": "Invalid, unsaved or unsynced entry"
           },
           "429": {
             "description": "Rate limited"
@@ -3435,7 +3480,7 @@
             "description": "Entry changed, request ID conflict, or shared copy withdrawn; review again"
           },
           "422": {
-            "description": "Invalid or unavailable written entry"
+            "description": "Invalid, unsaved or unsynced entry"
           },
           "429": {
             "description": "Rate limited"
@@ -3523,7 +3568,7 @@
             "description": "Record or connection unavailable"
           },
           "422": {
-            "description": "Invalid or unavailable written entry"
+            "description": "Invalid, unsaved or unsynced entry"
           },
           "429": {
             "description": "Rate limited"
@@ -3584,7 +3629,7 @@
             "description": "Record or connection unavailable"
           },
           "422": {
-            "description": "Invalid or unavailable written entry"
+            "description": "Invalid, unsaved or unsynced entry"
           },
           "429": {
             "description": "Rate limited"
@@ -3662,7 +3707,7 @@
             "description": "Record or connection unavailable"
           },
           "422": {
-            "description": "Invalid or unavailable written entry"
+            "description": "Invalid, unsaved or unsynced entry"
           },
           "429": {
             "description": "Rate limited"
@@ -27228,6 +27273,247 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/provider-conversations/{linkId}/journal-shares/{shareId}/audio": {
+      "get": {
+        "operationId": "getPatientJournalSharedAudio",
+        "description": "Authenticated online-only playback of the audio snapshot explicitly shared with this provider. Rechecks ownership, active relationship, journal consent, source existence and withdrawal on every request. Later edits remain private. Supports one byte range; never cache the bytes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "bytes=0-3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private AAC/M4A recording",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "bytes"
+              }
+            },
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Requested byte range",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "bytes"
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Share, recording or connection unavailable"
+          },
+          "416": {
+            "description": "Unsatisfiable byte range"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "summary": "Play explicitly shared voice journal",
+        "tags": [
+          "provider-conversations"
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@audio",
+        "x-cozy-middleware": [
+          "api",
+          "auth:sanctum",
+          "App\\Http\\Middleware\\EnsurePatient",
+          "App\\Http\\Middleware\\EnforcePlanAccess",
+          "throttle:60,1"
+        ],
+        "x-cozy-validation-source": [],
+        "x-cozy-source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:40"
+      }
+    },
+    "/api/v1/provider/conversations/{linkId}/journal-shares/{shareId}/audio": {
+      "get": {
+        "operationId": "getProviderJournalSharedAudio",
+        "description": "Authenticated online-only playback of the audio snapshot explicitly shared with this provider. Rechecks ownership, active relationship, journal consent, source existence and withdrawal on every request. Later edits remain private. Supports one byte range; never cache the bytes.",
+        "security": [
+          {
+            "providerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "bytes=0-3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private AAC/M4A recording",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "bytes"
+              }
+            },
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Requested byte range",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "bytes"
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Share, recording or connection unavailable"
+          },
+          "416": {
+            "description": "Unsatisfiable byte range"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "summary": "Play explicitly shared voice journal",
+        "tags": [
+          "provider"
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\JournalSharingController@audio",
+        "x-cozy-middleware": [
+          "api",
+          "auth:provider",
+          "App\\Http\\Middleware\\EnsureActiveProvider",
+          "throttle:60,1"
+        ],
+        "x-cozy-validation-source": [],
+        "x-cozy-source": "app/Http/Controllers/Api/V1/Provider/JournalSharingController.php:40"
       }
     }
   }

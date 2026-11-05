@@ -36,4 +36,9 @@ class JournalSharingController extends Controller
         $shares->revoke($request->user(), $linkId, $shareId);
         return response()->json(['message' => 'Shared copy withdrawn.'])->header('Cache-Control', 'private, no-store');
     }
+
+    public function audio(Request $request, string $linkId, string $shareId, JournalSharingService $shares)
+    {
+        return \App\Services\PrivateAudioResponse::make($request, $shares->audio($request->user(), $linkId, $shareId));
+    }
 }
