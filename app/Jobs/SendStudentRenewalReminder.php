@@ -32,14 +32,15 @@ class SendStudentRenewalReminder implements ShouldQueue, ShouldBeEncrypted
             $row = DB::table('student_renewal_reminders')->where('id', $this->reminderId)->lockForUpdate()->first();
             if (!$row || !in_array($row->status, ['pending', 'failed'], true)) return;
             $current = app(StudentEligibility::class)->current($application->user_id);
-            $window = $current ? ($current->eligible_until->lte(now()->addDay()) ? 1 : ($current->eligible_until->lte(now()->addDays(7)) ? 7 : 30)) : null;
+            $expired = !$current && $application->eligible_until && $application->eligible_until->lte(now());
+            $window = $expired ? 0 : ($current ? ($current->eligible_until->lte(now()->addDay()) ? 1 : ($current->eligible_until->lte(now()->addDays(7)) ? 7 : 30)) : null);
             if (!config('launch.student.enabled') || !$user || !$user->is_active || !$user->email_verified_at || $user->email_invalid
-                || !hash_equals($row->email_key, StudentEligibility::emailKey($user->email)) || $current?->id !== $application->id || $window !== (int) $row->days) {
+                || !hash_equals($row->email_key, StudentEligibility::emailKey($user->email)) || (!$expired && $current?->id !== $application->id) || $window !== (int) $row->days) {
                 DB::table('student_renewal_reminders')->where('id', $this->reminderId)->update(['status' => 'obsolete', 'updated_at' => now()]);
                 return;
             }
-            $mail = new BrandedNoticeMail('Renew your Student eligibility', 'Your Student eligibility is expiring',
-                ['Your Student eligibility ends on '.$current->eligible_until->toDateString().'.', 'Open Student verification in Cozy Health to verify your school email again or submit fresh current-term documents.', 'Renewal opens 30 days before expiry. Your already-paid subscription period is preserved; renewing eligibility does not activate or charge for a subscription.']);
+            $mail = new BrandedNoticeMail('Renew your Student eligibility', $expired ? 'Verify your school email again' : 'Your Student eligibility is expiring',
+                ['Your Student eligibility expiry date is '.$application->eligible_until->toDateString().'.', 'Open Student verification in Cozy Health to verify your school email again.', 'Renewal opens 30 days before expiry. Your already-paid subscription period is preserved; renewing eligibility does not activate or charge for a subscription.']);
             $mail->deliveryId = $this->reminderId;
             Mail::to($user->email)->send($mail);
             DB::table('student_renewal_reminders')->where('id', $this->reminderId)->update(['status' => 'sent', 'updated_at' => now()]);

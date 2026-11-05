@@ -13,7 +13,16 @@ class StoreBillingController extends Controller
     public function configuration(Request $request)
     {
         DB::table('store_accounts')->insertOrIgnore(['user_id' => $request->user()->id, 'account_token' => (string) Str::uuid()]);
-        return response()->json(['enabled' => (bool) config('launch.billing_enabled'), 'account_token' => DB::table('store_accounts')->where('user_id', $request->user()->id)->value('account_token'), 'products' => config('launch.products'), 'student_eligible' => app(StudentEligibility::class)->current($request->user()->id) !== null]);
+        return response()->json(['enabled' => (bool) config('launch.billing_enabled'), 'account_token' => DB::table('store_accounts')->where('user_id', $request->user()->id)->value('account_token'), 'products' => config('launch.products'), 'platform_ready' => ['apple' => app(\App\Services\StoreBillingReadiness::class)->platform('apple'), 'google' => app(\App\Services\StoreBillingReadiness::class)->platform('google')], 'student_eligibility' => app(StudentEligibility::class)->status($request->user()->id), 'student_eligible' => app(StudentEligibility::class)->current($request->user()->id) !== null]);
+    }
+    public function purchaseCheck(Request $request)
+    {
+        $data = $request->validate(['platform' => 'required|in:apple,google', 'product_id' => 'required|string|max:255']);
+        abort_unless(app(\App\Services\StoreBillingReadiness::class)->platform($data['platform']), 503, 'Store purchasing is not configured yet.');
+        $product = config('launch.products')[$data['product_id']] ?? null;
+        abort_unless(is_array($product) && ($product['platform'] ?? '') === $data['platform'] && in_array($product['tier'] ?? '', ['standard', 'premium', 'student'], true), 422, 'Unrecognized store product.');
+        if ($product['tier'] === 'student') abort_unless(app(StudentEligibility::class)->current($request->user()->id), 403, 'Verify your school email before starting a Student purchase.');
+        return response()->json(['allowed' => true])->header('Cache-Control', 'private, no-store');
     }
     public function verify(Request $request, StorePurchaseVerifier $verifier)
     {

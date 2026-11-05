@@ -14,13 +14,14 @@ final class StudentRenewalReminders
     {
         if (!config('launch.student.enabled')) return 0;
         DB::table('student_email_challenges')->where('expires_at', '<=', now())->delete();
-        StudentApplication::where('status', 'approved')->where('eligible_until', '>', now())
+        StudentApplication::whereIn('status', ['approved', 'expired'])->where('eligible_until', '>', now()->subDay())
             ->where('eligible_until', '<=', now()->addDays(30))->eachById(function ($application) {
                 $current = app(StudentEligibility::class)->current($application->user_id);
-                if ($current?->id !== $application->id) return;
+                if ($current && $current->id !== $application->id) return;
+                if (!$current && StudentApplication::where('user_id', $application->user_id)->where('eligible_until', '>', $application->eligible_until)->exists()) return;
                 $user = User::find($application->user_id);
                 if (!$user || !$user->is_active || !$user->email_verified_at || $user->email_invalid) return;
-                $days = $application->eligible_until->lte(now()->addDay()) ? 1 : ($application->eligible_until->lte(now()->addDays(7)) ? 7 : 30);
+                $days = $application->eligible_until->lte(now()) ? 0 : ($application->eligible_until->lte(now()->addDay()) ? 1 : ($application->eligible_until->lte(now()->addDays(7)) ? 7 : 30));
                 DB::table('student_renewal_reminders')->insertOrIgnore(['id' => (string) Str::uuid(), 'application_id' => $application->id,
                     'days' => $days, 'status' => 'pending', 'email_key' => StudentEligibility::emailKey($user->email), 'created_at' => now(), 'updated_at' => now()]);
             });

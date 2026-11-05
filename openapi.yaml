@@ -6554,7 +6554,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Upload recent current-term enrollment letter, registration record or student ID showing current validity. Submitted evidence is locked. Approval or rejection immediately closes access and attempts physical deletion with durable cleanup retry; abandoned evidence expires after 14 days. Renewal opens 30 days early and adds 12 months from the current expiry; rejection leaves an existing eligibility period intact. No paid receipt or subscription is created.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/StudentVerificationController.php:24. ",
+        "description": "Historical document flow, disabled by default at launch. Returns 422 with school-email instructions when documents are disabled.",
         "requestBody": {
           "required": true,
           "content": {
@@ -6640,7 +6640,7 @@
           "Students"
         ],
         "summary": "Request student email verification",
-        "description": "School email can differ from login. Requires an exact enabled student-only domain. Sends a 15-minute single-use code and verification link; returns challenge_id. Two requests per hour per account. Replaces prior proof. Unknown domains return code student_domain_unapproved and must use document review.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/StudentEmailController.php:17. ",
+        "description": "Verify ownership of a Nigerian academic mailbox (.edu.ng or approved exact exception). Six-digit code expires after ten minutes and three incorrect attempts. One send per minute, five per hour per account/address and twenty per hour per IP. Does not grant paid access. Unsupported domains may request school approval.",
         "security": [
           {
             "bearerAuth": []
@@ -6709,7 +6709,7 @@
           "Students"
         ],
         "summary": "Confirm school email on the requesting account",
-        "description": "Accepts a six-digit code or the 64-character token from the email link. Proof is account-bound and limited to five wrong attempts; disabled domains are rejected. Successful verification returns application and eligibility, grants 12-month Student purchase eligibility only, and consumes the proof. Opening the public instruction link alone does not approve eligibility.\n\nCurrent patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/StudentEmailController.php:49. ",
+        "description": "Account-bound single-use code or legacy emailed token. Maximum three incorrect attempts. Rechecks domain policy. Grants twelve-month eligibility, never a paid subscription.",
         "security": [
           {
             "bearerAuth": []
@@ -6863,7 +6863,7 @@
                 "required": [
                   "domain",
                   "institution",
-                  "student_only_confirmed"
+                  "nigerian_tertiary_confirmed"
                 ],
                 "properties": {
                   "domain": {
@@ -6874,9 +6874,10 @@
                     "type": "string",
                     "maxLength": 200
                   },
-                  "student_only_confirmed": {
+                  "nigerian_tertiary_confirmed": {
                     "type": "boolean",
-                    "const": true
+                    "const": true,
+                    "description": "Nigerian tertiary ownership confirmed; staff and alumni mailbox ownership is accepted."
                   }
                 }
               }
@@ -14392,7 +14393,7 @@
         ],
         "x-cozy-validation-source": [],
         "x-cozy-source": "app/Http/Controllers/Api/V1/StoreBillingController.php:13",
-        "description": "Current patient operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/StoreBillingController.php:13. ",
+        "description": "Returns billing activation flag, per-platform configuration readiness, account binding token, product mappings and separate Student eligibility. Configuration readiness is not store acceptance. Email verification never grants a paid plan.",
         "parameters": [],
         "responses": {
           "200": {
@@ -27664,6 +27665,291 @@
           "App\\Http\\Middleware\\EnforcePlanAccess",
           "throttle:30,1"
         ]
+      }
+    },
+    "/api/v1/student-school-requests": {
+      "get": {
+        "operationId": "get_student_school_requests",
+        "tags": [
+          "Students"
+        ],
+        "summary": "List school requests",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not authorized or ineligible"
+          },
+          "422": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Feature or store unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post_student_school_requests",
+        "tags": [
+          "Students"
+        ],
+        "summary": "Request a Nigerian school domain",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request recorded or existing request returned"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not authorized or ineligible"
+          },
+          "422": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Feature or store unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "institution",
+                  "domain",
+                  "website"
+                ],
+                "properties": {
+                  "institution": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "domain": {
+                    "type": "string",
+                    "maxLength": 253
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/student-school-requests": {
+      "get": {
+        "operationId": "get_admin__student_school_requests",
+        "tags": [
+          "Students"
+        ],
+        "summary": "List school requests",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not authorized or ineligible"
+          },
+          "422": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Feature or store unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/student-school-requests/{id}/review": {
+      "post": {
+        "operationId": "post_admin__student_school_requests___id___review",
+        "tags": [
+          "Students"
+        ],
+        "summary": "Review a Nigerian school email domain request",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not authorized or ineligible"
+          },
+          "409": {
+            "description": "Already reviewed or blocked domain"
+          },
+          "422": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Feature or store unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "decision",
+                  "note"
+                ],
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "approved",
+                      "rejected"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  },
+                  "nigerian_tertiary_confirmed": {
+                    "type": "boolean",
+                    "description": "Must be true for approval"
+                  },
+                  "institution_type": {
+                    "type": "string",
+                    "enum": [
+                      "university",
+                      "polytechnic",
+                      "college_of_education",
+                      "tertiary"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/store/purchase-check": {
+      "post": {
+        "operationId": "post_store__purchase_check",
+        "tags": [
+          "Store"
+        ],
+        "summary": "Check purchase configuration and current Student eligibility",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Not authorized or ineligible"
+          },
+          "422": {
+            "description": "Invalid input"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Feature or store unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "platform",
+                  "product_id"
+                ],
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "apple",
+                      "google"
+                    ]
+                  },
+                  "product_id": {
+                    "type": "string",
+                    "maxLength": 255
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

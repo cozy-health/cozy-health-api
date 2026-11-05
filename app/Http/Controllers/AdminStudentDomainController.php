@@ -18,10 +18,11 @@ class AdminStudentDomainController extends Controller
     {
         if (is_string($request->input('domain'))) $request->merge(['domain' => strtolower(trim($request->input('domain')))]);
         $data = $request->validate(['domain' => ['required', 'string', 'max:253', 'regex:/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/', 'unique:student_email_domains,domain'],
-            'institution' => 'required|string|max:200', 'student_only_confirmed' => 'required|accepted']);
+            'institution' => 'required|string|max:200', 'nigerian_tertiary_confirmed' => 'required|accepted', 'enabled' => 'sometimes|boolean', 'institution_type' => 'sometimes|in:university,polytechnic,college_of_education,tertiary']);
+        abort_if(\App\Services\StudentDomainPolicy::personal($data['domain']) || in_array($data['domain'], ['edu.ng', 'ng'], true), 422, 'Enter a Nigerian institution email domain.');
         $id = DB::transaction(function () use ($data, $request) {
-            $id = DB::table('student_email_domains')->insertGetId(['domain' => $data['domain'], 'institution' => $data['institution'], 'enabled' => true, 'version' => 1, 'created_at' => now(), 'updated_at' => now()]);
-            AdminAudit::record($request->user()->id, 'create', 'student-email-domains', (string) $id, ['domain', 'institution', 'student_only_confirmed']);
+            $id = DB::table('student_email_domains')->insertGetId(['domain' => $data['domain'], 'institution' => $data['institution'], 'institution_type' => $data['institution_type'] ?? 'tertiary', 'country' => 'NG', 'enabled' => $data['enabled'] ?? true, 'version' => 1, 'created_at' => now(), 'updated_at' => now()]);
+            AdminAudit::record($request->user()->id, 'create', 'student-email-domains', (string) $id, ['domain', 'institution', 'nigerian_tertiary_confirmed']);
             return $id;
         });
         return response()->json(['data' => DB::table('student_email_domains')->find($id)], 201)->header('Cache-Control', 'private, no-store');

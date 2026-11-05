@@ -3336,5 +3336,55 @@
       "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
     ],
     "source": "app/Http/Controllers/Api/V1/ProviderReplacementController.php"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/student-school-requests",
+    "operation_id": "get_student_school_requests",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\StudentSchoolRequestController@index",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/StudentSchoolRequestController.php:1"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/student-school-requests",
+    "operation_id": "post_student_school_requests",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\StudentSchoolRequestController@store",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/StudentSchoolRequestController.php:1"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/student-school-requests",
+    "operation_id": "get_admin__student_school_requests",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\StudentSchoolRequestController@queue",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/StudentSchoolRequestController.php:1"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/student-school-requests/{id}/review",
+    "operation_id": "post_admin__student_school_requests___id___review",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\StudentSchoolRequestController@review",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/StudentSchoolRequestController.php:1"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store/purchase-check",
+    "operation_id": "post_store__purchase_check",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\StoreBillingController@purchaseCheck",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/Api/V1/StoreBillingController.php:1"
   }
 ]

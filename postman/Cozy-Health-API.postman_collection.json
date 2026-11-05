@@ -12777,6 +12777,96 @@
           }
         }
       ]
+    },
+    {
+      "name": "List school requests",
+      "x-cozy-operation-id": "get_student_school_requests",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/student-school-requests",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation."
+      }
+    },
+    {
+      "name": "Request a Nigerian school domain",
+      "x-cozy-operation-id": "post_student_school_requests",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/student-school-requests",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"institution\": \"Example Nigerian School\",\n  \"domain\": \"school.synthetic.example\",\n  \"website\": \"https://school.synthetic.example\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "List school requests",
+      "x-cozy-operation-id": "get_admin__student_school_requests",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/admin/student-school-requests",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation."
+      }
+    },
+    {
+      "name": "Review a Nigerian school email domain request",
+      "x-cozy-operation-id": "post_admin__student_school_requests___id___review",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/admin/student-school-requests/{{school_request_id}}/review",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"rejected\",\n  \"note\": \"Replace with the actual review reason\",\n  \"institution_type\": \"tertiary\",\n  \"nigerian_tertiary_confirmed\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Check purchase configuration and current Student eligibility",
+      "x-cozy-operation-id": "post_store__purchase_check",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/store/purchase-check",
+        "description": "Development-ready flow. School approval does not grant mailbox eligibility or paid entitlement. No production billing activation.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"platform\": \"apple\",\n  \"product_id\": \"{{student_product_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
     }
   ],
   "variable": [

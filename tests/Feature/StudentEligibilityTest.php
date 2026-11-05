@@ -17,6 +17,12 @@ class StudentEligibilityTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['launch.student.documents_enabled' => true]);
+    }
+
     private function login(User $user, bool $admin = false): void
     {
         if ($admin) $user->forceFill(['role' => 'admin'])->save();
@@ -88,8 +94,8 @@ class StudentEligibilityTest extends TestCase
         for ($i = 0; $i < 5; $i++) $this->postJson('/api/v1/student-verification/email/confirm', ['id' => $challenge['id'], 'token' => '000000'])->assertUnprocessable();
         $this->postJson('/api/v1/student-verification/email/confirm', $challenge)->assertUnprocessable();
         $this->assertNull(app(StudentEligibility::class)->current($user->id));
-        $challenge = $this->challenge($user);
-        $this->travel(15)->minutes();
+        $this->travel(61)->seconds(); $challenge = $this->challenge($user);
+        $this->travel(10)->minutes();
         $this->postJson('/api/v1/student-verification/email/confirm', $challenge)->assertUnprocessable();
         // Advance past the existing email-request throttle before requesting fresh proof.
         $this->travel(61)->minutes(); $challenge = $this->challenge($user);
@@ -104,12 +110,12 @@ class StudentEligibilityTest extends TestCase
         $admin = User::factory()->create(); $this->login($admin, true);
         $payload = ['domain' => 'STUDENTS.SYNTHETIC.EXAMPLE', 'institution' => 'Synthetic College'];
         $this->postJson('/api/v1/admin/student-email-domains', $payload)->assertUnprocessable();
-        $row = $this->postJson('/api/v1/admin/student-email-domains', [...$payload, 'student_only_confirmed' => true])->assertCreated()->json('data');
+        $row = $this->postJson('/api/v1/admin/student-email-domains', [...$payload, 'nigerian_tertiary_confirmed' => true])->assertCreated()->json('data');
         $this->getJson('/api/v1/admin/student-email-domains')->assertOk()->assertJsonPath('data.data.0.domain', 'students.synthetic.example');
         $this->putJson('/api/v1/admin/student-email-domains/'.$row['id'], ['enabled' => false, 'version' => 1])->assertOk();
         $this->putJson('/api/v1/admin/student-email-domains/'.$row['id'], ['enabled' => true, 'version' => 1])->assertConflict();
         $this->assertDatabaseCount('admin_audit_logs', 2);
-        $this->postJson('/api/v1/admin/student-email-domains', ['domain' => '*.synthetic.example', 'institution' => 'Synthetic College', 'student_only_confirmed' => true])->assertUnprocessable();
+        $this->postJson('/api/v1/admin/student-email-domains', ['domain' => '*.synthetic.example', 'institution' => 'Synthetic College', 'nigerian_tertiary_confirmed' => true])->assertUnprocessable();
         $scoped = User::factory()->create(['role' => 'admin']); app('auth')->forgetGuards();
         $this->withToken($scoped->createToken('cozy-admin-management-v1', ['admin:content'], now()->addMinutes(30))->plainTextToken);
         $this->getJson('/api/v1/admin/student-email-domains')->assertForbidden();
@@ -181,8 +187,11 @@ class StudentEligibilityTest extends TestCase
         (new SendStudentRenewalReminder($id))->handle();
         $this->assertDatabaseHas('student_renewal_reminders', ['id' => $id, 'status' => 'obsolete']);
         $this->travel(1)->days();
-        $this->assertSame(0, app(StudentRenewalReminders::class)->tick());
-        Mail::assertNothingSent();
+        $this->assertSame(1, app(StudentRenewalReminders::class)->tick());
+        $expiredId = DB::table('student_renewal_reminders')->where('days', 0)->value('id');
+        (new SendStudentRenewalReminder($expiredId))->handle();
+        Mail::assertSent(BrandedNoticeMail::class, 1);
+        $this->assertDatabaseHas('student_renewal_reminders', ['id' => $expiredId, 'status' => 'sent']);
     }
 
     public function test_rejected_renewal_preserves_current_eligibility_and_allows_fresh_application(): void

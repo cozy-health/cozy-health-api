@@ -49,7 +49,7 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|VoiceAudioTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|ProviderReplacementTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|AdminRefinementTest'
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|VoiceAudioTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|NigerianStudentVerificationTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|ProviderReplacementTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|AdminRefinementTest'
       - name: Student review, email and reminder MySQL concurrency
         env:
           APP_ENV: testing

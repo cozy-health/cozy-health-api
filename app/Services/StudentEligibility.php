@@ -18,7 +18,7 @@ final class StudentEligibility
     {
         $current = $this->current($userId);
         $pending = StudentApplication::where('user_id', $userId)->where('status', 'pending')->exists();
-        return ['active' => $current !== null, 'verification_method' => $current?->verification_method,
+        return ['status' => $current ? 'verified' : (StudentApplication::where('user_id', $userId)->whereNotNull('eligible_until')->exists() ? 'expired' : 'none'), 'active' => $current !== null, 'verification_method' => $current?->verification_method,
             'expires_at' => $current?->eligible_until?->toIso8601String(),
             'renewal_available' => !$pending && (!$current || $current->eligible_until->lte(now()->addDays(30))),
             'renewal_reminder' => $current && $current->eligible_until->lte(now()->addDays(30))];

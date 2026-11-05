@@ -47,7 +47,9 @@ if (($argv[1] ?? '') === 'worker') {
         usleep(10000);
     }
     $user = User::findOrFail($userId);
-    if ($race === 'review') {
+    if ($race === 'school') {
+        $status = requestStudent($user, 'admin/student-school-requests/'.$applicationId.'/review', ['decision' => 'approved', 'note' => 'Synthetic Nigerian regulator and email domain checked', 'nigerian_tertiary_confirmed' => true, 'institution_type' => 'university'], true);
+    } elseif ($race === 'review') {
         $status = requestStudent($user, 'admin/student-applications/'.$applicationId.'/review', ['decision' => 'approved', 'note' => 'Synthetic current-term evidence checked', 'current_enrolment_verified' => true], true);
     } elseif ($race === 'email') {
         $status = requestStudent($user, 'student-verification/email/confirm', ['id' => $applicationId, 'token' => str_repeat('a', 64)], false);
@@ -112,4 +114,9 @@ verifyStudent(DB::table('student_email_claims')->count() === 1, 'School email cl
 $application->refresh()->update(['eligible_until' => now()->addDays(20)]);
 verifyStudent(raceStudents('reminder', [$student, $student], $application->id) === [0, 1], 'Concurrent schedulers must enqueue only one reminder.');
 verifyStudent(DB::table('student_renewal_reminders')->count() === 1 && DB::table('jobs')->where('queue', 'email')->count() === 1, 'Reminder outbox or database queue contains duplicates.');
+$schoolId = (string) Str::uuid();
+DB::table('student_school_requests')->insert(['id' => $schoolId, 'user_id' => $student->id, 'domain' => 'school.synthetic.example', 'institution' => 'Synthetic Nigerian School', 'website' => 'https://school.synthetic.example', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]);
+verifyStudent(raceStudents('school', [$admin, $admin], $schoolId) === [200, 409], 'Concurrent school reviewers must approve exactly once.');
+verifyStudent(DB::table('student_email_domains')->where('domain', 'school.synthetic.example')->count() === 1, 'School review must create exactly one approved domain.');
+
 echo "PASS: concurrent reviews, email proof, school email claims and reminder dispatch (MySQL).\n";

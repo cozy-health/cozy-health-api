@@ -13,6 +13,12 @@ class StudentReviewLifecycleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['launch.student.documents_enabled' => true]);
+    }
+
     private function authenticate(User $user, bool $admin = false): void
     {
         if ($admin) $user->forceFill(['role' => 'admin'])->save();

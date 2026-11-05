@@ -18,11 +18,12 @@ class StudentVerificationController extends Controller
         $application = StudentApplication::where('user_id', $request->user()->id)
             ->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
             ->latest()->orderByDesc($latestReview)->first();
-        $challenge = DB::table('student_email_challenges')->where('user_id', $request->user()->id)->where('expires_at', '>', now())->where('attempts', '<', 5)->first(['id', 'expires_at']);
+        $challenge = DB::table('student_email_challenges')->where('user_id', $request->user()->id)->where('expires_at', '>', now())->where('attempts', '<', 3)->first(['id', 'expires_at']);
         return response()->json(['enabled' => (bool) config('launch.student.enabled'), 'application' => $application, 'eligibility' => app(StudentEligibility::class)->status($request->user()->id), 'email_challenge' => $challenge, 'appeals_email' => 'Team@cozyhealth.org'])->header('Cache-Control', 'private, no-store');
     }
     public function store(Request $request)
     {
+        abort_unless(config('launch.student.documents_enabled', false), 422, 'Document applications are unavailable. Verify your school email instead.');
         abort_unless(config('launch.student.enabled'), 503, 'Student applications are not open yet.');
         StudentEvidence::expireForUser($request->user()->id);
         $data = $request->validate(['institution' => ['required', 'string', 'max:200'], 'institution_email' => ['nullable', 'email:rfc', 'max:254'], 'evidence' => ['required', 'file', 'mimes:pdf,png,jpg,jpeg', 'max:3072'], 'acknowledged' => ['required', 'accepted']]);

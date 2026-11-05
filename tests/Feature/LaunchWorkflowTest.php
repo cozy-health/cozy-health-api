@@ -59,7 +59,7 @@ class LaunchWorkflowTest extends TestCase
     }
     public function test_student_evidence_is_private_and_requires_a_scoped_reviewer(): void
     {
-        Storage::fake('local'); config(['launch.student.enabled' => true]);
+        Storage::fake('local'); config(['launch.student.documents_enabled' => true, 'launch.student.enabled' => true]);
         $user = $this->login();
         $response = $this->post('/api/v1/student-verification', ['institution' => 'Example University', 'acknowledged' => '1', 'evidence' => UploadedFile::fake()->create('enrolment.pdf', 20, 'application/pdf')], ['Accept' => 'application/json'])->assertCreated();
         $id = $response->json('application.id');

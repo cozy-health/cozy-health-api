@@ -99,6 +99,8 @@ Route::prefix('v1')->group(function () {
             Route::put('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'review'])->whereNumber('id');
         });
         Route::get('student-applications', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::get('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'queue'])->middleware('admin.manage:subscriptions');
+        Route::post('student-school-requests/{id}/review', [\App\Http\Controllers\StudentSchoolRequestController::class, 'review'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('student-email-domains', [\App\Http\Controllers\AdminStudentDomainController::class, 'index'])->middleware('admin.manage:subscriptions');
         Route::post('student-email-domains', [\App\Http\Controllers\AdminStudentDomainController::class, 'store'])->middleware('admin.manage:subscriptions');
         Route::put('student-email-domains/{id}', [\App\Http\Controllers\AdminStudentDomainController::class, 'update'])->whereNumber('id')->middleware('admin.manage:subscriptions');
@@ -191,11 +193,14 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::post('me/device-security', DeviceSecurityController::class)->middleware('throttle:10,60');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [ProfileController::class, 'show']);
+    Route::get('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'index']);
+    Route::post('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'store']);
     Route::get('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'show']);
-    Route::post('student-verification/email', [\App\Http\Controllers\Api\V1\StudentEmailController::class, 'store'])->middleware('throttle:2,60,student-email-request-');
+    Route::post('student-verification/email', [\App\Http\Controllers\Api\V1\StudentEmailController::class, 'store'])->middleware('throttle:20,60,student-email-request-');
     Route::post('student-verification/email/confirm', [\App\Http\Controllers\Api\V1\StudentEmailController::class, 'confirm'])->middleware('throttle:10,1,student-email-confirm-');
     Route::post('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'store'])->middleware('throttle:2,1440');
     Route::post('student-verification/{id}/verify-email', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'sendVerification'])->whereUuid('id')->middleware('throttle:2,60');
+    Route::post('store/purchase-check', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'purchaseCheck'])->middleware('throttle:10,1');
     Route::get('store/config', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'configuration']);
     Route::post('subscription/verify-receipt', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'verify'])->middleware('throttle:10,1');
     Route::get('emergency-email', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'show']);

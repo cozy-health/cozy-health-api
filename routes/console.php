@@ -96,3 +96,5 @@ Artisan::command('auth:prune-challenges', function () {
     $this->info('Removed '.$count.' expired sign-in checks.');
 });
 Schedule::command('auth:prune-challenges')->everyFiveMinutes()->withoutOverlapping();
+
+Schedule::command('students:prune-verification')->daily()->withoutOverlapping();
