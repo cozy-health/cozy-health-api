@@ -397,6 +397,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('quiz-shares/{id}', [\App\Http\Controllers\Api\V1\Provider\ProviderQuizSharingController::class, 'show']);
         Route::get('clients', [$clients, 'index']);
         Route::get('clients/{userId}', [$clients, 'show']);
+        Route::get('clients/{userId}/insights', [$clients, 'insights']);
         Route::get('clients/{userId}/moods', [$clients, 'moods']);
         Route::get('clients/{userId}/journals', [$clients, 'journals']);
         Route::get('clients/{userId}/quizzes', [$clients, 'quizzes']);

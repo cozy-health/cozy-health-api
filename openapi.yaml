@@ -25591,6 +25591,26 @@
         }
       }
     },
+    "/api/v1/provider/clients/{userId}/insights": {
+      "get": {
+        "operationId": "get_provider__clients___userId___insights",
+        "summary": "Get complete-period mood insights for an authorized patient",
+        "description": "Returns a summary-first Week, current-month, or current-year aggregate over every authorized nondeleted mood record in the selected patient-local period. The current follow-up priority always uses the latest seven days and is not a diagnosis.",
+        "tags": ["provider"],
+        "security": [{"providerAuth": []}],
+        "parameters": [
+          {"name": "userId", "in": "path", "required": true, "schema": {"type": "string"}},
+          {"name": "period", "in": "query", "required": true, "schema": {"type": "string", "enum": ["week", "month", "year"]}}
+        ],
+        "responses": {
+          "200": {"description": "Authorized full-period summary, buckets, distributions and current seven-day priority.", "content": {"application/json": {"schema": {"type": "object", "required": ["data"], "properties": {"data": {"type": "object", "required": ["period", "priority", "current_priority", "coverage", "counts", "buckets"]}}}}}},
+          "401": {"description": "Missing, expired or wrong-role credentials."},
+          "403": {"description": "Provider verification or patient eligibility denied."},
+          "404": {"description": "The active connection or mood-sharing consent is unavailable."},
+          "422": {"description": "The period selector is missing or invalid."}
+        }
+      }
+    },
     "/api/v1/provider/clients/{userId}/moods": {
       "get": {
         "operationId": "get_provider__clients___userId___moods",

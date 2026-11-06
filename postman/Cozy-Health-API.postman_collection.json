@@ -11737,6 +11737,23 @@
           }
         },
         {
+          "name": "GET provider/clients/{userId}/insights",
+          "x-cozy-operation-id": "get_provider__clients___userId___insights",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{provider_token}}", "type": "string"}]},
+            "url": {
+              "raw": "{{base_url}}/provider/clients/:userId/insights?period=week",
+              "host": ["{{base_url}}"],
+              "path": ["provider", "clients", ":userId", "insights"],
+              "query": [{"key": "period", "value": "week", "description": "week, month, or year"}],
+              "variable": [{"key": "userId", "value": "{{userId}}"}]
+            },
+            "description": "Returns the authorized patient's complete selected-period aggregates and independent current seven-day follow-up priority. Requires an active eligible connection and mood-sharing consent."
+          }
+        },
+        {
           "name": "GET provider/clients/{userId}/moods",
           "x-cozy-operation-id": "get_provider__clients___userId___moods",
           "request": {

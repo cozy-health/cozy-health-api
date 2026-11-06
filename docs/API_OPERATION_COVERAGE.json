@@ -3075,6 +3075,16 @@
   },
   {
     "method": "GET",
+    "path": "/api/v1/provider/clients/{userId}/insights",
+    "operation_id": "get_provider__clients___userId___insights",
+    "classification": "supported",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@insights",
+    "validation_sources": ["period: required, one of week/month/year"],
+    "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:64"
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/provider/clients/{userId}/moods",
     "operation_id": "get_provider__clients___userId___moods",
     "classification": "supported",
