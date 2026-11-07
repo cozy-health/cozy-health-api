@@ -1,4 +1,4 @@
-# Provider sharing privacy notice — draft
+# Provider sharing privacy notice: draft
 
 Unapproved v0.1, 2026-10-09. Controller(s): [entities and addresses]. Privacy
 contact / DPO where required: [contact]. This supplements the consumer notice;

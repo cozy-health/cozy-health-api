@@ -1,4 +1,4 @@
-# Consent, legal, age and guardian audit — 2026-10-23
+# Consent, legal, age and guardian audit: 2026-10-23
 
 This is a source and local-test audit of the development work. The workspace
 `docs/BUILD_PLAN.md` remains the delivery backlog. This report does not approve
@@ -33,7 +33,7 @@ development baseline, then complete the acceptance work below before activation.
 
 ## Findings and ordered completion plan
 
-### 1. Preserve restrictions across multiple support cases — required code fix
+### 1. Preserve restrictions across multiple support cases: required code fix
 
 `AdminAgeCaseController::resolve` sets the account-wide `age_disputed` flag to
 false on `correct_dob` or `clear_dispute` without checking other open DOB or
@@ -60,7 +60,7 @@ This closes the identified source gap; isolated MySQL concurrency acceptance
 remains part of step 5. Step 2 is covered by the follow-up below; steps 3–6 remain
 outstanding except for the partial coverage recorded there.
 
-### 2. Make errors and recovery actionable — required client work
+### 2. Make errors and recovery actionable: required client work
 
 `AgeEligibilityGate::_run` replaces all failures with one generic message. It
 hides server details such as resend throttling, invalid country/input and
@@ -87,7 +87,7 @@ This implements step 2 in source; real browser/device/inbox acceptance still
 belongs to steps 4–5. Some session-change/error widget coverage also advances
 step 3, but does not close all account/cache/consent-loading checks there.
 
-### 3. Complete account-change and consent failure acceptance — required tests
+### 3. Complete account-change and consent failure acceptance: required tests
 
 Existing service tests cover delayed eligibility responses and old-session 403s,
 but the age gate itself has no dedicated widget test. Its form controllers are
@@ -103,7 +103,7 @@ content is not displayed while required acceptance is unknown. Server denial
 alone is insufficient visual/privacy acceptance. Add retry/loading states as
 needed, preserving public support and safety navigation.
 
-### 4. Review the actual screens — required UI acceptance
+### 4. Review the actual screens: required UI acceptance
 
 The age gate uses standard Scaffold/ExpansionTile/FilledButton surfaces; source
 review and service tests do not prove it matches the approved Cozy Health UI.
@@ -114,7 +114,7 @@ confirmation, focus/error announcements, tap targets, long policy text and no
 clipped fields. Collect full-screen references for design approval before
 reworking these screens. No new UI design is claimed approved by this audit.
 
-### 5. Prove the complete development workflow — required integration evidence
+### 5. Prove the complete development workflow: required integration evidence
 
 Run synthetic accounts through signup/social/legacy completion, invite, inbox
 delivery, confirm, authorize, decline, dispute, replacement, expiry, withdrawal,
@@ -129,7 +129,7 @@ operations versus revocation, staff correction and prune races. Exercise additiv
 migration, controlled rollback and retention/deletion including backup expiry
 in development. Do not run mutation collections against production.
 
-### 6. Obtain activation decisions — owner/operations prerequisites
+### 6. Obtain activation decisions: owner/operations prerequisites
 
 Seven website legal documents remain unpublished: consumer Terms, Privacy,
 Health-Data Consent, Marketing, Guardian Notice, and provider Terms/Privacy.
@@ -167,10 +167,10 @@ reopen it. Production changes require separate explicit authorization.
 
 ## Matching development commits
 
-- Mobile: `e372d5b` — age/guardian flow and consent safeguards.
-- Website: `900aeb2` — guardian relay/pages and synchronized legal notices.
-- Staff dashboard: `3b135eb` — scoped guardian support queue.
-- API baseline: `e74c48c` — disabled authorization and legal consent safeguards.
+- Mobile: `e372d5b` - age/guardian flow and consent safeguards.
+- Website: `900aeb2` - guardian relay/pages and synchronized legal notices.
+- Staff dashboard: `3b135eb` - scoped guardian support queue.
+- API baseline: `e74c48c` - disabled authorization and legal consent safeguards.
 
 These commits preserve the implementation as a disabled development baseline.
 The initial audit did not implement the completion plan. The follow-up described

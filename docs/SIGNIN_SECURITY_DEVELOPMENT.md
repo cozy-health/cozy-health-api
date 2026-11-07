@@ -1,4 +1,4 @@
-# Sign-in protection — staged development implementation
+# Sign-in protection: staged development implementation
 
 `SIGNIN_SECURITY_ENABLED=false` remains the default. This checkpoint implements the server contract, not compatible mobile/provider screens or a completed rollout. Do not enable until both clients can finish challenges, store device proof securely and recover from `signin_verification_required`. No authenticator app or provider professional verification is introduced.
 

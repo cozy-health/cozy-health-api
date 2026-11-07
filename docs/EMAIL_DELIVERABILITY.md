@@ -22,6 +22,6 @@ HTML and plain-text alternatives cover reset, reset confirmation, verification, 
 
 Authenticated verification endpoints: POST `/api/v1/auth/email-verification/resend` (3/hour/user) and `/verify` (6-digit code; attempt throttled). Password reset additionally limits requests to 3/hour/email across IPs; hashed limiter keys avoid raw addresses in cache keys. Welcome is queued on registration/first social login, which already creates an authenticated session. Account deletion confirmation carries no deleted User model.
 
-## Live verification — pending deployment
+## Live verification: pending deployment
 
 Send password reset messages to operator-owned Gmail, Outlook, Yahoo and ProtonMail inboxes. Record inbox/spam placement and inspect SPF/DKIM/DMARC results in message headers. No live messages or DNS changes were performed during implementation; unit/feature tests use a local log transport or Mail::fake(). Delivery and inbox placement are not verified yet.

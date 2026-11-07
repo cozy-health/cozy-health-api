@@ -1,4 +1,4 @@
-# Phase 2.3 — Non-cached endpoint audit
+# Phase 2.3: Non-cached endpoint audit
 
 Audited 2026-10-07. No endpoint was trimmed: the three cached endpoints are
 excluded by the revised task, and the non-cached provider endpoint has an
@@ -59,5 +59,5 @@ with a compatibility strategy for older installed clients.
 - Deferred: mood, journal, chat, quiz, content lists; cached profile,
   notifications and subscription; provider until its contract is reconciled.
 - Tracking: DEFERRED.md and shared docs/BUILD_PLAN.md Phase 2.5.
-- Validation: php artisan test — 23 passed, 93 assertions.
+- Validation: php artisan test - 23 passed, 93 assertions.
 - No push; no staging or production database operations.

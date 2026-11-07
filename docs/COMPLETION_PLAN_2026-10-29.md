@@ -1,4 +1,4 @@
-# Cozy complete development build plan — 29 October 2026
+# Cozy complete development build plan: 29 October 2026
 
 This is the current complete work order, incorporating the approved full plan and Premium/Student dashboard correction. Historical registers preserve evidence, not instructions to rebuild retired features. Work includes both unfinished implementation and acceptance of existing foundations.
 
@@ -38,13 +38,13 @@ Use verified commits, environment IDs, runtime/inbox/device evidence and complet
 
 ## Execution order and completion gates
 
-### P00 — Reconcile contracts and evidence
+### P00: Reconcile contracts and evidence
 
 Inventory all four develop repositories, changes, reachable actions/routes, flags, contracts and CI prerequisites. Preserve unrelated edits. Reproduce reported faults before fixes. Resolve direct/sync validation parity, false success, registration atomicity/session issuance, crisis-flag differences and unsupported caller paths. Record exact source and development configuration, not old snapshots. Keep current failures separate from superseded CI records. Review the existing skipped Flutter case and supply or explain its coverage.
 
 Done when every enabled action has a real outcome or an honest unavailable state, current contracts match the callers, owner/role failures have regression coverage and the four-repository baseline is recorded. Depends on no store account.
 
-### P01 — Finish offline/account integrity and streaks
+### P01: Finish offline/account integrity and streaks
 
 Create one typed, account-scoped streak repository/state used by Home and detail. Cache confirmed progress with its local date/timezone/version; preserve queued mood check-ins, distinguish pending versus confirmed progress, and reconcile offline/rest-day projections with the server. Home must display completed/protected/pending dates consistently. Keep the approved bank/earning rules, retained achievements and no retroactive credits.
 
@@ -52,7 +52,7 @@ Test duplicate and late saves, edit/delete, weak/offline networking, close/reope
 
 Done when account A cannot expose/submit data under account B, retry cannot double-count/spend, acknowledged changes survive restart, and offline Home/detail converge after sync. Depends on P00; no store account.
 
-### P02 — Finish sign-in and branded email
+### P02: Finish sign-in and branded email
 
 Connect patient/provider signup, security-question enrollment, new-device/14-day challenge, trusted-device proof storage, forgotten-answer email fallback, settings changes and session revocation to the existing backend. Keep correct-password-first, hashed answers, challenge/expiry/attempt/resend bounds and no authenticator app. Do not reset passwords using questions alone. Test Google development OAuth where credentials are available; hold intended Apple identity acceptance for S01.
 
@@ -60,7 +60,7 @@ Trace registration/reset/verification/invite/challenge emails through API -> que
 
 Done when both patient/provider clients complete positive and negative journeys, account identity stays correct, real inbox evidence exists and the compatible flag rollout/recovery is rehearsed in development. Prerequisites: P00/P01, inbox/provider configuration; no store account for password/questions/email.
 
-### P03 — Ordinary consent, support and privacy administration
+### P03: Ordinary consent, support and privacy administration
 
 Remove obsolete guardian gates/copy/routes from active journeys while preserving historical records subject to approved retention. Keep ordinary health/privacy consent: fail closed for protected content if required consent is unavailable, explain errors and offer retry; preserve approved emergency access. Reconcile mobile/web/API document versions, drafts versus effective publication, withdrawal and restart/offline recovery.
 
@@ -68,7 +68,7 @@ Implement/finish private support threads with replies, reopen/retry and notifica
 
 Done when cross-role/account access is denied at API and UI, drafts recover, users see actual replies, staff notes never leak and required-consent errors never reveal protected content. Depends on P01/P02; policy copy and named responders may require owner input, not store accounts.
 
-### P04 — Complete core app and approved UI
+### P04: Complete core app and approved UI
 
 Implement remaining approved icons, explanatory wording, centered popups, navigation/back buttons, packages without country selection and ordinary permission requests. Keep assistant and mascot removed. Review journal entry/actions/tags, microphone permission/recording errors, Quick introduction, Ready to begin, About this feature, identity confirmation, sync notices, provider-required and sharing-off dialogs against the approved previews. Recheck acknowledged urgent-support/guideline notices across fresh launches; draft or unchanged guidelines must not announce a new update. Preserve existing lifecycle fixes rather than rebuilding them without reproduction.
 
@@ -76,7 +76,7 @@ Verify the five-step mood flow, drafts/history/search, journal create/edit/delet
 
 Done when each enabled control has its intended persistent effect and small-screen, keyboard, all supported themes/accents, 200% text, screen-reader and reduced-motion checks pass. Take review screenshots before any further unapproved redesign. Depends on P01/P03; no store account for implementation/simulator testing.
 
-### P05 — Students, institution offers, plan access and Premium dashboard
+### P05: Students, institution offers, plan access and Premium dashboard
 
 Preserve locked submitted applications; show decline reason, allow a new application or another plan, and prohibit editing decided evidence. Confirm current immediate approved/rejected deletion, immediate access revocation on decision and durable physical-delete retry; expire abandoned evidence after 14 days. Finish approved 12-month eligibility, renewal opening 30 days early, 30/7/1 reminders, resubmission/reverification, reviewer concurrency and paid-period preservation. Students must prove current enrollment using accepted recent documents; email confirmation alone is not eligibility.
 
@@ -88,7 +88,7 @@ Enforce Standard/Student/Premium rights on API and clients: Standard written jou
 
 Done when reviewer lifecycle, cleanup failures, renewal/expiry and code misuse/account binding pass, with no privilege or institution-data leak. Depends on P02/P03; student evidence types, content and named reviewers are owner inputs where not already settled.
 
-### P06 — Provider and community round trips
+### P06: Provider and community round trips
 
 Finish the Premium option to choose another provider after seven days with no reply to the first unanswered patient message. Define/reuse a server-authoritative unanswered clock, exclude drafts/failed sends, handle late replies and concurrent choice; no automatic transfer or guaranteed response. Confirm permission boundaries on any new provider relationship.
 
@@ -98,7 +98,7 @@ Finish community feed/post/comment/reaction/group/image persistence, nonclinical
 
 Done when synthetic patient/provider/admin/community journeys pass on the same development stack and staff coverage/escalation is explicit. Depends on P02/P03/P05, with P04 sharing/audio support.
 
-### P07 — Real content and admin/provider dashboards
+### P07: Real content and admin/provider dashboards
 
 Finish actual article catalog/category/search/pagination/body/share/save/offline refresh and publishing rights/attribution. Use only approved assessment instruments/questions/provenance/scoring/bands/versioning/recommendations/disclaimers; no invented clinical text or normal-mode test fixtures. Test attempts, immutable versions, offline provisional results, invites, severity handling, selected sharing/revocation and PDFs.
 
@@ -106,7 +106,7 @@ Implement the approved colorful admin/provider overview designs with genuine aut
 
 Done when publish -> app consumption -> patient result/share -> provider/admin view is verified with rights and role boundaries. Depends on P03/P05/P06; approved content is a possible owner dependency, not a store account.
 
-### P08 — Delivery, reminders, links and emergency contacts
+### P08: Delivery, reminders, links and emergency contacts
 
 Connect one notification center/bell and reliable read state across Home/community. Test Android Firebase push permission/denial/revocation, tokens/rotation, foreground/background/terminated taps, multiple devices and logout/account isolation. Prepare iOS configuration now; real APNs delivery is S01. Reconcile local/remote mood/journal/streak/affirmation reminders, quiet hours, approved caps/spacing, read acknowledgements, timezone/DST and cancellation after withdrawal/deletion.
 
@@ -114,7 +114,7 @@ Verify owned-domain web/Android links, assessment invitations, referrals, signed
 
 Done when real development Android delivery, approved inbox flows and failure recovery have evidence. Do not count an API send acknowledgement as phone/inbox delivery. Depends on P01/P02/P04/P06; phones/inboxes and approved emergency limits are separate dependencies.
 
-### P09 — Website, cleanup, security and recovery
+### P09: Website, cleanup, security and recovery
 
 Development APK update continuity is an explicit gate: the downloaded `3a5fc30` and `9859636` APKs have different verified signing certificates. Establish stable development-only signing custody in CI and verify update installation without losing account-owned drafts/outboxes. Older ephemeral signing keys cannot be assumed recoverable; document a safe legacy-build migration after confirming synchronization or an appropriate backup. Do not tell testers to uninstall blindly. This does not require store developer accounts and remains separate from production release signing.
 
@@ -126,7 +126,7 @@ Run isolated account deletion and storage failure/retry/hold tests, worker/sched
 
 Done when findings have fixes or explicit owner decisions, recovery is demonstrated and the website/API/app policies match actual behavior. Depends on the relevant prior workflows; these are not store-account blockers.
 
-### P10 — Monitoring last among implementation work
+### P10: Monitoring last among implementation work
 
 Finish existing Sentry/PostHog/PagerDuty development setup after P00-P09. Confirm actual accounts/integration access and current free-plan limits before configuration. Redact health text/answers/tokens, respect optional analytics choices and keep development separate. Test single errors, multiple-user outage/failure rates, queue age/failures, mail/push/storage/deletion faults and actionable correlation without health payloads.
 
@@ -134,7 +134,7 @@ Send a clearly labeled developer test alert to the assigned developer destinatio
 
 Done when a controlled development fault produces a received actionable developer alert and recovery, not merely a configured integration. Requires service access and developer phone, not Cozy store accounts.
 
-### P11 — Final devices and pre-account completion audit
+### P11: Final devices and pre-account completion audit
 
 Use the developer's phones at the final acceptance stage, as requested. Complete Android install/upgrade, keyboard/navigation, recording, biometric/PIN, denial/revocation, low storage, offline recovery, background/terminated behavior and all applicable end-to-end workflows using exact artifacts. Run iOS simulator acceptance; perform available common iPhone tests only with actual Mac/signing/phone access. Carry unavailable Apple push/signing/store journeys to S01 explicitly.
 
@@ -142,7 +142,7 @@ Pass 1: walk every surviving R/F/B requirement against source, runtime, inbox/br
 
 Done when every item is verified, explicitly owner/device-blocked, retired, optional-deferred, store-dependent or future separately authorized work. Never call the whole app complete from green unit tests alone. Do not stall unrelated work while waiting for content, phones or approvals.
 
-### S01 — Developer accounts and genuine store acceptance, last
+### S01: Developer accounts and genuine store acceptance, last
 
 Once the owner supplies access, configure final identifiers/signing/APNs, Apple login, actual store products/localized prices and eligible offer mechanisms; test signed iPhone push and native associations. Complete store sandbox purchase/acknowledge/restore/renewal/cancel/expiry/refund/revocation/grace, wrong-account/forged/replayed/out-of-order notifications and reconciliation. Use the stores' receipts; no duplicate Cozy tax invoice or country picker.
 

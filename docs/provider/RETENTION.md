@@ -1,4 +1,4 @@
-# Provider retention and deletion policy — draft
+# Provider retention and deletion policy: draft
 
 v0.1, 2026-10-09. Policy owner: product/privacy lead. Counsel and clinical approval
 pending. Automatic provider destruction is disabled by default. No production

@@ -2,11 +2,11 @@
 
 Updated 4 November 2026. Repository-owned delivery of the workspace two-pass review and all original requirements. Use existing develop branches; production/beta promotion needs separate authorization. This register preserves historical wording for traceability; current dispositions and later owner decisions control scope. Source presence is not device/live acceptance.
 
-## Workstreams 04–06 acceptance checkpoint — 5 November 2026
+## Workstreams 04–06 acceptance checkpoint: 5 November 2026
 
-- **04 — Account separation, sync and offline recovery:** [x] implementation/automated batch; [ ] owner device acceptance. Fixed mood/journal fetches returning stale raw server rows instead of accepted merges; pending deletes, newer offline edits and absent/null fields have regressions without changing retry IDs.
-- **05 — Onboarding, screens and accessibility:** [x] implementation/automated batch; [ ] owner device acceptance. Repaired large-text overflows across the enabled screen audit; interrupted and enlarged-text onboarding completion have regression coverage. Strict surface audit: 430 passed.
-- **06 — Moods, journals, breathing, streaks and insights:** [x] implementation/automated batch; [ ] owner device acceptance. Existing journeys plus new merge/chart/onboarding regressions passed in the full 1,262-test mobile suite; analyzer, development API smoke and local Android debug compilation passed. Native audio/reminders, cross-device journeys and final installed-device accessibility/performance remain unverified.
+- **04 - Account separation, sync and offline recovery:** [x] implementation/automated batch; [ ] owner device acceptance. Fixed mood/journal fetches returning stale raw server rows instead of accepted merges; pending deletes, newer offline edits and absent/null fields have regressions without changing retry IDs.
+- **05 - Onboarding, screens and accessibility:** [x] implementation/automated batch; [ ] owner device acceptance. Repaired large-text overflows across the enabled screen audit; interrupted and enlarged-text onboarding completion have regression coverage. Strict surface audit: 430 passed.
+- **06 - Moods, journals, breathing, streaks and insights:** [x] implementation/automated batch; [ ] owner device acceptance. Existing journeys plus new merge/chart/onboarding regressions passed in the full 1,262-test mobile suite; analyzer, development API smoke and local Android debug compilation passed. Native audio/reminders, cross-device journeys and final installed-device accessibility/performance remain unverified.
 
 [Implementation evidence and owner phone checklist](https://github.com/cozy-health/cozy-health-mobile-app-main/blob/develop/docs/WORKSTREAMS_04_06_ACCEPTANCE_2026-11-05.md). No production authorization; preserve the broader uncommitted build-plan draft.
 

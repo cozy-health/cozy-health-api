@@ -1,4 +1,4 @@
-# Phase 12.2 — crypto implementation and audit
+# Phase 12.2: crypto implementation and audit
 
 Status: local implementation; **not ready to deploy** until the infrastructure
 and certificate prerequisites below are satisfied. 12.1 is pushed; 12.2 is not.
@@ -148,6 +148,6 @@ References: [Railway staff storage explanation](https://station.railway.com/ques
 [Apple ATS](https://developer.apple.com/documentation/Security/preventing-insecure-network-connections).
 
 
-## Superseding owner rollout decision — 2026-10-09
+## Superseding owner rollout decision: 2026-10-09
 
 Source deployment is authorized with DB_TLS_ENFORCE=false explicitly configured on API and worker. This restores pre-12.2 DB connection behavior; strict CA verification remains the default and is required during Phase 24. Earlier pre-push CA gates above are superseded by this temporary opt-out. MySQL TLS-only configuration is unverified. No SSH key, production PDF migration, rotation or history rewrite is authorized. See CRYPTO.md.

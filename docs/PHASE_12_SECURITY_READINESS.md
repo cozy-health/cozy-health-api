@@ -1,4 +1,4 @@
-# Phase 12 security readiness — 2026-10-09
+# Phase 12 security readiness: 2026-10-09
 
 Status: initial repository review completed; security implementation stopped at
 uncovered decisions, as requested by the owner. This is not a security sign-off
