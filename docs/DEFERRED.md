@@ -1,6 +1,6 @@
 # Deferred work
 
-## Phase 12 owner decisions — 2026-10-09
+## Phase 12 owner decisions: 2026-10-09
 
 - Historical `.env` credentials from commit `685d679` are verified dead by the
   owner. Do not rotate them. History cleanup/reuse follow-up is recorded here

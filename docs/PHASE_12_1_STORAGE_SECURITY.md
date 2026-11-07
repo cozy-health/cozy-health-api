@@ -1,4 +1,4 @@
-# Phase 12.1 — storage security
+# Phase 12.1: storage security
 
 ## Audit
 
