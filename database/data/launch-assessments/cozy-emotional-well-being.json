@@ -1,0 +1,166 @@
+{
+  "title": "Emotional Well-Being Check",
+  "slug": "cozy-emotional-well-being",
+  "type": "wellness",
+  "description": "A Cozy well-being check-in. Reflect on your overall emotional health and well-being.",
+  "estimated_minutes": 2,
+  "sort_order": 0,
+  "disclaimer": "This Cozy well-being check-in is for personal reflection. It is not a diagnosis or a validated clinical screening tool. The result describes only your answers to these five questions. If you are concerned about your well-being, speak with a qualified professional. If you feel unsafe or need urgent help, contact local emergency services or use the app's crisis support resources.",
+  "scoring_rules": {
+    "timeframe": "Over the past two weeks",
+    "provenance": {
+      "license": "",
+      "approval_reference": ""
+    },
+    "recommendation": "These descriptive result bands are for personal reflection and do not measure clinical severity.",
+    "bands": [
+      {
+        "max": 10,
+        "label": "More support may help",
+        "recommendation": "Your answers suggest fewer experiences that support emotional well-being. Consider activities that help you feel connected, grounded and supported. If you are concerned, consider speaking with a qualified professional."
+      },
+      {
+        "max": 15,
+        "label": "Building well-being",
+        "recommendation": "Your answers suggest some experiences that support emotional well-being, with room to build on them. Consider activities that help you feel connected, grounded and supported."
+      },
+      {
+        "max": 20,
+        "label": "Good well-being",
+        "recommendation": "Your answers suggest regular experiences that support emotional well-being. Keep practising what helps you."
+      },
+      {
+        "max": 25,
+        "label": "Strong well-being",
+        "recommendation": "Your answers suggest frequent experiences that support emotional well-being. Continue the habits and connections that help you."
+      }
+    ]
+  },
+  "questions": [
+    {
+      "question": "Over the past two weeks, how often have you felt happy and content?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you feel that your life has a sense of purpose?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you feel connected to others?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you feel that you are able to manage your emotions effectively?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you feel optimistic about your future?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    }
+  ]
+}
