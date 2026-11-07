@@ -35,6 +35,11 @@ verification is true. Query `SHOW SESSION STATUS LIKE 'Ssl_cipher'` and
 connection. An empty cipher is a failure. Do not substitute private networking for
 verified database TLS or disable certificate checks to obtain a pass.
 
+After both clients are verified, persist `require_secure_transport=ON` on the
+development server. Verify a network client with TLS disabled is rejected with
+MySQL error 3159 while `VERIFY_IDENTITY` connections still succeed. Local Unix
+sockets remain a permitted secure transport for administration and restore drills.
+
 ## Renewal
 
 Run `scripts/renew-development-mysql-tls.sh` only inside the identified development
