@@ -1,4 +1,4 @@
-# Provider Terms of Service — draft
+# Provider Terms of Service: draft
 
 Unapproved v0.1, 2026-10-09. Parties: [Cozy Health legal entity and address] and
 [provider/practice legal entity]. Effective date: [date]. Governing law: [counsel].

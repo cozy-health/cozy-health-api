@@ -1,4 +1,4 @@
-# User sync recovery — 2026-10-10
+# User sync recovery: 2026-10-10
 
 ## Faults and fixes
 

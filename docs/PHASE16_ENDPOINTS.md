@@ -1,4 +1,4 @@
-# Phase 16 endpoint implementation — 2026-10-10
+# Phase 16 endpoint implementation: 2026-10-10
 
 Status: endpoint contracts implemented; phase ship gate remains open. Local verification does not establish deployment health or complete the later feature UI phases.
 

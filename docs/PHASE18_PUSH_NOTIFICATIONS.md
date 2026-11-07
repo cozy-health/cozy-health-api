@@ -1,4 +1,4 @@
-# Phase 18 — Push reminders
+# Phase 18: Push reminders
 
 ## Implemented behavior
 

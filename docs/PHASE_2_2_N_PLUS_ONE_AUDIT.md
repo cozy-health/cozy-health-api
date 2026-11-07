@@ -1,4 +1,4 @@
-# Phase 2.2 — N+1 query audit
+# Phase 2.2: N+1 query audit
 
 Verified on 2026-10-07. No N+1 cases were found in the implemented endpoints.
 No controller, model, route, migration, SELECT list, or response shape changed.
