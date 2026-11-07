@@ -16,10 +16,11 @@ class DocumentConsentService
         $documents = Setting::find('consent.'.$key)?->value ?? config('consent.'.$key);
         unset($documents['ai_disclosure']);
         $manifest = json_decode(file_get_contents(resource_path('legal/launch.json')), true, flags: JSON_THROW_ON_ERROR);
+        $website = app(DevelopmentMailSafety::class)->development() ? 'https://dev.cozyhealth.org' : 'https://cozyhealth.org';
         foreach ($documents as $type => &$document) {
             $launch = $manifest[$key][$type] ?? null;
-            if ($launch && $document['version'] === $launch['version'] && $document['published']) $document['url'] = $launch['url'];
-            else $document['url'] = 'https://cozyhealth.org/'.($provider ? 'providers/' : '').match ($type) { 'tos' => 'terms', 'privacy_policy' => 'privacy', 'health_data' => 'health-data-consent', 'ugc_guidelines' => 'community-standards', default => 'marketing' };
+            if ($launch && $document['version'] === $launch['version'] && $document['published']) $document['url'] = preg_replace('#^https://cozyhealth\.org(?=/)#', $website, $launch['url']);
+            else $document['url'] = $website.'/'.($provider ? 'providers/' : '').match ($type) { 'tos' => 'terms', 'privacy_policy' => 'privacy', 'health_data' => 'health-data-consent', 'ugc_guidelines' => 'community-standards', default => 'marketing' };
         }
         unset($document);
         $enabled = Setting::find('consent.enforce_blocking')?->value === true;

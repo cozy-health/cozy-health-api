@@ -15,6 +15,23 @@ class DocumentConsentTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_development_publication_links_use_development_website_for_both_audiences(): void
+    {
+        config([
+            'app.url' => 'https://api-dev.cozyhealth.org',
+            'development_mail.project_id' => '33f9a938-49e3-42c5-83c7-633ee85760fa',
+            'development_mail.environment_id' => '56b85cc3-e80b-4cb9-a0d4-b47abe8586f6',
+        ]);
+        $manifest = json_decode(file_get_contents(resource_path('legal/launch.json')), true);
+        foreach ([false => 'documents', true => 'provider_documents'] as $provider => $group) {
+            app(SettingsService::class)->set('consent.'.$group, $manifest[$group]);
+            $configuration = app(DocumentConsentService::class)->configuration((bool) $provider);
+            $this->assertStringStartsWith('https://dev.cozyhealth.org/legal/', $configuration['documents']['privacy_policy']['url']);
+        }
+        config(['app.url' => 'https://api.cozyhealth.org']);
+        $this->assertStringStartsWith('https://cozyhealth.org/legal/', app(DocumentConsentService::class)->configuration()['documents']['privacy_policy']['url']);
+    }
+
     private function login(): User
     {
         $user = User::factory()->create();
