@@ -30,29 +30,16 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            foreach ($user->privateDeletionFiles() as $file) {
+                ProfileAvatarService::queueDeletion($file['disk'], $file['key']);
+            }
             app(\App\Services\Provider\JournalSharingService::class)->purge(JournalShare::where('user_id', $user->id));
             // Audio ownership is polymorphic, so there is no users foreign-key
             // cascade. Persist cleanup work before removing the metadata.
             AudioAttachment::where('owner_type', 'patient')->where('owner_id', $user->id)
                 ->eachById(function ($audio) {
-                    ProfileAvatarService::queueDeletion($audio->disk, $audio->storage_key);
                     $audio->delete();
                 });
-            // Database cascades remove report rows, not the private PDFs.
-            ProviderReport::where('user_id', $user->id)->eachById(function ($report) {
-                ProfileAvatarService::queueDeletion('local', $report->file_path);
-            });
-            // Queue private evidence cleanup before database cascades remove its paths.
-            StudentApplication::where('user_id', $user->id)->get()->each(function ($application) {
-                if ($application->evidence_path) ProfileAvatarService::queueDeletion('local', $application->evidence_path);
-            });
-            $avatar = $user->profile()->first();
-            if ($avatar?->avatar_object_key) {
-                ProfileAvatarService::queueDeletion(config('avatars.disk'), $avatar->avatar_object_key);
-            }
-            foreach (\Illuminate\Support\Facades\DB::table('community_posts')->where('user_id', $user->id)->whereNotNull('image_object_key')->pluck('image_object_key') as $image) {
-                ProfileAvatarService::queueDeletion(config('avatars.disk'), $image);
-            }
             NextOfKinContact::where('user_id', $user->id)->delete();
             PushDevice::where('user_id', $user->id)->delete();
             PushReminder::where('user_id', $user->id)->whereIn('status', ['queued', 'deferred'])->update(['status' => 'cancelled']);
@@ -62,6 +49,27 @@ class User extends Authenticatable
                 throw ValidationException::withMessages(['email' => ['The demo account email cannot be changed.']]);
             }
         });
+    }
+
+    /** Private object references shared by deletion and durable restore receipts. */
+    public function privateDeletionFiles(): array
+    {
+        $files = [];
+        foreach (AudioAttachment::where('owner_type', 'patient')->where('owner_id', $this->id)->get() as $audio) {
+            $files[] = ['disk' => $audio->disk, 'key' => $audio->storage_key];
+        }
+        foreach (ProviderReport::where('user_id', $this->id)->pluck('file_path') as $path) {
+            $files[] = ['disk' => 'local', 'key' => $path];
+        }
+        foreach (StudentApplication::where('user_id', $this->id)->whereNotNull('evidence_path')->pluck('evidence_path') as $path) {
+            if ($path) $files[] = ['disk' => 'local', 'key' => $path];
+        }
+        $avatar = $this->profile()->first();
+        if ($avatar?->avatar_object_key) $files[] = ['disk' => config('avatars.disk'), 'key' => $avatar->avatar_object_key];
+        foreach (\Illuminate\Support\Facades\DB::table('community_posts')->where('user_id', $this->id)->whereNotNull('image_object_key')->pluck('image_object_key') as $path) {
+            $files[] = ['disk' => config('avatars.disk'), 'key' => $path];
+        }
+        return $files;
     }
 
     // Future paywall and 2FA gates should consult these policies.

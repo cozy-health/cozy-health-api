@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::command('privacy:deletions-prune --execute')->daily()->withoutOverlapping()
+    ->when(fn () => (bool) config('deletion-ledger.enabled'));
+
 Schedule::call(function () {
     \Illuminate\Support\Facades\DB::table('quiz_invitations')->whereNull('accepted_at')->where('expires_at', '<', now()->subDays(7))->delete();
     \App\Models\QuizSession::where('expires_at', '<', now()->subDays(7))->whereNotIn('id', \App\Models\QuizAttempt::withTrashed()->select('id'))->delete();
