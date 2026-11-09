@@ -27,6 +27,8 @@ RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions 
     && composer check-platform-reqs --no-dev
 
 FROM php-base AS runtime
+COPY docker/install-backup-client.sh /tmp/install-backup-client.sh
+RUN sh /tmp/install-backup-client.sh && rm /tmp/install-backup-client.sh
 WORKDIR /var/www/html
 COPY . .
 COPY --from=vendor /app/vendor ./vendor

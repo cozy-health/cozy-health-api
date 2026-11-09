@@ -10,7 +10,7 @@ jobs:
   api:
     name: API release checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       mysql:
         image: mysql:9
@@ -28,7 +28,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd
+          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd, sodium
           coverage: none
       - name: Prepare application and required audio tooling
         run: |
@@ -57,7 +57,7 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|VoiceAudioTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|NigerianStudentVerificationTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|LaunchAssessmentDraftsTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|ProviderReplacementTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|DeletionLedgerTest|AdminRefinementTest'
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|VoiceAudioTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|NigerianStudentVerificationTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|LaunchAssessmentDraftsTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|ProviderReplacementTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|DeletionLedgerTest|DevelopmentBackupTest|AdminRefinementTest'
       - name: Student review, email and reminder MySQL concurrency
         env:
           APP_ENV: testing
@@ -103,3 +103,12 @@ jobs:
           CACHE_STORE: array
           MAIL_MAILER: array
         run: php tests/Concurrency/mysql_provider_replacements.php
+      - name: Build exact runtime and verify native encrypted backup
+        run: |
+          docker build --target runtime -t cozy-development-backup:${{ github.sha }} .
+          docker run --rm --network host --entrypoint php \
+            -e APP_ENV=testing -e DB_CONNECTION=mysql -e DB_HOST=127.0.0.1 -e DB_PORT=3306 \
+            -e DB_DATABASE=cozy_release_test -e DB_USERNAME=root -e DB_PASSWORD=isolated-test-password \
+            -e DB_URL= -e DB_TLS_ENFORCE=false -e DB_REQUIRE_TLS=false -e MAIL_MAILER=array \
+            -v "$PWD/tests/Support/verify_native_development_backup.php:/tmp/verify-backup.php:ro" \
+            cozy-development-backup:${{ github.sha }} /tmp/verify-backup.php

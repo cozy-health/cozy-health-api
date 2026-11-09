@@ -11,7 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([\App\Providers\AppServiceProvider::class])
     ->withRouting(api: __DIR__.'/../routes/api.php', commands: __DIR__.'/../routes/console.php', web: __DIR__.'/../routes/web.php', apiPrefix: 'api')
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->prepend([\App\Http\Middleware\SecurityHeaders::class, \App\Http\Middleware\TrackDevelopmentBackupActivity::class]);
+        if (getenv('RAILWAY_PROJECT_ID') === \App\Services\CommunityAvailability::DEVELOPMENT_PROJECT
+            && getenv('RAILWAY_ENVIRONMENT_ID') === \App\Services\CommunityAvailability::DEVELOPMENT_ENVIRONMENT) {
+            $middleware->preventRequestsDuringMaintenance(except: ['up']);
+        }
         // Railway ingress terminates TLS and supplies X-Forwarded-Proto.
         // Do not trust forwarded host values for URL generation.
         $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
