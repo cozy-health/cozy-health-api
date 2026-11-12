@@ -52,7 +52,10 @@ class DevelopmentBackup
             $work = storage_path('app/backup-work/'.$this->id);
             if (! mkdir($work, 0700, true)) throw new RuntimeException('Private backup work directory failed.');
             chmod($work, 0700);
-            $key = random_bytes(SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES);
+            $keyLength = defined('SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES')
+                ? constant('SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES')
+                : 32;
+            $key = random_bytes($keyLength);
             $writer = new BackupCipher($work.'/database.enc', $key, true);
             app(DevelopmentDatabaseDump::class)->export($writer, $work, $this->deadline, fn () => $this->checkpoint());
             $database = $this->upload($disk, $work.'/database.enc', $root.'/database.enc', $writer->finish(), $key);

@@ -41,14 +41,14 @@ final class BackupCipher
         hash_update($this->plainHash, $bytes);
         $bytes = $this->deflater ? deflate_add($this->deflater, $bytes, ZLIB_NO_FLUSH) : $bytes;
         if ($bytes === false) throw new RuntimeException('Backup compression failed.');
-        for ($i = 0; $i < strlen($bytes); $i += 65536) $this->frame(substr($bytes, $i, 65536), SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE);
+        for ($i = 0; $i < strlen($bytes); $i += 65536) $this->frame(substr($bytes, $i, 65536), \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE);
     }
     public function finish(): array
     {
         $tail = $this->deflater ? deflate_add($this->deflater, '', ZLIB_FINISH) : '';
         if ($tail === false) throw new RuntimeException('Backup compression finalization failed.');
-        for ($i = 0; $i < strlen($tail); $i += 65536) $this->frame(substr($tail, $i, 65536), SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE);
-        $this->frame('', SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
+        for ($i = 0; $i < strlen($tail); $i += 65536) $this->frame(substr($tail, $i, 65536), \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE);
+        $this->frame('', \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
         fclose($this->output); $this->output = null;
         return ['plain_bytes' => $this->plainBytes, 'cipher_bytes' => $this->cipherBytes, 'plain_sha256' => hash_final($this->plainHash), 'cipher_sha256' => hash_final($this->cipherHash), 'gzip' => $this->deflater !== null];
     }
@@ -63,7 +63,7 @@ final class BackupCipher
     public static function verify($input, string $key, array $expected, ?callable $consume = null): void
     {
         $cipherHash = hash_init('sha256');
-        $header = self::readExact($input, 8 + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES);
+        $header = self::readExact($input, 8 + \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES);
         hash_update($cipherHash, $header);
         if (substr($header, 0, 8) !== self::MAGIC) throw new RuntimeException('Invalid encrypted backup header.');
         $state = sodium_crypto_secretstream_xchacha20poly1305_init_pull(substr($header, 8), $key);
@@ -82,7 +82,7 @@ final class BackupCipher
             if ($count > config('development-backup.max_plain_bytes')) throw new RuntimeException('Backup verification limit exceeded.');
             hash_update($hash, $bytes);
             if ($consume !== null && $bytes !== '') $consume($bytes);
-        } while ($tag !== SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
+        } while ($tag !== \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
         if (($inflate && inflate_get_status($inflate) !== ZLIB_STREAM_END) || fread($input, 1) !== '' || $count !== $expected['plain_bytes'] || $total !== $expected['cipher_bytes'] || ! hash_equals($expected['plain_sha256'], hash_final($hash)) || ! hash_equals($expected['cipher_sha256'], hash_final($cipherHash))) throw new RuntimeException('Backup checksum or length verification failed.');
     }
 }
