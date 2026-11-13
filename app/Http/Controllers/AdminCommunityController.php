@@ -41,12 +41,13 @@ class AdminCommunityController extends Controller
     public function update(Request $request, string $kind, string $id)
     {
         abort_unless(in_array($kind, ['posts', 'comments'], true), 404);
-        $data = $request->validate(['status' => 'required|in:published,removed,pending', 'expected_version' => 'required|string|size:64', 'confirm_republish' => 'sometimes|boolean']);
+        $data = $request->validate(['status' => 'required|in:published,removed,pending', 'expected_version' => 'required|string|size:64', 'confirm_republish' => 'sometimes|boolean', 'reason' => 'sometimes|string|min:5|max:1000']);
         DB::transaction(function () use ($request, $kind, $id, $data) {
             $table = 'community_'.$kind;
             $content = DB::table($table)->where('id', $id)->whereNull('deleted_at')->lockForUpdate()->firstOrFail();
             AdminContentVersion::check($content, $data, $data['status']);
             DB::table($table)->where('id', $id)->update(['status' => $data['status'], 'updated_at' => now()]);
+            if ($data['status'] === 'removed') app(\App\Services\CommunityModeration::class)->removed($request->user()->id, $kind === 'posts' ? 'post' : 'comment', $id, $data['reason'] ?? 'This content was removed after a community guidelines review.');
             if (in_array($data['status'], ['published', 'removed'], true)) {
                 \App\Services\AdminReportResolution::resolvePending(
                     $request->user()->id, $kind === 'posts' ? 'post' : 'comment', $id,

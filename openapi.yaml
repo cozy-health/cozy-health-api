@@ -25596,18 +25596,76 @@
         "operationId": "get_provider__clients___userId___insights",
         "summary": "Get complete-period mood insights for an authorized patient",
         "description": "Returns a summary-first Week, current-month, or current-year aggregate over every authorized nondeleted mood record in the selected patient-local period. The current follow-up priority always uses the latest seven days and is not a diagnosis.",
-        "tags": ["provider"],
-        "security": [{"providerAuth": []}],
+        "tags": [
+          "provider"
+        ],
+        "security": [
+          {
+            "providerAuth": []
+          }
+        ],
         "parameters": [
-          {"name": "userId", "in": "path", "required": true, "schema": {"type": "string"}},
-          {"name": "period", "in": "query", "required": true, "schema": {"type": "string", "enum": ["week", "month", "year"]}}
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "week",
+                "month",
+                "year"
+              ]
+            }
+          }
         ],
         "responses": {
-          "200": {"description": "Authorized full-period summary, buckets, distributions and current seven-day priority.", "content": {"application/json": {"schema": {"type": "object", "required": ["data"], "properties": {"data": {"type": "object", "required": ["period", "priority", "current_priority", "coverage", "counts", "buckets"]}}}}}},
-          "401": {"description": "Missing, expired or wrong-role credentials."},
-          "403": {"description": "Provider verification or patient eligibility denied."},
-          "404": {"description": "The active connection or mood-sharing consent is unavailable."},
-          "422": {"description": "The period selector is missing or invalid."}
+          "200": {
+            "description": "Authorized full-period summary, buckets, distributions and current seven-day priority.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "period",
+                        "priority",
+                        "current_priority",
+                        "coverage",
+                        "counts",
+                        "buckets"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or wrong-role credentials."
+          },
+          "403": {
+            "description": "Provider verification or patient eligibility denied."
+          },
+          "404": {
+            "description": "The active connection or mood-sharing consent is unavailable."
+          },
+          "422": {
+            "description": "The period selector is missing or invalid."
+          }
         }
       }
     },
@@ -27970,6 +28028,449 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/community/moderation": {
+      "get": {
+        "operationId": "community_moderation_status",
+        "summary": "Read owned community restrictions, decisions and appeal status",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Owned data only. Appeals remain available without paid community participation.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@status",
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/community/decisions/{id}/appeal": {
+      "post": {
+        "operationId": "community_moderation_submit",
+        "summary": "Submit or recover one owned appeal per decision",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Owned data only. Appeals remain available without paid community participation.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@submit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "message"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/admin/community-moderation": {
+      "get": {
+        "operationId": "community_moderation_queue",
+        "summary": "List moderation decisions and pending appeals",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "description": "Requires admin:moderation management capability; current version required for decisions.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "appeals_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@queue",
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/admin/community-moderation/bans": {
+      "post": {
+        "operationId": "community_moderation_ban",
+        "summary": "Restrict community participation without disabling the account",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "description": "Requires admin:moderation management capability; current version required for decisions.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@ban",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "user_id",
+                  "duration",
+                  "reason"
+                ],
+                "properties": {
+                  "user_id": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "duration": {
+                    "type": "string",
+                    "enum": [
+                      "24h",
+                      "7d",
+                      "30d",
+                      "permanent"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/admin/community-moderation/bans/{id}/lift": {
+      "post": {
+        "operationId": "community_moderation_lift",
+        "summary": "Lift an unchanged active community ban",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "description": "Requires admin:moderation management capability; current version required for decisions.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@lift",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_version",
+                  "reason"
+                ],
+                "properties": {
+                  "expected_version": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/admin/community-moderation/appeals/{id}/review": {
+      "post": {
+        "operationId": "community_moderation_review",
+        "summary": "Review an unchanged appeal; confirm republishing when accepting a content appeal",
+        "tags": [
+          "community-moderation"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "description": "Requires admin:moderation management capability; current version required for decisions.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON operation response"
+          },
+          "201": {
+            "description": "JSON operation response"
+          },
+          "401": {
+            "description": "JSON operation response"
+          },
+          "403": {
+            "description": "JSON operation response"
+          },
+          "404": {
+            "description": "JSON operation response"
+          },
+          "409": {
+            "description": "Stale/superseded decision; reload before retry."
+          },
+          "422": {
+            "description": "JSON operation response"
+          },
+          "429": {
+            "description": "JSON operation response"
+          }
+        },
+        "x-cozy-handler": "App\\Http\\Controllers\\CommunityModerationController@review",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_version",
+                  "decision",
+                  "reason"
+                ],
+                "properties": {
+                  "expected_version": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "accepted",
+                      "rejected"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 1000
+                  },
+                  "confirm_republish": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
       }
     }
   }

@@ -89,6 +89,10 @@ Route::prefix('v1')->group(function () {
             Route::post('privacy-requests/{id}/process', [\App\Http\Controllers\AdminPrivacyController::class, 'process'])->whereUuid('id');
         });
         Route::middleware('admin.manage:moderation')->group(function () {
+            Route::get('community-moderation', [\App\Http\Controllers\CommunityModerationController::class, 'queue']);
+            Route::post('community-moderation/bans', [\App\Http\Controllers\CommunityModerationController::class, 'ban'])->middleware('throttle:10,1');
+            Route::post('community-moderation/bans/{id}/lift', [\App\Http\Controllers\CommunityModerationController::class, 'lift'])->whereUuid('id');
+            Route::post('community-moderation/appeals/{id}/review', [\App\Http\Controllers\CommunityModerationController::class, 'review'])->whereUuid('id');
             Route::get('community/{kind}', [\App\Http\Controllers\AdminCommunityController::class, 'index'])->where('kind', 'posts|comments|members');
             Route::get('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'show'])->where('kind', 'posts|comments')->whereUuid('id');
             Route::put('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'update'])->where('kind', 'posts|comments')->whereUuid('id');
@@ -298,7 +302,9 @@ Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\En
     Route::get('notifications/preferences', [UserProfileController::class, 'notificationPreferences'])->middleware('throttle:60,1');
     Route::patch('notifications/preferences', [UserProfileController::class, 'updateNotificationPreferences'])->middleware('throttle:30,1');
     Route::get('crisis/resources', CrisisResourceController::class)->middleware('throttle:60,1');
-    Route::prefix('community')->middleware([CommunityReady::class, 'throttle:60,1'])->group(function () {
+    Route::prefix('community')->middleware([CommunityReady::class, \App\Http\Middleware\CommunityParticipation::class, 'throttle:60,1'])->group(function () {
+        Route::get('moderation', [\App\Http\Controllers\CommunityModerationController::class, 'status']);
+        Route::post('decisions/{id}/appeal', [\App\Http\Controllers\CommunityModerationController::class, 'submit'])->whereUuid('id')->middleware('throttle:5,1');
         $community = CommunityController::class;
         Route::get('posts', [$community, 'index']);
         Route::put('{kind}/{id}/reaction', [$community, 'reaction'])->where('kind', 'posts|comments')->whereUuid('id');

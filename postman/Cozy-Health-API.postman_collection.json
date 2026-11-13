@@ -11741,14 +11741,46 @@
           "x-cozy-operation-id": "get_provider__clients___userId___insights",
           "request": {
             "method": "GET",
-            "header": [{"key": "Accept", "value": "application/json"}],
-            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{provider_token}}", "type": "string"}]},
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{provider_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "url": {
               "raw": "{{base_url}}/provider/clients/:userId/insights?period=week",
-              "host": ["{{base_url}}"],
-              "path": ["provider", "clients", ":userId", "insights"],
-              "query": [{"key": "period", "value": "week", "description": "week, month, or year"}],
-              "variable": [{"key": "userId", "value": "{{userId}}"}]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "clients",
+                ":userId",
+                "insights"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week",
+                  "description": "week, month, or year"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
             },
             "description": "Returns the authorized patient's complete selected-period aggregates and independent current seven-day follow-up priority. Requires an active eligible connection and mood-sharing consent."
           }
@@ -12884,6 +12916,171 @@
           }
         }
       }
+    },
+    {
+      "name": "Community restrictions and appeals",
+      "item": [
+        {
+          "name": "Read owned community restrictions, decisions and appeal status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/community/moderation",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test."
+          },
+          "x-cozy-operation-id": "community_moderation_status"
+        },
+        {
+          "name": "Submit or recover one owned appeal per decision",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/community/decisions/{{community_decision_id}}/appeal",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Synthetic fixture reason\"\n}"
+            }
+          },
+          "x-cozy-operation-id": "community_moderation_submit"
+        },
+        {
+          "name": "List moderation decisions and pending appeals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/admin/community-moderation",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test."
+          },
+          "x-cozy-operation-id": "community_moderation_queue"
+        },
+        {
+          "name": "Restrict community participation without disabling the account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/admin/community-moderation/bans",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{fixture_user_id}}\",\n  \"duration\": \"7d\",\n  \"reason\": \"Synthetic fixture reason\"\n}"
+            }
+          },
+          "x-cozy-operation-id": "community_moderation_ban"
+        },
+        {
+          "name": "Lift an unchanged active community ban",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/admin/community-moderation/bans/{{community_decision_id}}/lift",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": \"{{expected_version}}\",\n  \"reason\": \"Synthetic fixture reason\"\n}"
+            }
+          },
+          "x-cozy-operation-id": "community_moderation_lift"
+        },
+        {
+          "name": "Review an unchanged appeal; confirm republishing when accepting a content appeal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/admin/community-moderation/appeals/{{community_decision_id}}/review",
+            "description": "Development test fixtures only. Admin operations require a management token with admin:moderation. Do not approve real bans as a test.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": \"{{expected_version}}\",\n  \"decision\": \"rejected\",\n  \"reason\": \"Synthetic fixture reason\",\n  \"confirm_republish\": false\n}"
+            }
+          },
+          "x-cozy-operation-id": "community_moderation_review"
+        }
+      ]
     }
   ],
   "variable": [

@@ -3080,7 +3080,9 @@
     "classification": "supported",
     "authentication": "provider",
     "handler": "App\\Http\\Controllers\\Api\\V1\\Provider\\ProviderClientController@insights",
-    "validation_sources": ["period: required, one of week/month/year"],
+    "validation_sources": [
+      "period: required, one of week/month/year"
+    ],
     "source": "app/Http/Controllers/Api/V1/Provider/ProviderClientController.php:64"
   },
   {
@@ -3396,5 +3398,65 @@
     "handler": "App\\Http\\Controllers\\Api\\V1\\StoreBillingController@purchaseCheck",
     "validation_sources": [],
     "source": "app/Http/Controllers/Api/V1/StoreBillingController.php:1"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/community/moderation",
+    "operation_id": "community_moderation_status",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@status",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/community/decisions/{id}/appeal",
+    "operation_id": "community_moderation_submit",
+    "classification": "supported",
+    "authentication": "patient",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@submit",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/community-moderation",
+    "operation_id": "community_moderation_queue",
+    "classification": "supported",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@queue",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/community-moderation/bans",
+    "operation_id": "community_moderation_ban",
+    "classification": "supported",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@ban",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/community-moderation/bans/{id}/lift",
+    "operation_id": "community_moderation_lift",
+    "classification": "supported",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@lift",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/community-moderation/appeals/{id}/review",
+    "operation_id": "community_moderation_review",
+    "classification": "supported",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\CommunityModerationController@review",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/CommunityModerationController.php"
   }
 ]

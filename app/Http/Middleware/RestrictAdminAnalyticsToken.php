@@ -12,6 +12,7 @@ class RestrictAdminAnalyticsToken
         $token = $request->user()?->currentAccessToken();
         if ($token instanceof \Laravel\Sanctum\PersonalAccessToken && $token->name === 'cozy-admin-management-v1') {
             $path = preg_replace('#^api/v1/admin/#', '', $request->path());
+            if (preg_match('#^community-moderation(?:/bans(?:/[a-f0-9-]{36}/lift)?|/appeals/[a-f0-9-]{36}/review)?$#', $path)) return $next($request);
             if (preg_match('#^support/[1-9][0-9]*/(?:thread|replies|messages/[a-f0-9-]{36}/retry)$#', $path)
                 || preg_match('#^privacy-requests(?:/[a-f0-9-]{36}(?:/process)?)?$#', $path)) return $next($request);
             if (preg_match('#^articles(?:/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}(?:/publish)?)?$#', $path)) return $next($request);

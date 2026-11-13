@@ -55,7 +55,7 @@ class AdminOperationsController extends Controller
 
     public function review(Request $request, string $id)
     {
-        $data = $request->validate(['decision' => 'required|in:publish,remove,dismiss', 'expected_version' => 'required_unless:decision,dismiss|string|size:64', 'confirm_republish' => 'sometimes|boolean']);
+        $data = $request->validate(['decision' => 'required|in:publish,remove,dismiss', 'expected_version' => 'required_unless:decision,dismiss|string|size:64', 'confirm_republish' => 'sometimes|boolean', 'reason' => 'sometimes|string|min:5|max:1000']);
         DB::transaction(function () use ($request, $id, $data) {
             // Discover the immutable target, then always lock content before reports.
             $report = DB::table('community_reports')->where('id', $id)->firstOrFail();
@@ -72,6 +72,7 @@ class AdminOperationsController extends Controller
                 $status = $data['decision'] === 'publish' ? 'published' : 'removed';
                 AdminContentVersion::check($target, $data, $status);
                 DB::table($table)->where('id', $report->target_id)->update(['status' => $status, 'updated_at' => now()]);
+                  if ($status === 'removed') app(\App\Services\CommunityModeration::class)->removed($request->user()->id, $report->target_type, $report->target_id, $data['reason'] ?? 'This content was removed after a community guidelines review.');
                 \App\Services\AdminReportResolution::resolvePending($request->user()->id, $report->target_type, $report->target_id, $data['decision']);
                 return;
             }

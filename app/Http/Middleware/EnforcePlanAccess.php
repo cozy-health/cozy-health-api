@@ -17,6 +17,7 @@ final class EnforcePlanAccess
         $write = in_array($request->method(), ['POST', 'PUT', 'PATCH'], true);
         $access = app(PlanAccess::class);
         $feature = null;
+        if ($path === 'community/moderation' || preg_match('#^community/decisions/[a-f0-9-]{36}/appeal$#', $path)) return $next($request);
         if ($request->isMethod('GET') && str_starts_with($path, 'insights/')) $feature = 'trends_dashboard';
         if ($path === 'audio-attachments' && $write) $feature = 'voice';
         if ($path === 'mood-entries' && $write) $feature = 'mood_checkin';
@@ -34,7 +35,7 @@ final class EnforcePlanAccess
         if (str_starts_with($path, 'community/')) {
             // Reports, blocking, leaving and deleting one's content remain possible after expiry.
             if ($request->isMethod('GET') && $path !== 'community/blocked') $feature = 'community_read';
-            elseif ($write && !preg_match('#/(report|block)$#', $path)) $feature = 'community_participate';
+            elseif ($write && !preg_match('#/(report|block|appeal)$#', $path)) $feature = 'community_participate';
         }
         if ($feature) $access->require($request->user(), $feature);
         return $next($request);

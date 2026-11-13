@@ -1,5 +1,8 @@
 <?php
 
+\Illuminate\Support\Facades\Schedule::call(fn () => app(\App\Services\CommunityModeration::class)->tick())
+    ->name('community:moderation-notices')->everyMinute()->withoutOverlapping();
+
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
