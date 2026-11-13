@@ -19,12 +19,14 @@ $admin = $db;
 $admin->statement('CREATE DATABASE `'.$source.'`');
 config(['development-backup.enabled' => false, 'app.maintenance.driver' => 'file',
     'cache.stores.development_backup.connection' => 'backup_fixture', 'cache.stores.development_backup.lock_connection' => 'backup_fixture',
-    'database.connections.backup_fixture' => array_replace($db->getConfig(), ['database' => $source, 'url' => null])]);
+    // getConfig() includes the old name. Laravel preserves it unless explicitly
+    // replaced, and Migrator then switches back to the shared mysql connection.
+    'database.connections.backup_fixture' => array_replace($db->getConfig(), ['name' => 'backup_fixture', 'database' => $source, 'url' => null])]);
 Illuminate\Support\Facades\DB::setDefaultConnection('backup_fixture');
 // Bootstrap may already have resolved Schema against the shared CI database.
 // Switching the manager default does not invalidate that facade's cached builder.
 Illuminate\Support\Facades\Schema::clearResolvedInstance('db.schema');
-if (Illuminate\Support\Facades\Schema::getConnection()->getDatabaseName() !== $source) throw new RuntimeException('Native fixture schema connection is not isolated.');
+if (Illuminate\Support\Facades\Schema::getConnection()->getDatabaseName() !== $source || Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'backup_fixture') throw new RuntimeException('Native fixture schema connection is not isolated.');
 if (Illuminate\Support\Facades\Artisan::call('migrate', ['--database' => 'backup_fixture', '--force' => true]) !== 0) throw new RuntimeException('Native fixture migrations failed.');
 config(['development-backup.enabled' => true, 'app.maintenance.driver' => 'cache']);
 $db = Illuminate\Support\Facades\DB::connection();
