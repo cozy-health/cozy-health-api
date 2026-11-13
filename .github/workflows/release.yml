@@ -106,6 +106,8 @@ jobs:
       - name: Build exact runtime and verify native encrypted backup
         run: |
           docker build --target runtime -t cozy-development-backup:${{ github.sha }} .
+          docker run --rm --entrypoint sh \
+            cozy-development-backup:${{ github.sha }} tests/Support/verify_development_fpm.sh
           docker run --rm --network host --entrypoint php \
             -e APP_ENV=testing -e DB_CONNECTION=mysql -e DB_HOST=127.0.0.1 -e DB_PORT=3306 \
             -e DB_DATABASE=cozy_release_test -e DB_USERNAME=root -e DB_PASSWORD=isolated-test-password \

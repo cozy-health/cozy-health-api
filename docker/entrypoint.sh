@@ -27,6 +27,8 @@ if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
     exit 1
 fi
 
+sh /usr/local/bin/configure-development-fpm.sh
+
 # Substitute only PORT; preserve Nginx's $uri and FastCGI variables.
 envsubst '${PORT}' < /etc/nginx/templates/app.conf.template > /etc/nginx/sites-available/default
 
