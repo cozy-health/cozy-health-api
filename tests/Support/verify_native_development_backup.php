@@ -1,5 +1,6 @@
 <?php
 // Runs only against the disposable CI database, never a Railway environment.
+try {
 require '/var/www/html/vendor/autoload.php';
 $app = require '/var/www/html/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
@@ -20,7 +21,11 @@ config(['development-backup.enabled' => false, 'app.maintenance.driver' => 'file
     'cache.stores.development_backup.connection' => 'backup_fixture', 'cache.stores.development_backup.lock_connection' => 'backup_fixture',
     'database.connections.backup_fixture' => array_replace($db->getConfig(), ['database' => $source, 'url' => null])]);
 Illuminate\Support\Facades\DB::setDefaultConnection('backup_fixture');
-Illuminate\Support\Facades\Artisan::call('migrate', ['--database' => 'backup_fixture', '--force' => true]);
+// Bootstrap may already have resolved Schema against the shared CI database.
+// Switching the manager default does not invalidate that facade's cached builder.
+Illuminate\Support\Facades\Schema::clearResolvedInstance('db.schema');
+if (Illuminate\Support\Facades\Schema::getConnection()->getDatabaseName() !== $source) throw new RuntimeException('Native fixture schema connection is not isolated.');
+if (Illuminate\Support\Facades\Artisan::call('migrate', ['--database' => 'backup_fixture', '--force' => true]) !== 0) throw new RuntimeException('Native fixture migrations failed.');
 config(['development-backup.enabled' => true, 'app.maintenance.driver' => 'cache']);
 $db = Illuminate\Support\Facades\DB::connection();
 $db->statement('CREATE TABLE backup_native_probe (id BIGINT PRIMARY KEY, bytes_value BLOB, json_value JSON) ENGINE=InnoDB');
@@ -54,4 +59,10 @@ try {
     if ($created) $db->statement('DROP DATABASE `'.$restore.'`');
     Illuminate\Support\Facades\DB::disconnect('backup_fixture');
     $admin->statement('DROP DATABASE `'.$source.'`');
+}
+} catch (Throwable $error) {
+    // Laravel's registered exception renderer can otherwise print an error and
+    // let this standalone script exit zero, incorrectly making the CI step green.
+    fwrite(STDERR, 'Native backup verification failed: '.get_class($error).': '.$error->getMessage().PHP_EOL);
+    exit(1);
 }
