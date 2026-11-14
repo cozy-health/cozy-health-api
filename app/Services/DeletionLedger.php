@@ -21,9 +21,10 @@ final class DeletionLedger
 
     public function assertAvailable(): void
     {
-        if (! $this->enabled() || (! app()->environment('testing') && ! app(DevelopmentMailSafety::class)->development())) {
-            throw new RuntimeException('Deletion ledger requires the approved development environment and explicit activation.');
+        if (! $this->enabled()) {
+            throw new RuntimeException('Deletion ledger requires explicit activation.');
         }
+        app(BackupEnvironment::class)->assertApproved();
         if (! app()->environment('testing') && config('filesystems.disks.'.config('deletion-ledger.disk').'.driver') !== 's3') {
             throw new RuntimeException('Deletion records must be outside the database volume in private object storage.');
         }

@@ -1,15 +1,15 @@
 <?php
 namespace App\Http\Middleware;
 
-use App\Services\DevelopmentBackupControl;
+use App\Services\BackupControl;
 use Closure;
 use Illuminate\Http\Request;
 
-final class TrackDevelopmentBackupActivity
+final class TrackBackupActivity
 {
     public function handle(Request $request, Closure $next)
     {
-        $control = app(DevelopmentBackupControl::class);
+        $control = app(BackupControl::class);
         if (! $control->enabled()) return $next($request);
         // Runs before Laravel's maintenance middleware: the first request after
         // expiry can release only backup-owned maintenance, even if a job died.

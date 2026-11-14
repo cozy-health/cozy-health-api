@@ -1,16 +1,17 @@
 <?php
 namespace App\Console\Commands;
 
-use App\Services\DevelopmentBackup;
-use App\Services\DevelopmentBackupControl;
+use App\Services\BackupService;
+use App\Services\BackupControl;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-final class CreateDevelopmentBackup extends Command
+final class CreateBackup extends Command
 {
-    protected $signature = 'development:backup {--execute : Create one verified encrypted recovery copy} {--verify= : Verify an existing backup UUID without maintenance}';
-    protected $description = 'Preview, create or verify approved development-only daily backups';
-    public function handle(DevelopmentBackup $backup, DevelopmentBackupControl $control): int
+    protected $signature = 'backup:create {--execute : Create one verified encrypted recovery copy} {--verify= : Verify an existing backup UUID without maintenance}';
+    protected $aliases = ['development:backup'];
+    protected $description = 'Preview, create or verify approved daily backups';
+    public function handle(BackupService $backup, BackupControl $control): int
     {
         try {
             $control->assertReady();
@@ -21,7 +22,7 @@ final class CreateDevelopmentBackup extends Command
             $this->line(json_encode($result, JSON_THROW_ON_ERROR));
             return self::SUCCESS;
         } catch (\Throwable $error) {
-            Log::error('Development backup failed; no complete new recovery copy is assumed.', ['exception_type' => get_class($error)]);
+            Log::error('Backup failed; no complete new recovery copy is assumed.', ['exception_type' => get_class($error)]);
             $this->error('Backup refused or incomplete. Review environment, client/TLS, in-flight work, lease, size limits and storage. Preserve old backups.');
             return self::FAILURE;
         }

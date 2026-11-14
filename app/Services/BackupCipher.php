@@ -37,7 +37,7 @@ final class BackupCipher
     public function append(string $bytes): void
     {
         $this->plainBytes += strlen($bytes);
-        if ($this->plainBytes > config('development-backup.max_plain_bytes')) throw new RuntimeException('Backup plaintext sizing limit exceeded.');
+        if ($this->plainBytes > config('backup.max_plain_bytes')) throw new RuntimeException('Backup plaintext sizing limit exceeded.');
         hash_update($this->plainHash, $bytes);
         $bytes = $this->deflater ? deflate_add($this->deflater, $bytes, ZLIB_NO_FLUSH) : $bytes;
         if ($bytes === false) throw new RuntimeException('Backup compression failed.');
@@ -79,7 +79,7 @@ final class BackupCipher
             [$bytes, $tag] = $plain;
             if ($inflate && $bytes !== '') { $bytes = inflate_add($inflate, $bytes, ZLIB_SYNC_FLUSH); if ($bytes === false) throw new RuntimeException('Backup decompression failed.'); }
             $count += strlen($bytes);
-            if ($count > config('development-backup.max_plain_bytes')) throw new RuntimeException('Backup verification limit exceeded.');
+            if ($count > config('backup.max_plain_bytes')) throw new RuntimeException('Backup verification limit exceeded.');
             hash_update($hash, $bytes);
             if ($consume !== null && $bytes !== '') $consume($bytes);
         } while ($tag !== \SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);

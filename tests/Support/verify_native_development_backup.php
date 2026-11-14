@@ -5,7 +5,7 @@ require '/var/www/html/vendor/autoload.php';
 $app = require '/var/www/html/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 if (! app()->environment('testing') || getenv('DB_DATABASE') !== 'cozy_release_test' || getenv('DB_HOST') !== '127.0.0.1' || getenv('RAILWAY_PROJECT_ID')) throw new RuntimeException('Isolated CI database required.');
-config(['app.key' => 'base64:'.base64_encode(random_bytes(32)), 'development-backup.enabled' => true,
+config(['app.key' => 'base64:'.base64_encode(random_bytes(32)), 'backup.enabled' => true,
     'app.maintenance.driver' => 'cache', 'app.maintenance.store' => 'development_backup',
     'deletion-ledger.enabled' => true, 'deletion-ledger.activated_at' => now()->subHour()->toIso8601String()]);
 $app->forgetInstance('encrypter');
@@ -17,7 +17,7 @@ $source = 'cozy_backup_source_'.bin2hex(random_bytes(6));
 if (! preg_match('/^cozy_backup_source_[a-f0-9]{12}$/D', $source)) throw new RuntimeException('Invalid task source database.');
 $admin = $db;
 $admin->statement('CREATE DATABASE `'.$source.'`');
-config(['development-backup.enabled' => false, 'app.maintenance.driver' => 'file',
+config(['backup.enabled' => false, 'app.maintenance.driver' => 'file',
     'cache.stores.development_backup.connection' => 'backup_fixture', 'cache.stores.development_backup.lock_connection' => 'backup_fixture',
     // getConfig() includes the old name. Laravel preserves it unless explicitly
     // replaced, and Migrator then switches back to the shared mysql connection.
@@ -28,7 +28,7 @@ Illuminate\Support\Facades\DB::setDefaultConnection('backup_fixture');
 Illuminate\Support\Facades\Schema::clearResolvedInstance('db.schema');
 if (Illuminate\Support\Facades\Schema::getConnection()->getDatabaseName() !== $source || Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'backup_fixture') throw new RuntimeException('Native fixture schema connection is not isolated.');
 if (Illuminate\Support\Facades\Artisan::call('migrate', ['--database' => 'backup_fixture', '--force' => true]) !== 0) throw new RuntimeException('Native fixture migrations failed.');
-config(['development-backup.enabled' => true, 'app.maintenance.driver' => 'cache']);
+config(['backup.enabled' => true, 'app.maintenance.driver' => 'cache']);
 $db = Illuminate\Support\Facades\DB::connection();
 $db->statement('CREATE TABLE backup_native_probe (id BIGINT PRIMARY KEY, bytes_value BLOB, json_value JSON) ENGINE=InnoDB');
 $bytes = "fixture\0\xff\x01";
@@ -38,7 +38,7 @@ if (! preg_match('/^cozy_backup_fixture_[a-f0-9]{12}$/D', $restore)) throw new R
 $created = false;
 $options = '/tmp/cozy-backup-client-'.bin2hex(random_bytes(8)).'.cnf';
 try {
-    $result = app(App\Services\DevelopmentBackup::class)->create();
+    $result = app(App\Services\BackupService::class)->create();
     $manifest = json_decode(Illuminate\Support\Facades\Crypt::decryptString($disk->get('private/development-backups/v1/'.$result['id'].'/manifest.enc')), true, flags: JSON_THROW_ON_ERROR);
     $sql = '';
     $input = $disk->readStream($manifest['database']['object']);
@@ -52,8 +52,8 @@ try {
     $process->mustRun();
     $row = (array) $db->selectOne('SELECT * FROM `'.$restore.'`.backup_native_probe WHERE id=1');
     if ($row['bytes_value'] !== $bytes || json_decode($row['json_value'], true)['message'] !== 'synthetic unicode ✓') throw new RuntimeException('Native roundtrip changed binary/JSON values.');
-    $maintenance = (array) $db->selectOne('SELECT `value` FROM `'.$restore.'`.cache WHERE `key` = ?', [config('development-backup.control_prefix').'illuminate:foundation:down']);
-    if (! (unserialize($maintenance['value'], ['allowed_classes' => false])['development_restore'] ?? false)) throw new RuntimeException('Restored copy did not stay in maintenance.');
+    $maintenance = (array) $db->selectOne('SELECT `value` FROM `'.$restore.'`.cache WHERE `key` = ?', [config('backup.control_prefix').'illuminate:foundation:down']);
+    if (! (unserialize($maintenance['value'], ['allowed_classes' => false])['backup_restore'] ?? false)) throw new RuntimeException('Restored copy did not stay in maintenance.');
     if (app()->isDownForMaintenance()) throw new RuntimeException('Original test application was left in maintenance.');
     echo "Native MySQL encrypted backup, binary/JSON import and closed-restore marker verified.\n";
 } finally {

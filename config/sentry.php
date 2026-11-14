@@ -2,16 +2,21 @@
 
 $dsn = env('SENTRY_LARAVEL_DSN');
 $parsed = is_string($dsn) ? parse_url($dsn) : false;
-$enabled = config('monitoring.sentry_development_enabled')
+$production = config('app.env') === 'production';
+$expectedHost = $production ? env('SENTRY_ALLOWED_HOST') : 'o4512334056128512.ingest.de.sentry.io';
+$expectedProject = $production ? env('SENTRY_PROJECT_ID') : '4512362654990416';
+$enabled = config('monitoring.'.($production ? 'sentry_production_enabled' : 'sentry_development_enabled'))
+    && is_string($expectedHost) && $expectedHost !== ''
+    && is_string($expectedProject) && $expectedProject !== ''
     && is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
-    && ($parsed['host'] ?? '') === 'o4512334056128512.ingest.de.sentry.io'
-    && ($parsed['path'] ?? '') === '/4512362654990416'
+    && ($parsed['host'] ?? '') === $expectedHost
+    && ($parsed['path'] ?? '') === '/'.$expectedProject
     && !empty($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['query'])
     && !isset($parsed['port']) && !isset($parsed['fragment']);
 
 return [
     'dsn' => $enabled ? $dsn : null,
-    'environment' => 'development',
+    'environment' => $production ? 'production' : 'development',
     'release' => env('SENTRY_RELEASE'),
     'send_default_pii' => false,
     'attach_stacktrace' => false,

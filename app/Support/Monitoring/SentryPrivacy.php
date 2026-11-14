@@ -11,7 +11,13 @@ final class SentryPrivacy
 {
     public static function beforeSend(Event $event): ?Event
     {
-        if (!config('monitoring.sentry_development_enabled') || !in_array(config('app.env'), ['local', 'development'], true)) {
+        $environment = config('app.env');
+        $enabled = match ($environment) {
+            'local', 'development' => config('monitoring.sentry_development_enabled'),
+            'production' => config('monitoring.sentry_production_enabled'),
+            default => false,
+        };
+        if (!$enabled) {
             return null;
         }
 
@@ -20,12 +26,13 @@ final class SentryPrivacy
         $safe = Event::createEvent($event->getId());
         $safe->setTimestamp($event->getTimestamp());
         $safe->setLevel($event->getLevel());
-        $safe->setEnvironment('development');
+        $reportingEnvironment = $environment === 'production' ? 'production' : 'development';
+        $safe->setEnvironment($reportingEnvironment);
         $release = config('sentry.release');
         if (is_string($release) && preg_match('/^cozy-health-api@[a-f0-9]{40}$/D', $release)) {
             $safe->setRelease($release);
         }
-        $safe->setServerName('cozy-health-api-development');
+        $safe->setServerName('cozy-health-api-'.$reportingEnvironment);
         $safe->setTags(['component' => 'api']);
         $exceptions = [];
         foreach ($event->getExceptions() as $exception) {

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-class DevelopmentBackup
+class BackupService
 {
     private string $id;
     private float $deadline;
@@ -18,11 +18,16 @@ class DevelopmentBackup
 
     private function disk()
     {
-        if (app()->environment('testing')) return Storage::disk(config('development-backup.disk'));
-        $cfg = config('filesystems.disks.'.config('development-backup.disk'));
+        if (app()->environment('testing')) return Storage::disk(config('backup.disk'));
+        $cfg = config('filesystems.disks.'.config('backup.disk'));
         if (($cfg['driver'] ?? '') !== 's3' || filled($cfg['root'] ?? null)) throw new RuntimeException('Expected the existing private bucket root.');
         $private = config('filesystems.disks.local');
-        if (($private['driver'] ?? '') !== 's3' || ($private['root'] ?? '') !== 'private' || ($private['bucket'] ?? null) !== ($cfg['bucket'] ?? null) || ($private['endpoint'] ?? null) !== ($cfg['endpoint'] ?? null)) throw new RuntimeException('Private storage must use the verified development bucket layout.');
+        if (($private['driver'] ?? '') !== 's3' || ($private['root'] ?? '') !== 'private' || ($private['bucket'] ?? null) !== ($cfg['bucket'] ?? null) || ($private['endpoint'] ?? null) !== ($cfg['endpoint'] ?? null)) throw new RuntimeException('Private storage must use the verified backup bucket layout.');
+        if (app(BackupEnvironment::class)->name() === 'production'
+            && (! is_string(config('backup.expected_bucket')) || config('backup.expected_bucket') === ''
+                || config('backup.expected_bucket') !== ($cfg['bucket'] ?? null))) {
+            throw new RuntimeException('Production backup storage identity is unverified.');
+        }
         $cfg['http'] = ['connect_timeout' => 2, 'timeout' => 5, 'verify' => true];
         $cfg['retries'] = 0; $cfg['throw'] = true;
         return Storage::build($cfg);
@@ -30,18 +35,18 @@ class DevelopmentBackup
     private function root(string $id): string
     {
         if (! Str::isUuid($id)) throw new RuntimeException('Invalid backup ID.');
-        return config('development-backup.prefix').'/'.$id;
+        return config('backup.prefix').'/'.$id;
     }
     private function checkpoint(): void
     {
-        if (microtime(true) > $this->deadline - 10 || ! app(DevelopmentBackupControl::class)->owns($this->id)) throw new RuntimeException('Backup lease/window lost.');
+        if (microtime(true) > $this->deadline - 10 || ! app(BackupControl::class)->owns($this->id)) throw new RuntimeException('Backup lease/window lost.');
     }
     public function create(): array
     {
-        $control = app(DevelopmentBackupControl::class);
+        $control = app(BackupControl::class);
         $control->assertReady();
         app(DeletionLedger::class)->assertAvailable();
-        if (! is_executable(config('development-backup.dump_binary')) && ! app()->environment('testing')) throw new RuntimeException('Native export client unavailable.');
+        if (! is_executable(config('backup.dump_binary')) && ! app()->environment('testing')) throw new RuntimeException('Native export client unavailable.');
         $this->id = (string) Str::uuid(); $this->bytes = 0; $this->sequence = 0;
         $started = microtime(true); $acquired = false; $committed = false; $work = null;
         $disk = $this->disk(); $root = $this->root($this->id);
@@ -57,7 +62,7 @@ class DevelopmentBackup
                 : 32;
             $key = random_bytes($keyLength);
             $writer = new BackupCipher($work.'/database.enc', $key, true);
-            app(DevelopmentDatabaseDump::class)->export($writer, $work, $this->deadline, fn () => $this->checkpoint());
+            app(DatabaseBackupDump::class)->export($writer, $work, $this->deadline, fn () => $this->checkpoint());
             $database = $this->upload($disk, $work.'/database.enc', $root.'/database.enc', $writer->finish(), $key);
             $files = [];
             // Existing development bucket contains private files and avatars. Ledger
@@ -65,9 +70,9 @@ class DevelopmentBackup
             foreach ($disk->getAdapter()->listContents('', true) as $entry) {
                 if (! $entry->isFile()) continue;
                 $source = $entry->path();
-                if (str_starts_with($source, 'private/deletion-ledger/') || str_starts_with($source, config('development-backup.prefix').'/')) continue;
+                if (str_starts_with($source, 'private/deletion-ledger/') || str_starts_with($source, config('backup.prefix').'/')) continue;
                 $this->safeSource($source);
-                if (count($files) >= config('development-backup.max_files')) throw new RuntimeException('Backup file inventory limit exceeded.');
+                if (count($files) >= config('backup.max_files')) throw new RuntimeException('Backup file inventory limit exceeded.');
                 $this->checkpoint();
                 $input = $disk->readStream($source);
                 if (! is_resource($input)) throw new RuntimeException('Private source file unavailable.');
@@ -80,7 +85,7 @@ class DevelopmentBackup
             }
             $this->assertRequiredFiles(array_column($files, 'source'));
             $this->checkpoint();
-            $manifest = ['schema' => 1, 'id' => $this->id, 'environment' => 'development', 'snapshot_at' => $snapshot,
+            $manifest = ['schema' => 1, 'id' => $this->id, 'environment' => app(BackupEnvironment::class)->name(), 'snapshot_at' => $snapshot,
                 'completed_at' => now()->toIso8601String(), 'expires_at' => Carbon::parse($snapshot)->addDays(7)->toIso8601String(),
                 'key' => base64_encode($key), 'database' => $database, 'files' => $files,
                 'restore_maintenance_required' => true, 'cipher_bytes' => $this->bytes];
@@ -96,7 +101,7 @@ class DevelopmentBackup
             // Availability restoration precedes any remote partial-object cleanup.
             if ($acquired) $control->release($this->id);
             if (! $committed) {
-                try { $disk->deleteDirectory($root); } catch (\Throwable) { Log::warning('Incomplete development backup needs scoped cleanup.'); }
+                try { $disk->deleteDirectory($root); } catch (\Throwable) { Log::warning('Incomplete backup needs scoped cleanup.'); }
             }
             if ($work && is_dir($work)) { foreach (['database.enc', 'object.enc', 'client.cnf'] as $file) if (is_file($work.'/'.$file)) unlink($work.'/'.$file); rmdir($work); }
         }
@@ -120,7 +125,7 @@ class DevelopmentBackup
     private function checkSize(int $bytes): void
     {
         $this->bytes += $bytes;
-        if ($this->bytes > config('development-backup.max_archive_bytes')) throw new RuntimeException('Archive exceeds the approved estimate envelope; review usage before scheduling.');
+        if ($this->bytes > config('backup.max_archive_bytes')) throw new RuntimeException('Archive exceeds the approved estimate envelope; review usage before scheduling.');
     }
     private function safeSource(string $key): void
     {
@@ -142,12 +147,12 @@ class DevelopmentBackup
     }
     public function prune(string $freshId): int
     {
-        app(DevelopmentBackupControl::class)->assertReady();
+        app(BackupControl::class)->assertReady();
         $disk = $this->disk();
         $fresh = $this->manifest($disk, $this->root($freshId).'/manifest.enc');
         if (Carbon::parse($fresh['completed_at'])->lessThan(now()->subMinutes(10))) throw new RuntimeException('A fresh verified backup is required before retention cleanup.');
         $expired = [];
-        foreach ($disk->getAdapter()->listContents(config('development-backup.prefix'), true) as $entry) {
+        foreach ($disk->getAdapter()->listContents(config('backup.prefix'), true) as $entry) {
             if (! $entry->isFile() || ! str_ends_with($entry->path(), '/manifest.enc')) continue;
             $manifest = $this->manifest($disk, $entry->path());
             if ($manifest['id'] !== $freshId && Carbon::parse($manifest['expires_at'])->lessThanOrEqualTo(now())) $expired[] = $this->root($manifest['id']);
@@ -158,7 +163,7 @@ class DevelopmentBackup
     private function manifest($disk, string $path): array
     {
         $m = json_decode(Crypt::decryptString($disk->get($path)), true, 64, JSON_THROW_ON_ERROR);
-        if (! is_array($m) || ($m['schema'] ?? null) !== 1 || ($m['environment'] ?? null) !== 'development' || ! is_string($m['id'] ?? null) || $this->root($m['id']).'/manifest.enc' !== $path
+        if (! is_array($m) || ($m['schema'] ?? null) !== 1 || ($m['environment'] ?? null) !== app(BackupEnvironment::class)->name() || ! is_string($m['id'] ?? null) || $this->root($m['id']).'/manifest.enc' !== $path
             || ! is_string($m['snapshot_at'] ?? null) || ! is_string($m['completed_at'] ?? null) || ! is_string($m['expires_at'] ?? null)
             || Carbon::parse($m['expires_at'])->notEqualTo(Carbon::parse($m['snapshot_at'])->addDays(7))) throw new RuntimeException('Invalid backup manifest.');
         return $m;
@@ -166,7 +171,7 @@ class DevelopmentBackup
 
     public function verify(string $id): array
     {
-        app(DevelopmentBackupControl::class)->assertReady();
+        app(BackupControl::class)->assertReady();
         $disk = $this->disk();
         $manifest = $this->manifest($disk, $this->root($id).'/manifest.enc');
         $key = base64_decode($manifest['key'] ?? '', true);

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
-class DevelopmentDatabaseDump
+class DatabaseBackupDump
 {
     private function quoted(string $value): string
     {
@@ -33,13 +33,13 @@ class DevelopmentDatabaseDump
         $path = $work.'/client.cnf';
         if (file_put_contents($path, $config) === false || ! chmod($path, 0600)) throw new RuntimeException('Private client configuration failed.');
         try {
-            $base = [config('development-backup.dump_binary'), '--defaults-extra-file='.$path, '--protocol=TCP', '--default-character-set=utf8mb4', '--single-transaction', '--quick', '--skip-lock-tables', '--no-tablespaces', '--set-gtid-purged=OFF', '--column-statistics=0', '--hex-blob', '--skip-comments', '--skip-dump-date', '--skip-routines', '--skip-events', '--skip-triggers', '--skip-add-locks', '--skip-disable-keys'];
+            $base = [config('backup.dump_binary'), '--defaults-extra-file='.$path, '--protocol=TCP', '--default-character-set=utf8mb4', '--single-transaction', '--quick', '--skip-lock-tables', '--no-tablespaces', '--set-gtid-purged=OFF', '--column-statistics=0', '--hex-blob', '--skip-comments', '--skip-dump-date', '--skip-routines', '--skip-events', '--skip-triggers', '--skip-add-locks', '--skip-disable-keys'];
             // Preserve ephemeral-table schemas, but never restore maintenance leases,
             // cache tokens or request markers from the snapshot.
             $this->run([...$base, '--ignore-table='.$name.'.cache', '--ignore-table='.$name.'.cache_locks', $name], $writer, $deadline, $checkpoint);
             $this->run([...$base, '--no-data', $name, 'cache', 'cache_locks'], $writer, $deadline, $checkpoint);
-            $restore = serialize(['development_restore' => true, 'retry' => 180, 'time' => time()]);
-            $key = config('development-backup.control_prefix').'illuminate:foundation:down';
+            $restore = serialize(['backup_restore' => true, 'backup_environment' => app(BackupEnvironment::class)->name(), 'retry' => 180, 'time' => time()]);
+            $key = config('backup.control_prefix').'illuminate:foundation:down';
             $writer->append("\nINSERT INTO `cache` (`key`,`value`,`expiration`) VALUES (".$db->getPdo()->quote($key).','.$db->getPdo()->quote($restore).",2147483647);\n");
         } finally { if (is_file($path)) unlink($path); }
     }

@@ -6,11 +6,11 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('development:backup --execute')->dailyAt('02:00')->timezone('UTC')
+Schedule::command('backup:create --execute')->dailyAt('02:00')->timezone('UTC')
     ->name('development:daily-backup')->withoutOverlapping(10)->runInBackground()
-    ->when(fn () => (bool) config('development-backup.enabled') && (bool) config('development-backup.scheduled'));
-Schedule::command('development:backup-watchdog')->everyMinute()->evenInMaintenanceMode()
-    ->withoutOverlapping()->when(fn () => (bool) config('development-backup.enabled'));
+    ->when(fn () => (bool) config('backup.enabled') && (bool) config('backup.scheduled'));
+Schedule::command('backup:watchdog')->everyMinute()->evenInMaintenanceMode()
+    ->withoutOverlapping()->when(fn () => (bool) config('backup.enabled'));
 
 Schedule::command('privacy:deletions-prune --execute')->daily()->withoutOverlapping()
     ->when(fn () => (bool) config('deletion-ledger.enabled'));

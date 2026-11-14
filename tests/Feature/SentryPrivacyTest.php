@@ -11,6 +11,61 @@ use Tests\TestCase;
 
 final class SentryPrivacyTest extends TestCase
 {
+    public function test_production_reporting_requires_explicit_identity_and_destination(): void
+    {
+        $values = [
+            'APP_ENV' => 'production', 'APP_URL' => 'https://api.cozyhealth.org',
+            'RAILWAY_PROJECT_ID' => '33f9a938-49e3-42c5-83c7-633ee85760fa',
+            'RAILWAY_ENVIRONMENT_ID' => '9ffd3fd1-ae52-4cc7-903e-35b529a151ae',
+            'SENTRY_ENABLED' => 'true', 'SENTRY_ALLOWED_HOST' => 'production.ingest.de.sentry.io',
+            'SENTRY_PROJECT_ID' => '123', 'SENTRY_LARAVEL_DSN' => 'https://public@production.ingest.de.sentry.io/123',
+        ];
+        $original = [];
+        foreach ($values as $name => $value) {
+            $original[$name] = [getenv($name), $_ENV[$name] ?? null, $_SERVER[$name] ?? null];
+            putenv($name.'='.$value);
+            $_ENV[$name] = $_SERVER[$name] = $value;
+        }
+        try {
+            $monitoring = require base_path('config/monitoring.php');
+            $this->assertTrue($monitoring['sentry_production_enabled']);
+            $this->assertFalse($monitoring['sentry_development_enabled']);
+            config(['app.env' => 'production', 'monitoring' => $monitoring]);
+            $configured = require base_path('config/sentry.php');
+            $this->assertSame($values['SENTRY_LARAVEL_DSN'], $configured['dsn']);
+            $this->assertSame('production', $configured['environment']);
+            $_ENV['SENTRY_ALLOWED_HOST'] = $_SERVER['SENTRY_ALLOWED_HOST'] = 'other.example';
+            putenv('SENTRY_ALLOWED_HOST=other.example');
+            $this->assertNull((require base_path('config/sentry.php'))['dsn']);
+            $_ENV['RAILWAY_ENVIRONMENT_ID'] = $_SERVER['RAILWAY_ENVIRONMENT_ID'] = '56b85cc3-e80b-4cb9-a0d4-b47abe8586f6';
+            putenv('RAILWAY_ENVIRONMENT_ID=56b85cc3-e80b-4cb9-a0d4-b47abe8586f6');
+            $this->assertFalse((require base_path('config/monitoring.php'))['sentry_production_enabled']);
+        } finally {
+            foreach ($original as $name => [$value, $env, $server]) {
+                $value === false ? putenv($name) : putenv($name.'='.$value);
+                if ($env === null) { unset($_ENV[$name]); } else { $_ENV[$name] = $env; }
+                if ($server === null) { unset($_SERVER[$name]); } else { $_SERVER[$name] = $server; }
+            }
+        }
+    }
+
+    public function test_production_diagnostics_use_the_same_privacy_filter(): void
+    {
+        config(['app.env' => 'production', 'monitoring.sentry_production_enabled' => true]);
+        $event = Event::createEvent();
+        $event->setMessage('private journal');
+        $event->setRequest(['data' => 'private journal']);
+        $event->setExceptions([new ExceptionDataBag(new \RuntimeException('private journal'))]);
+        $safe = SentryPrivacy::beforeSend($event);
+        $this->assertNotNull($safe);
+        $this->assertSame('production', $safe->getEnvironment());
+        $this->assertNull($safe->getMessage());
+        $this->assertSame([], $safe->getRequest());
+        $this->assertSame('Error details withheld for privacy.', $safe->getExceptions()[0]->getValue());
+        config(['monitoring.sentry_production_enabled' => false]);
+        $this->assertNull(SentryPrivacy::beforeSend($event));
+    }
+
     public function test_sdk_prefix_relative_source_paths_retain_safe_file_and_line(): void
     {
         config(['app.env' => 'development', 'monitoring.sentry_development_enabled' => true]);
