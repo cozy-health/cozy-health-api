@@ -10,6 +10,19 @@ class EnvironmentIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_health_remains_available_while_operator_maintenance_blocks_application_routes(): void
+    {
+        config(['app.maintenance.driver' => 'cache', 'app.maintenance.store' => 'array']);
+        app()->maintenanceMode()->activate(['time' => microtime(true), 'operator_window' => 'acceptance-window']);
+        try {
+            $this->getJson('/up')->assertOk()->assertJsonPath('status', 'ok');
+            $this->getJson('/api/v1/config')->assertStatus(503);
+            $this->assertTrue(app()->isDownForMaintenance());
+        } finally {
+            app()->maintenanceMode()->deactivate();
+        }
+    }
+
     public function test_fresh_production_schema_has_no_user_or_sample_content(): void
     {
         foreach (['users', 'providers', 'journals', 'quizzes', 'affirmations', 'student_applications', 'store_purchases'] as $table) {
