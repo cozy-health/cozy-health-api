@@ -366,3 +366,19 @@ it('permits operator recovery commands in manual maintenance but blocks them dur
     expect($control->activeCount())->toBe(0);
     $control->release('backup');
 });
+
+it('blocks recovery writes during a backup borrowed from an operator window', function () {
+    $control = app(BackupControl::class);
+    $window = operatorBackupWindow();
+    $control->acquire('operator-backup', $window);
+    expect(fn () => $control->commandStarting('privacy:deletions-replay'))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect($control->activeCount())->toBe(0);
+    $control->commandStarting('schedule:run');
+    expect($control->activeCount())->toBe(1);
+    $control->commandFinished('schedule:run');
+    $control->release('operator-backup');
+    expect(app()->maintenanceMode()->data()['operator_window'])->toBe($window);
+    $control->commandStarting('privacy:deletions-replay');
+    expect($control->activeCount())->toBe(1);
+    $control->commandFinished('privacy:deletions-replay');
+});

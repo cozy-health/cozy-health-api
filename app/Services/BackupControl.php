@@ -39,8 +39,12 @@ final class BackupControl
     public function commandStarting(?string $name): void
     {
         if (! $this->enabled() || ! $name || in_array($name, ['backup:create', 'backup:watchdog', 'development:backup', 'development:backup-watchdog', 'queue:work', 'schedule:work', 'queue:restart', 'config:clear', 'route:clear', 'view:clear', 'storage:link', 'up', 'down', 'list', 'help'], true)) return;
-        $operatorMaintenance = app()->isDownForMaintenance() && ! isset(app()->maintenanceMode()->data()['backup_owner']);
-        $this->commands[$name][] = $this->beginActivity($name === 'schedule:run' || $operatorMaintenance);
+        $this->store()->lock('maintenance-transition', 10)->block(5, function () use ($name): void {
+            $operatorMaintenance = app()->isDownForMaintenance()
+                && ! isset(app()->maintenanceMode()->data()['backup_owner'])
+                && ! $this->store()->has('lease');
+            $this->commands[$name][] = $this->beginActivity($name === 'schedule:run' || $operatorMaintenance);
+        });
     }
     public function commandFinished(?string $name): void
     {
