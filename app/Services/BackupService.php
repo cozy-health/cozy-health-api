@@ -41,7 +41,7 @@ class BackupService
     {
         if (microtime(true) > $this->deadline - 10 || ! app(BackupControl::class)->owns($this->id)) throw new RuntimeException('Backup lease/window lost.');
     }
-    public function create(): array
+    public function create(?string $operatorWindow = null): array
     {
         $control = app(BackupControl::class);
         $control->assertReady();
@@ -51,7 +51,7 @@ class BackupService
         $started = microtime(true); $acquired = false; $committed = false; $work = null;
         $disk = $this->disk(); $root = $this->root($this->id);
         try {
-            $this->deadline = $control->acquire($this->id); $acquired = true;
+            $this->deadline = $control->acquire($this->id, $operatorWindow); $acquired = true;
             $control->waitForDrain($this->deadline);
             $snapshot = now()->toIso8601String();
             $work = storage_path('app/backup-work/'.$this->id);

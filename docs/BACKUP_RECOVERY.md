@@ -1,6 +1,6 @@
 # Shared backup recovery
 
-The same BackupService, BackupControl and DatabaseBackupDump implement database and private-file recovery across development and production. The owner selected a bounded maintenance pause for production-support development on 14 November 2026. Current work and runtime changes follow the workspace development policy.
+The same BackupService, BackupControl and DatabaseBackupDump implement database and private-file recovery across development and production. The owner approved production deployment and a bounded maintenance pause. The database cutover has one operator window of up to 15 minutes, including measured rollback time. Each backup remains bounded by 180 seconds.
 
 ## Configuration and compatibility
 
@@ -18,7 +18,11 @@ Deletion receipts require explicit DELETION_LEDGER_ENABLED activation, a real co
 
 Use backup:create for a dry run. Add --execute to create one encrypted, independently read-back recovery copy. Use --verify=UUID to verify an existing copy. backup:watchdog releases overdue backup-owned maintenance. The existing development:backup and development:backup-watchdog aliases use the same commands.
 
-Existing native verification remains in tests/Support/verify_native_development_backup.php so CI and local harness entry points stay compatible. New dumps insert a backup_restore maintenance marker and backup_environment tag. Previously generated development_restore markers still keep restored Laravel applications in maintenance. The watchdog releases only a matching backup_owner lease.
+To create a backup inside an already active operator window, use `php artisan backup:create --execute --operator-window=UUID`. The shared maintenance payload must contain that UUID in `operator_window`, its start epoch in `time` and its absolute expiry epoch in `operator_deadline`. The deadline must be in the future and no later than 900 seconds after the start. A `backup_owner` field must be absent. Establish this payload through the reviewed operator cutover procedure under the shared maintenance-transition lock.
+
+The backup acquires its own exclusive lease and uses the earlier of its 180-second ceiling, configured backup duration and operator deadline. Supplying the wrong UUID, an expired window or an overlapping backup fails. Changing the window owner or deadline invalidates the backup lease. Success, failure and watchdog cleanup preserve operator maintenance. The operator remains responsible for rollback and releasing the owned window. An expired operator window remains in maintenance until the operator handles it.
+
+Existing native verification remains in tests/Support/verify_native_development_backup.php so CI and local harness entry points stay compatible. New dumps insert a backup_restore maintenance marker and backup_environment tag. Previously generated development_restore markers still keep restored Laravel applications in maintenance. The watchdog releases only a matching backup-owned pause and preserves borrowed operator windows.
 
 ## Promotion and restore evidence
 
@@ -26,4 +30,4 @@ Prepare exact source, configuration, storage/key ownership and compatible API/wo
 
 During approved activation, drain write-capable work and establish shared maintenance before changing drivers or flags. Preserve keys, old backups and pending work. Verify both service configurations and release only owned maintenance. A failed or timed-out archive remains incomplete and cannot justify pruning older verified copies.
 
-Production configuration changes, backup creation, restore commands and public rollout require specific authorization under the workspace policy. Source-only policy tests use synthetic identities and local fixtures.
+The current owner authorization covers production server deployment and store publication after their applicable checks pass. Recovery rehearsal, key custody, integrity evidence and measured cutover/rollback duration remain prerequisites for opening the production window. Source-only policy tests use synthetic identities and local fixtures.

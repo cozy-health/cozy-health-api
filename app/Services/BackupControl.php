@@ -46,28 +46,68 @@ final class BackupControl
     {
         if ($name && ! empty($this->commands[$name])) $this->endActivity(array_pop($this->commands[$name]));
     }
-    public function acquire(string $id): float
+    public function acquire(string $id, ?string $operatorWindow = null): float
     {
         $this->assertReady();
-        return $this->store()->lock('maintenance-transition', 10)->block(5, fn () => DB::transaction(function () use ($id) {
-            if (app()->isDownForMaintenance() || $this->store()->has('lease')) throw new RuntimeException('Existing maintenance or backup lease must not be replaced.');
-            $deadline = microtime(true) + config('backup.window_seconds');
-            $this->store()->forever('lease', ['id' => $id, 'deadline' => $deadline, 'deployment' => getenv('RAILWAY_DEPLOYMENT_ID') ?: 'testing']);
-            app()->maintenanceMode()->activate(['backup_owner' => $id, 'retry' => 180, 'time' => time()]);
+        return $this->store()->lock('maintenance-transition', 10)->block(5, fn () => DB::transaction(function () use ($id, $operatorWindow) {
+            if ($this->store()->has('lease')) throw new RuntimeException('An existing backup lease must not be replaced.');
+            $seconds = (float) config('backup.window_seconds');
+            if (! is_finite($seconds) || $seconds <= 0) throw new RuntimeException('Invalid backup duration.');
+            $deadline = microtime(true) + min(180, $seconds);
+            $lease = ['id' => $id, 'deadline' => $deadline, 'deployment' => getenv('RAILWAY_DEPLOYMENT_ID') ?: 'testing'];
+            if ($operatorWindow !== null) {
+                $operatorDeadline = $this->operatorDeadline($operatorWindow);
+                if ($operatorDeadline === null) throw new RuntimeException('A matching live operator maintenance window is required.');
+                $deadline = min($deadline, $operatorDeadline);
+                $lease['deadline'] = $deadline;
+                $lease['operator_window'] = $operatorWindow;
+                $lease['operator_deadline'] = $operatorDeadline;
+            } elseif (app()->isDownForMaintenance()) {
+                throw new RuntimeException('Existing maintenance must not be replaced.');
+            }
+            if (! $this->store()->forever('lease', $lease)) throw new RuntimeException('Backup lease could not be saved.');
+            if ($operatorWindow === null) {
+                app()->maintenanceMode()->activate(['backup_owner' => $id, 'retry' => 180, 'time' => time()]);
+            }
             return $deadline;
         }));
+    }
+    private function operatorDeadline(string $window): ?float
+    {
+        if (! Str::isUuid($window) || ! app()->isDownForMaintenance()) return null;
+        $payload = app()->maintenanceMode()->data();
+        $owner = $payload['operator_window'] ?? null;
+        $deadline = $payload['operator_deadline'] ?? null;
+        $started = $payload['time'] ?? null;
+        if (! is_string($owner) || ! hash_equals($owner, $window) || isset($payload['backup_owner'])
+            || ! is_numeric($deadline) || ! is_numeric($started)) return null;
+        $deadline = (float) $deadline;
+        $started = (float) $started;
+        if (! is_finite($deadline) || ! is_finite($started) || $started > microtime(true)
+            || $deadline <= microtime(true) || $deadline > $started + 900) return null;
+        return $deadline;
     }
     public function owns(string $id): bool
     {
         $lease = $this->store()->get('lease');
-        return is_array($lease) && ($lease['id'] ?? null) === $id && ($lease['deadline'] ?? 0) > microtime(true) && app()->isDownForMaintenance() && (app()->maintenanceMode()->data()['backup_owner'] ?? null) === $id;
+        if (! is_array($lease) || ($lease['id'] ?? null) !== $id
+            || ! is_numeric($lease['deadline'] ?? null) || ! is_finite((float) $lease['deadline'])
+            || $lease['deadline'] <= microtime(true) || ! app()->isDownForMaintenance()) return false;
+        if (isset($lease['operator_window'])) {
+            if (! is_string($lease['operator_window'])) return false;
+            $deadline = $this->operatorDeadline($lease['operator_window']);
+            return $deadline !== null && $deadline === ($lease['operator_deadline'] ?? null);
+        }
+        $payload = app()->maintenanceMode()->data();
+        return ($payload['backup_owner'] ?? null) === $id && ! isset($payload['operator_window']);
     }
     public function release(string $id): void
     {
         $this->store()->lock('maintenance-transition', 10)->block(5, fn () => DB::transaction(function () use ($id) {
-            if (app()->isDownForMaintenance()) {
+            $lease = $this->store()->get('lease');
+            if (! isset($lease['operator_window']) && app()->isDownForMaintenance()) {
                 $payload = app()->maintenanceMode()->data();
-                if (($payload['backup_owner'] ?? null) === $id) {
+                if (($payload['backup_owner'] ?? null) === $id && ! isset($payload['operator_window'])) {
                     $comparison = DB::connection()->getDriverName() === 'mysql' ? 'BINARY `value` = ?' : 'CAST(`value` AS BLOB) = CAST(? AS BLOB)';
                     DB::table('cache')->where('key', config('backup.control_prefix').'illuminate:foundation:down')->whereRaw($comparison, [serialize($payload)])->delete();
                 }
@@ -81,7 +121,7 @@ final class BackupControl
         $lease = $this->store()->get('lease');
         if (! is_array($lease) || ($lease['deadline'] ?? PHP_FLOAT_MAX) > microtime(true)) return false;
         $this->release($lease['id']);
-        Log::error('Overdue backup maintenance released; incomplete backup is not restorable.');
+        Log::error('Overdue backup lease released. Preserve the previous verified recovery copy.');
         return true;
     }
     public function waitForDrain(float $deadline): void

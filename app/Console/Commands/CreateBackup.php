@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 final class CreateBackup extends Command
 {
-    protected $signature = 'backup:create {--execute : Create one verified encrypted recovery copy} {--verify= : Verify an existing backup UUID without maintenance}';
+    protected $signature = 'backup:create {--execute : Create one verified encrypted recovery copy} {--verify= : Verify an existing backup UUID without maintenance} {--operator-window= : UUID of the active operator maintenance window}';
     protected $aliases = ['development:backup'];
     protected $description = 'Preview, create or verify approved daily backups';
     public function handle(BackupService $backup, BackupControl $control): int
@@ -16,8 +16,12 @@ final class CreateBackup extends Command
         try {
             $control->assertReady();
             if ($this->option('execute') && $this->option('verify')) throw new \RuntimeException('Choose create or verification.');
+            $operatorWindow = $this->option('operator-window');
+            if ($operatorWindow !== null && (! $this->option('execute') || ! \Illuminate\Support\Str::isUuid($operatorWindow))) {
+                throw new \RuntimeException('An operator window requires explicit execution and a valid UUID.');
+            }
             if ($this->option('verify')) $result = $backup->verify($this->option('verify'));
-            elseif ($this->option('execute')) $result = $backup->create();
+            elseif ($this->option('execute')) $result = $backup->create($operatorWindow);
             else { $this->info('Dry run only: daily 03:00 Africa/Lagos, seven-day retention, three-minute maintenance budget; no backup created.'); return self::SUCCESS; }
             $this->line(json_encode($result, JSON_THROW_ON_ERROR));
             return self::SUCCESS;

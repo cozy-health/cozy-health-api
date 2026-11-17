@@ -27,6 +27,129 @@ function backupManifest(string $id): array
     return json_decode(Crypt::decryptString(Storage::disk('profile_avatars')->get('private/development-backups/v1/'.$id.'/manifest.enc')), true, flags: JSON_THROW_ON_ERROR);
 }
 
+function operatorBackupWindow(int $seconds = 120): string
+{
+    $id = (string) \Illuminate\Support\Str::uuid();
+    $started = microtime(true);
+    app()->maintenanceMode()->activate([
+        'operator_window' => $id,
+        'operator_deadline' => $started + $seconds,
+        'time' => $started,
+        'retry' => 180,
+    ]);
+    return $id;
+}
+
+it('creates and verifies a backup within its matching operator window', function () {
+    $window = operatorBackupWindow();
+    $payload = app()->maintenanceMode()->data();
+    $result = app(BackupService::class)->create($window);
+    expect($result['verified'])->toBeTrue();
+    expect(app()->maintenanceMode()->data())->toBe($payload);
+    expect(app(BackupControl::class)->store()->has('lease'))->toBeFalse();
+    expect(app(BackupService::class)->verify($result['id'])['verified'])->toBeTrue();
+});
+
+it('accepts the 15 minute operator boundary and rejects longer windows', function () {
+    $control = app(BackupControl::class);
+    $window = operatorBackupWindow(900);
+    $control->acquire('bounded-operator-window', $window);
+    $control->release('bounded-operator-window');
+    $payload = app()->maintenanceMode()->data();
+    app()->maintenanceMode()->activate(array_replace($payload, ['operator_deadline' => $payload['time'] + 901]));
+    expect(fn () => $control->acquire('extended-operator-window', $window))->toThrow(RuntimeException::class);
+});
+
+it('requires a valid matching live operator window without replacing its payload', function () {
+    $window = operatorBackupWindow();
+    $control = app(BackupControl::class);
+    $payload = app()->maintenanceMode()->data();
+    foreach (['invalid', (string) \Illuminate\Support\Str::uuid()] as $wrong) {
+        expect(fn () => $control->acquire('attempt', $wrong))->toThrow(RuntimeException::class);
+        expect($control->store()->has('lease'))->toBeFalse();
+        expect(app()->maintenanceMode()->data())->toBe($payload);
+    }
+    app()->maintenanceMode()->activate(array_replace($payload, ['operator_deadline' => microtime(true) - 1]));
+    expect(fn () => $control->acquire('expired', $window))->toThrow(RuntimeException::class);
+    app()->maintenanceMode()->deactivate();
+    expect(fn () => $control->acquire('missing', $window))->toThrow(RuntimeException::class);
+});
+
+it('bounds an operator backup by both its remaining window and 180 seconds', function () {
+    $control = app(BackupControl::class);
+    $window = operatorBackupWindow(600);
+    $started = microtime(true);
+    config(['backup.window_seconds' => 600]);
+    $deadline = $control->acquire('long', $window);
+    expect($deadline)->toBeLessThanOrEqual($started + 181);
+    expect($control->owns('long'))->toBeTrue();
+    $control->release('long');
+    $window = operatorBackupWindow(45);
+    $operatorDeadline = app()->maintenanceMode()->data()['operator_deadline'];
+    expect($control->acquire('short', $window))->toBe($operatorDeadline);
+    $control->release('short');
+    expect(app()->isDownForMaintenance())->toBeTrue();
+});
+
+it('serializes operator backups and permits a fresh attempt after release', function () {
+    $window = operatorBackupWindow();
+    $control = app(BackupControl::class);
+    $control->acquire('first', $window);
+    expect(fn () => $control->acquire('second', $window))->toThrow(RuntimeException::class);
+    $control->release('second');
+    expect($control->owns('first'))->toBeTrue();
+    $control->release('first');
+    $control->acquire('retry', $window);
+    expect($control->owns('retry'))->toBeTrue();
+    $control->release('retry');
+    expect(app()->isDownForMaintenance())->toBeTrue();
+});
+
+it('preserves operator maintenance and older verified copies after partial failure', function () {
+    $old = app(BackupService::class)->create();
+    $window = operatorBackupWindow();
+    $payload = app()->maintenanceMode()->data();
+    config(['backup.max_archive_bytes' => 10]);
+    expect(fn () => app(BackupService::class)->create($window))->toThrow(RuntimeException::class);
+    expect(app()->maintenanceMode()->data())->toBe($payload);
+    expect(app(BackupControl::class)->store()->has('lease'))->toBeFalse();
+    expect(app(BackupService::class)->verify($old['id'])['verified'])->toBeTrue();
+    expect(count(Storage::disk('profile_avatars')->allFiles('private/development-backups/v1')))->toBe(2);
+});
+
+it('loses operator ownership when the owner or deadline changes', function () {
+    $window = operatorBackupWindow();
+    $control = app(BackupControl::class);
+    $control->acquire('borrowed', $window);
+    $payload = app()->maintenanceMode()->data();
+    app()->maintenanceMode()->activate(array_replace($payload, ['operator_deadline' => $payload['operator_deadline'] - 1]));
+    expect($control->owns('borrowed'))->toBeFalse();
+    $replacement = operatorBackupWindow();
+    $control->release('borrowed');
+    expect(app()->maintenanceMode()->data()['operator_window'])->toBe($replacement);
+});
+
+it('watchdog releases an expired operator backup lease while retaining the operator pause', function () {
+    $window = operatorBackupWindow();
+    $control = app(BackupControl::class);
+    $control->acquire('expired-operator-backup', $window);
+    $payload = app()->maintenanceMode()->data();
+    $lease = $control->store()->get('lease');
+    $lease['deadline'] = microtime(true) - 1;
+    $control->store()->forever('lease', $lease);
+    expect($control->watchdog())->toBeTrue();
+    expect($control->store()->has('lease'))->toBeFalse();
+    expect(app()->maintenanceMode()->data())->toBe($payload);
+});
+
+it('accepts an operator window only for explicit backup execution', function () {
+    $window = operatorBackupWindow();
+    $this->artisan('backup:create', ['--operator-window' => $window])->assertFailed();
+    $this->artisan('backup:create', ['--verify' => (string) \Illuminate\Support\Str::uuid(), '--operator-window' => $window])->assertFailed();
+    $this->artisan('backup:create', ['--execute' => true, '--operator-window' => $window])->assertSuccessful();
+    expect(app()->maintenanceMode()->data()['operator_window'])->toBe($window);
+});
+
 it('creates an authenticated recovery copy without copying ledgers or older backup contents', function () {
     $disk = Storage::disk('profile_avatars');
     $disk->put('private/report.bin', random_bytes(100000));

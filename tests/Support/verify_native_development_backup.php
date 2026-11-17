@@ -55,7 +55,22 @@ try {
     $maintenance = (array) $db->selectOne('SELECT `value` FROM `'.$restore.'`.cache WHERE `key` = ?', [config('backup.control_prefix').'illuminate:foundation:down']);
     if (! (unserialize($maintenance['value'], ['allowed_classes' => false])['backup_restore'] ?? false)) throw new RuntimeException('Restored copy did not stay in maintenance.');
     if (app()->isDownForMaintenance()) throw new RuntimeException('Original test application was left in maintenance.');
+    $operatorWindow = (string) Illuminate\Support\Str::uuid();
+    app()->maintenanceMode()->activate(['operator_window' => $operatorWindow,
+        'operator_deadline' => microtime(true) + 180, 'time' => time(), 'retry' => 180]);
+    try {
+        $operatorResult = app(App\Services\BackupService::class)->create($operatorWindow);
+        if (! app()->isDownForMaintenance() || (app()->maintenanceMode()->data()['operator_window'] ?? null) !== $operatorWindow) {
+            throw new RuntimeException('Native backup changed operator maintenance ownership.');
+        }
+        app(App\Services\BackupService::class)->verify($operatorResult['id']);
+    } finally {
+        if ((app()->maintenanceMode()->data()['operator_window'] ?? null) === $operatorWindow) {
+            app()->maintenanceMode()->deactivate();
+        }
+    }
     echo "Native MySQL encrypted backup, binary/JSON import and closed-restore marker verified.\n";
+    echo "Native operator-window backup verified with its maintenance owner preserved.\n";
 } finally {
     if (is_file($options)) unlink($options);
     if ($created) $db->statement('DROP DATABASE `'.$restore.'`');
