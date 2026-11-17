@@ -27,6 +27,8 @@ RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions 
     && composer check-platform-reqs --no-dev
 
 FROM php-base AS runtime
+COPY docker/install-backup-client.sh /tmp/install-backup-client.sh
+RUN sh /tmp/install-backup-client.sh && rm /tmp/install-backup-client.sh
 WORKDIR /var/www/html
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
@@ -35,6 +37,7 @@ COPY docker/nginx.conf /etc/nginx/templates/app.conf.template
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-app.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/configure-development-fpm.sh /usr/local/bin/configure-development-fpm.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \

@@ -8,6 +8,7 @@ class AdminEmailRegistry
         'welcome' => ['WelcomeMail', 'Account registration'],
         'provider-welcome' => ['ProviderWelcomeMail', 'Provider account registration'],
         'verification' => ['VerifyEmailMail', 'Email verification request'],
+        'signin-code' => ['SignInChallengeMail', 'Sign-in verification and security-setting changes'],
         'password-reset' => ['PasswordResetRequestMail', 'Patient password reset request'],
         'password-confirmation' => ['PasswordResetConfirmationMail', 'Patient password changed'],
         'provider-reset' => ['ProviderPasswordResetMail', 'Provider password reset request'],
@@ -16,6 +17,9 @@ class AdminEmailRegistry
         'new-device' => ['NewDeviceLoginMail', 'New device sign-in'],
         'account-deleted' => ['AccountDeletedMail', 'Account deletion'],
         'quiz-share' => ['QuizShareMail', 'Assessment sharing invitation'],
+        'service-notice' => ['BrandedNoticeMail', 'Service notification'],
+        'support-reply' => ['SupportReplyMail', 'Private support update'],
+        'plan-status' => ['StorePlanStatusMail', 'Store subscription status'],
     ];
     public static function event(string $class): ?string
     {
@@ -30,6 +34,7 @@ class AdminEmailRegistry
             'welcome' => new \App\Mail\WelcomeMail($user),
             'provider-welcome' => new \App\Mail\ProviderWelcomeMail($provider, true),
             'verification' => new \App\Mail\VerifyEmailMail('000000'),
+            'signin-code' => new \App\Mail\SignInChallengeMail('00000000-0000-4000-8000-000000000000', '000000', 'preview@example.test'),
             'password-reset' => new \App\Mail\PasswordResetRequestMail($user, '000000'),
             'password-confirmation' => new \App\Mail\PasswordResetConfirmationMail($user),
             'provider-reset' => new \App\Mail\ProviderPasswordResetMail($provider, '000000'),
@@ -38,6 +43,9 @@ class AdminEmailRegistry
             'new-device' => new \App\Mail\NewDeviceLoginMail('Preview device', null, now()->toIso8601String()),
             'account-deleted' => new \App\Mail\AccountDeletedMail,
             'quiz-share' => new \App\Mail\QuizShareMail('https://example.test/preview-only'),
+            'service-notice' => new \App\Mail\BrandedNoticeMail('Cozy Health update', 'An update from Cozy', ['This is a preview of a Cozy Health service email.'], [['label' => 'View update', 'url' => 'https://example.test/preview-only']]),
+            'support-reply' => new \App\Mail\SupportReplyMail('00000000-0000-4000-8000-000000000000'),
+            'plan-status' => new \App\Mail\StorePlanStatusMail(['platform' => 'apple', 'tier' => 'premium', 'state' => 'active', 'auto_renews' => true, 'expires_at' => now()->addMonth()->toIso8601String(), 'environment' => 'sandbox']),
             default => abort(404),
         };
     }

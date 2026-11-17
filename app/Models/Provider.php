@@ -12,12 +12,12 @@ class Provider extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'phone', 'specialty', 'license_number', 'license_state', 'bio', 'practice', 'password_hash', 'timezone', 'is_verified', 'is_active'];
-    protected $hidden = ['password_hash', 'remember_token'];
+    protected $hidden = ['password_hash', 'remember_token', 'email_invalid', 'email_unsubscribed_at'];
     protected $attributes = ['timezone' => 'UTC', 'is_verified' => false, 'is_active' => true];
 
     protected function casts(): array
     {
-        return ['password_hash' => 'hashed', 'is_verified' => 'boolean', 'is_active' => 'boolean'];
+        return ['password_hash' => 'hashed', 'is_verified' => 'boolean', 'is_active' => 'boolean', 'email_invalid' => 'boolean', 'email_unsubscribed_at' => 'datetime'];
     }
 
     public function getAuthPasswordName(): string { return 'password_hash'; }

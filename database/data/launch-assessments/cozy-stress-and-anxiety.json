@@ -1,0 +1,141 @@
+{
+  "title": "Stress and Anxiety Check-In",
+  "slug": "cozy-stress-and-anxiety",
+  "type": "wellness",
+  "description": "A Cozy well-being check-in. Reflect on how often you have experienced feelings of stress and anxiety.",
+  "estimated_minutes": 2,
+  "sort_order": 1,
+  "disclaimer": "This Cozy well-being check-in is for personal reflection. It is not a diagnosis or a validated clinical screening tool. The result describes only your answers to these five questions. If you are concerned about your well-being, speak with a qualified professional. If you feel unsafe or need urgent help, contact local emergency services or use the app's crisis support resources.",
+  "scoring_rules": {
+    "timeframe": "Over the past two weeks",
+    "provenance": {
+      "license": "",
+      "approval_reference": ""
+    },
+    "recommendation": "These descriptive result bands are for personal reflection and do not measure clinical severity.",
+    "bands": [
+      {
+        "max": 4,
+        "label": "Few reported difficulties",
+        "recommendation": "Your answers suggest these experiences have occurred infrequently. Keep noticing how you feel and what supports your well-being."
+      },
+      {
+        "max": 9,
+        "label": "Some reported difficulties",
+        "recommendation": "Your answers suggest these experiences have occurred on some days. Consider making time to rest, using coping strategies that work for you and talking to someone you trust. If they concern you or affect daily life, consider speaking with a qualified professional."
+      },
+      {
+        "max": 15,
+        "label": "Frequent reported difficulties",
+        "recommendation": "Your answers suggest several of these experiences have occurred frequently. Consider making time to rest, using coping strategies that work for you and talking to someone you trust. Consider speaking with a qualified professional, especially if these experiences persist or affect daily life."
+      }
+    ]
+  },
+  "questions": [
+    {
+      "question": "Over the past two weeks, how often have you felt nervous, anxious, or on edge?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you been unable to stop or control worrying?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt restless or fidgety?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt easily annoyed or irritable?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt afraid as if something awful might happen?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    }
+  ]
+}

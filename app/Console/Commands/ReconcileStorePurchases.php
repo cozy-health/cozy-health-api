@@ -15,7 +15,7 @@ class ReconcileStorePurchases extends Command
     {
         if (!config('launch.billing_enabled')) { $this->info('Store billing disabled; no requests sent.'); return self::SUCCESS; }
         $failed = 0;
-        DB::table('store_purchases')->where('updated_at', '>=', now()->subDays(60))->orderBy('id')->chunkById(100, function ($purchases) use ($controller, $verifier, &$failed) {
+        DB::table('store_purchases')->where(fn ($query) => $query->where('status', 'active')->orWhere('expires_at', '>=', now()->subDays(60)))->orderBy('id')->chunkById(100, function ($purchases) use ($controller, $verifier, &$failed) {
             foreach ($purchases as $purchase) {
                 $user = User::find($purchase->user_id); if (!$user) continue;
                 $request = Request::create('/internal/store-reconcile', 'POST', ['platform' => $purchase->platform, 'reference' => Crypt::decryptString($purchase->purchase_reference)]);

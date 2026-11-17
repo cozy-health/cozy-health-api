@@ -1,17 +1,23 @@
 <?php
 namespace App\Console\Commands;
 use App\Models\StudentApplication;
+use App\Services\StudentEvidence;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 class PruneLaunchData extends Command
 {
     protected $signature = 'launch:prune';
     protected $description = 'Delete expired private student evidence without removing review decisions';
     public function handle(): int
     {
-        StudentApplication::whereNotNull('evidence_path')->where('evidence_delete_at', '<=', now())->eachById(function ($application) {
-            if (Storage::disk('local')->delete($application->evidence_path)) $application->update(['evidence_path' => null]);
+        $failed = false;
+        StudentApplication::whereNotNull('evidence_path')->where(function ($query) {
+            $query->where('status', '!=', 'pending')->orWhereNull('evidence_delete_at')
+                ->orWhere('evidence_delete_at', '<=', now())->orWhere('created_at', '<=', now()->subDays(14));
+        })->eachById(function ($application) use (&$failed) {
+            if (StudentEvidence::current($application)) return;
+            if ($application->status === 'pending') StudentEvidence::expireForUser($application->user_id);
+            if (!StudentEvidence::delete($application->fresh())) $failed = true;
         });
-        return self::SUCCESS;
+        return $failed ? self::FAILURE : self::SUCCESS;
     }
 }

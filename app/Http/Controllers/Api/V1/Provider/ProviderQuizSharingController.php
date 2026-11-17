@@ -9,12 +9,8 @@ class ProviderQuizSharingController extends Controller
 {
     private function query(Request $request)
     {
-        abort_unless($request->user()->is_verified, 403, 'Provider verification is required.');
-        return DB::table('quiz_shares')->join('provider_client_links as links', 'links.id', '=', 'quiz_shares.link_id')
-            ->join('quiz_attempts as attempts', 'attempts.id', '=', 'quiz_shares.quiz_attempt_id')->join('users', 'users.id', '=', 'quiz_shares.user_id')
-            ->where('quiz_shares.provider_id', $request->user()->id)->where('links.provider_id', $request->user()->id)
-            ->whereNull('links.revoked_at')->whereNotNull('links.verified_at')->where('links.consent_quizzes', true)
-            ->whereNull('quiz_shares.revoked_at')->whereNull('attempts.deleted_at')->where('attempts.is_deleted', false)->whereNotNull('attempts.validated_at')
+        $visible = app(\App\Services\Provider\ProviderOverviewData::class);
+        return $visible->shares($request->user(), $visible->links($request->user()))
             ->select('quiz_shares.id', 'quiz_shares.user_id', 'quiz_shares.read_at', 'quiz_shares.quiz_attempt_id', 'attempts.quiz_title', 'attempts.completed_at', 'users.name as sender');
     }
     public function index(Request $request)
@@ -28,8 +24,8 @@ class ProviderQuizSharingController extends Controller
     }
     public function show(Request $request, string $id)
     {
-        $share = $this->query($request)->where('quiz_shares.id', $id)->firstOrFail();
-        return DB::transaction(function () use ($request, $id, $share) {
+        return DB::transaction(function () use ($request, $id) {
+            $share = $this->query($request)->where('quiz_shares.id', $id)->firstOrFail();
             $link = ProviderClientAccess::link($request, (string) $share->user_id, 'quizzes');
             $share = $this->query($request)->where('quiz_shares.id', $id)->lockForUpdate()->firstOrFail();
             $attempt = app(QuizSharingService::class)->owner($share->user_id, $share->quiz_attempt_id);

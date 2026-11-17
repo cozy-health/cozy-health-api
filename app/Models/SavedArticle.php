@@ -25,8 +25,8 @@ class SavedArticle extends Model
         6 => 'read_time_minutes',
         7 => 'saved_at',
         8 => 'client_created_at',
-        9 => 'excerpt',
-        10 => 'body',
+        11 => 'license',
+        12 => 'source_url',
         9 => 'excerpt',
         10 => 'body',
     ];

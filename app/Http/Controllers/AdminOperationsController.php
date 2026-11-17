@@ -10,7 +10,7 @@ class AdminOperationsController extends Controller
 {
     private function supportVersion(object $row): string
     {
-        return hash('sha256', json_encode([$row->id, $row->status, $row->admin_notes, $row->updated_at, $row->resolved_at], JSON_THROW_ON_ERROR));
+        return \App\Services\SupportThreads::recordVersion((array) $row);
     }
 
     public function reportDetail(Request $request, string $id)
@@ -29,7 +29,7 @@ class AdminOperationsController extends Controller
 
     public function supportDetail(Request $request, string $id)
     {
-        $row = DB::table('support_reports')->where('id', $id)->firstOrFail(['id', 'subject', 'message', 'status', 'admin_notes', 'created_at', 'updated_at', 'resolved_at']);
+        $row = DB::table('support_reports')->where('id', $id)->firstOrFail(['id', 'subject', 'message', 'status', 'admin_notes', 'created_at', 'updated_at', 'resolved_at', 'support_revision']);
         AdminAudit::record($request->user()->id, 'review-content', 'support-reports', $id);
 
         return response()->json(['data' => [...(array) $row, 'version' => $this->supportVersion($row)]])->header('Cache-Control', 'private, no-store');
@@ -55,7 +55,7 @@ class AdminOperationsController extends Controller
 
     public function review(Request $request, string $id)
     {
-        $data = $request->validate(['decision' => 'required|in:publish,remove,dismiss', 'expected_version' => 'required_unless:decision,dismiss|string|size:64', 'confirm_republish' => 'sometimes|boolean']);
+        $data = $request->validate(['decision' => 'required|in:publish,remove,dismiss', 'expected_version' => 'required_unless:decision,dismiss|string|size:64', 'confirm_republish' => 'sometimes|boolean', 'reason' => 'sometimes|string|min:5|max:1000']);
         DB::transaction(function () use ($request, $id, $data) {
             // Discover the immutable target, then always lock content before reports.
             $report = DB::table('community_reports')->where('id', $id)->firstOrFail();
@@ -71,8 +71,10 @@ class AdminOperationsController extends Controller
                 abort_unless($target, 409, 'The reported content is no longer available.');
                 $status = $data['decision'] === 'publish' ? 'published' : 'removed';
                 AdminContentVersion::check($target, $data, $status);
-                $affected = DB::table('community_reports')->where('target_type', $report->target_type)->where('target_id', $report->target_id)->where('status', 'pending')->orderBy('id')->lockForUpdate()->pluck('id')->all();
                 DB::table($table)->where('id', $report->target_id)->update(['status' => $status, 'updated_at' => now()]);
+                  if ($status === 'removed') app(\App\Services\CommunityModeration::class)->removed($request->user()->id, $report->target_type, $report->target_id, $data['reason'] ?? 'This content was removed after a community guidelines review.');
+                \App\Services\AdminReportResolution::resolvePending($request->user()->id, $report->target_type, $report->target_id, $data['decision']);
+                return;
             }
             DB::table('community_reports')->whereIn('id', $affected)->update(['status' => 'resolved', 'resolved_at' => now('UTC'), 'updated_at' => now()]);
             foreach ($affected as $affectedId) AdminAudit::record($request->user()->id, $data['decision'], 'community-reports', (string) $affectedId, ['status', 'resolved_at']);
@@ -141,7 +143,7 @@ class AdminOperationsController extends Controller
             if ($old->status !== $data['status']) {
                 $data['resolved_at'] = $data['status'] === 'resolved' ? now('UTC') : null;
             }
-            DB::table('support_reports')->where('id', $id)->update([...$data, 'updated_at' => now()]);
+            DB::table('support_reports')->where('id', $id)->update([...$data, 'support_revision' => DB::raw('support_revision + 1'), 'updated_at' => now()]);
             AdminAudit::record($request->user()->id, 'review', 'support-reports', $id, array_keys($data));
         });
 

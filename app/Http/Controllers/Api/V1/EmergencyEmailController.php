@@ -27,7 +27,13 @@ class EmergencyEmailController extends Controller
         });
         $url = rtrim(config('app.url'), '/').'/api/v1/emergency-email/confirm?id='.$contact->id.'&token='.urlencode($token);
         $stop = rtrim(config('app.url'), '/').'/api/v1/emergency-email/unsubscribe?id='.$contact->id.'&token='.urlencode($unsubscribe);
-        try { Mail::raw($request->user()->name." has nominated you as a Cozy Health emergency contact. Confirm only if you recognize this arrangement and agree to receive support-request emails. This is not a monitored emergency service.\n\nConfirm: ".$url."\nDecline or stop alerts: ".$stop, fn ($mail) => $mail->to($contact->email)->subject('Confirm Cozy Health emergency contact')); }
+        try {
+            Mail::to($contact->email)->send(new \App\Mail\BrandedNoticeMail(
+                'Confirm Cozy Health emergency contact', 'An invitation to be an emergency contact',
+                [$request->user()->name.' has nominated you as a Cozy Health emergency contact.', 'Confirm only if you recognize this arrangement and agree to receive support-request emails. This is not a monitored emergency service.'],
+                [['label' => 'Confirm emergency contact', 'url' => $url], ['label' => 'Decline or stop alerts', 'url' => $stop]]
+            ));
+        }
         catch (\Throwable) { return response()->json(['message' => 'Confirmation email could not be sent. Use the message/call options.'], 503); }
         return response()->json(['contact' => $contact, 'message' => 'Confirmation requested. Alerts remain unavailable until your contact confirms.'], 201);
     }

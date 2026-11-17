@@ -26,8 +26,8 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $r)
     {
-        $u = User::create($r->validated());
-
+        [$u, $pair] = DB::transaction(function () use ($r) {
+        $u = User::create(collect($r->validated())->except(['residence_country', 'device_id', 'device_name'])->all());
         $u->profile()->create([
             'id' => (string) Str::uuid(),
             'name' => $u->name,
@@ -53,6 +53,9 @@ class AuthController extends Controller
             'marketing_notifications' => false,
         ]);
 
+        return [$u, app(\App\Services\AuthSessions::class)->issue($u, $r)];
+        });
+
         try {
             Mail::to($u->email)->send(new WelcomeMail($u));
             \Log::info('Welcome email queued.');
@@ -61,7 +64,6 @@ class AuthController extends Controller
         }
 
         app(\App\Services\Analytics\AnalyticsService::class)->track('user_registered');
-        $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
 
         return $this->success([
             'user' => $u,
@@ -87,8 +89,8 @@ class AuthController extends Controller
             ], 403);
         }
 
-        app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
         $pair = app(\App\Services\AuthSessions::class)->issue($u, $r);
+        if (isset($pair['token'])) app(\App\Services\Analytics\AnalyticsService::class)->track('user_logged_in');
 
         return $this->success([
             'user' => $u,

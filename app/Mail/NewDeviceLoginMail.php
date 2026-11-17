@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class NewDeviceLoginMail extends Mailable implements ShouldQueue
+class NewDeviceLoginMail extends Mailable implements ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
     use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;

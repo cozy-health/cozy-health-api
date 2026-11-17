@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class PasswordResetConfirmationMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue
+class PasswordResetConfirmationMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
     use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;

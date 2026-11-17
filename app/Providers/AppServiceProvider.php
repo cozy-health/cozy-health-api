@@ -12,10 +12,18 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(\App\Services\Push\PushSender::class, \App\Services\Push\FcmSender::class);
         $this->app->bind('db.connector.mysql', \App\Database\TlsMySqlConnector::class);
+        $this->app->singleton(\App\Services\BackupControl::class);
+        config(['cache.stores.'.config('backup.cache_store') => [
+            'driver' => 'database', 'connection' => null, 'table' => 'cache',
+            'lock_connection' => null, 'lock_table' => 'cache_locks', 'prefix' => config('backup.control_prefix'),
+        ]]);
     }
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\CommandStarting::class, fn ($e) => app(\App\Services\BackupControl::class)->commandStarting($e->command));
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\CommandFinished::class, fn ($e) => app(\App\Services\BackupControl::class)->commandFinished($e->command));
+        \App\Services\DevelopmentMailSafety::register();
         \App\Services\EmailDeliveryTracking::register();
         \Illuminate\Support\Facades\RateLimiter::for('provider-invitation-code', fn ($request) =>
             \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by('provider-invitation:'.$request->user()->id));

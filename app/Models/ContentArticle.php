@@ -15,7 +15,9 @@ class ContentArticle extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['approved_at' => 'datetime', 'published_at' => 'datetime', 'read_time_minutes' => 'integer'];
+    protected $hidden = ['draft_payload'];
+
+    protected $casts = ['approved_at' => 'datetime', 'published_at' => 'datetime', 'read_time_minutes' => 'integer', 'draft_payload' => 'array'];
 
     public function scopePublished($query)
     {

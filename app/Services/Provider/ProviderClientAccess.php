@@ -10,9 +10,13 @@ class ProviderClientAccess
     // Call inside a transaction. Locking serializes patient revocation/consent against reads and writes.
     public static function link(Request $request, string $userId, ?string $consent = null): ProviderClientLink
     {
+        if (config('age.enabled')) {
+            \App\Models\User::whereKey($userId)->lockForUpdate()->firstOrFail();
+        }
         $link = ProviderClientLink::active()->where('provider_id', $request->user()->id)
             ->where('user_id', $userId)->whereHas('user')->lockForUpdate()->firstOrFail();
         abort_if($consent && ! $link->{'consent_'.$consent}, 404);
+        abort_unless(app(\App\Services\AgeEligibility::class)->allows($link->user), 403, 'Patient records are unavailable.');
 
         return $link;
     }

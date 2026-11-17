@@ -1,0 +1,166 @@
+{
+  "title": "Coping and Resilience Skills",
+  "slug": "cozy-coping-and-resilience",
+  "type": "wellness",
+  "description": "A Cozy well-being check-in. Reflect on how you cope with stress and adversity.",
+  "estimated_minutes": 2,
+  "sort_order": 4,
+  "disclaimer": "This Cozy well-being check-in is for personal reflection. It is not a diagnosis or a validated clinical screening tool. The result describes only your answers to these five questions. If you are concerned about your well-being, speak with a qualified professional. If you feel unsafe or need urgent help, contact local emergency services or use the app's crisis support resources.",
+  "scoring_rules": {
+    "timeframe": "Over the past two weeks",
+    "provenance": {
+      "license": "",
+      "approval_reference": ""
+    },
+    "recommendation": "These descriptive result bands are for personal reflection and do not measure clinical severity.",
+    "bands": [
+      {
+        "max": 10,
+        "label": "More support may help",
+        "recommendation": "Your answers suggest fewer experiences that support coping and resilience. Consider practising a coping strategy that helps you and asking trusted people for support. If you are concerned, consider speaking with a qualified professional."
+      },
+      {
+        "max": 15,
+        "label": "Building well-being",
+        "recommendation": "Your answers suggest some experiences that support coping and resilience, with room to build on them. Consider practising a coping strategy that helps you and asking trusted people for support."
+      },
+      {
+        "max": 20,
+        "label": "Good well-being",
+        "recommendation": "Your answers suggest regular experiences that support coping and resilience. Keep practising what helps you."
+      },
+      {
+        "max": 25,
+        "label": "Strong well-being",
+        "recommendation": "Your answers suggest frequent experiences that support coping and resilience. Continue the habits and connections that help you."
+      }
+    ]
+  },
+  "questions": [
+    {
+      "question": "When faced with a challenging situation, how often do you feel confident in your ability to handle it?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you find ways to relax and de-stress during difficult times?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you seek support from others when dealing with stress?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you maintain a positive outlook despite setbacks?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    },
+    {
+      "question": "How often do you learn from past experiences to improve your coping strategies?",
+      "options": [
+        {
+          "label": "Never",
+          "score": 1
+        },
+        {
+          "label": "Rarely",
+          "score": 2
+        },
+        {
+          "label": "Sometimes",
+          "score": 3
+        },
+        {
+          "label": "Often",
+          "score": 4
+        },
+        {
+          "label": "Always",
+          "score": 5
+        }
+      ]
+    }
+  ]
+}

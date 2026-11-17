@@ -54,12 +54,20 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1,admin-management-'])->prefix('admin')->group(function () {
         Route::get('operations/summary', \App\Http\Controllers\AdminOverviewController::class)->middleware('admin.manage:metrics');
         Route::middleware('admin.manage:content')->group(function () {
+            Route::get('articles', [\App\Http\Controllers\AdminArticleController::class, 'index']);
+            Route::post('articles', [\App\Http\Controllers\AdminArticleController::class, 'store']);
+            Route::get('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'show'])->whereUuid('id');
+            Route::put('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'update'])->whereUuid('id');
+            Route::post('articles/{id}/publish', [\App\Http\Controllers\AdminArticleController::class, 'publish'])->whereUuid('id');
+            Route::delete('articles/{id}', [\App\Http\Controllers\AdminArticleController::class, 'unpublish'])->whereUuid('id');
             Route::get('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'index'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
+            Route::get('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'show'])->whereNumber('id')->where('resource', 'packages');
             Route::post('content/{resource}', [\App\Http\Controllers\AdminContentController::class, 'store'])->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::put('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'update'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::delete('content/{resource}/{id}', [\App\Http\Controllers\AdminContentController::class, 'archive'])->whereNumber('id')->where('resource', 'moods|expressions|triggers|coping|communities|challenges|packages');
             Route::get('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'index']);
             Route::post('quizzes', [\App\Http\Controllers\AdminQuizController::class, 'store']);
+            Route::post('quizzes/preview', [\App\Http\Controllers\AdminQuizController::class, 'preview']);
             Route::put('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'update'])->whereNumber('id');
             Route::post('quizzes/{id}/publish', [\App\Http\Controllers\AdminQuizController::class, 'publish'])->whereNumber('id');
             Route::delete('quizzes/{id}', [\App\Http\Controllers\AdminQuizController::class, 'archive'])->whereNumber('id');
@@ -67,20 +75,42 @@ Route::prefix('v1')->group(function () {
         Route::middleware('admin.manage:users')->group(function () {
             Route::get('users', [\App\Http\Controllers\AdminUsersController::class, 'index']);
         });
+        Route::middleware('admin.manage:support')->group(function () {
+            Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
+            Route::get('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'supportDetail'])->whereNumber('id');
+            Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
+            Route::get('support/{id}/thread', [\App\Http\Controllers\AdminSupportController::class, 'show'])->whereNumber('id');
+            Route::post('support/{id}/replies', [\App\Http\Controllers\AdminSupportController::class, 'reply'])->whereNumber('id');
+            Route::post('support/{id}/messages/{messageId}/retry', [\App\Http\Controllers\AdminSupportController::class, 'retry'])->whereNumber('id')->whereUuid('messageId');
+        });
+        Route::middleware('admin.manage:privacy')->group(function () {
+            Route::get('privacy-requests', [\App\Http\Controllers\AdminPrivacyController::class, 'index']);
+            Route::get('privacy-requests/{id}', [\App\Http\Controllers\AdminPrivacyController::class, 'show'])->whereUuid('id');
+            Route::post('privacy-requests/{id}/process', [\App\Http\Controllers\AdminPrivacyController::class, 'process'])->whereUuid('id');
+        });
         Route::middleware('admin.manage:moderation')->group(function () {
+            Route::get('community-moderation', [\App\Http\Controllers\CommunityModerationController::class, 'queue']);
+            Route::post('community-moderation/bans', [\App\Http\Controllers\CommunityModerationController::class, 'ban'])->middleware('throttle:10,1');
+            Route::post('community-moderation/bans/{id}/lift', [\App\Http\Controllers\CommunityModerationController::class, 'lift'])->whereUuid('id');
+            Route::post('community-moderation/appeals/{id}/review', [\App\Http\Controllers\CommunityModerationController::class, 'review'])->whereUuid('id');
             Route::get('community/{kind}', [\App\Http\Controllers\AdminCommunityController::class, 'index'])->where('kind', 'posts|comments|members');
             Route::get('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'show'])->where('kind', 'posts|comments')->whereUuid('id');
             Route::put('community/{kind}/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'update'])->where('kind', 'posts|comments')->whereUuid('id');
             Route::delete('community/members/{id}', [\App\Http\Controllers\AdminCommunityController::class, 'removeMember'])->whereNumber('id');
             Route::get('reports', [\App\Http\Controllers\AdminOperationsController::class, 'reports']);
             Route::get('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'reportDetail'])->whereNumber('id');
-            Route::get('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'supportDetail'])->whereNumber('id');
             Route::get('reports/{id}/target', [\App\Http\Controllers\AdminOperationsController::class, 'target'])->whereNumber('id');
             Route::put('reports/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'review'])->whereNumber('id');
-            Route::get('support', [\App\Http\Controllers\AdminOperationsController::class, 'support']);
-            Route::put('support/{id}', [\App\Http\Controllers\AdminOperationsController::class, 'resolveSupport'])->whereNumber('id');
         });
         Route::get('student-applications', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::get('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'queue'])->middleware('admin.manage:subscriptions');
+        Route::post('student-school-requests/{id}/review', [\App\Http\Controllers\StudentSchoolRequestController::class, 'review'])->whereUuid('id')->middleware('admin.manage:subscriptions');
+        Route::get('student-email-domains', [\App\Http\Controllers\AdminStudentDomainController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::post('student-email-domains', [\App\Http\Controllers\AdminStudentDomainController::class, 'store'])->middleware('admin.manage:subscriptions');
+        Route::put('student-email-domains/{id}', [\App\Http\Controllers\AdminStudentDomainController::class, 'update'])->whereNumber('id')->middleware('admin.manage:subscriptions');
+        Route::get('development-access', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'index'])->middleware('admin.manage:subscriptions');
+        Route::post('development-access', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'store'])->middleware('admin.manage:subscriptions');
+        Route::delete('development-access/{id}', [\App\Http\Controllers\AdminDevelopmentAccessController::class, 'destroy'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('student-applications/{id}/evidence', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'evidence'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::post('student-applications/{id}/review', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'review'])->whereUuid('id')->middleware('admin.manage:subscriptions');
         Route::get('subscriptions', [\App\Http\Controllers\AdminOperationsController::class, 'subscriptions'])->middleware('admin.manage:subscriptions');
@@ -126,10 +156,19 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,1');
 });
 
-Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(function () {
+Route::middleware(['auth:sanctum', EnsurePatient::class, \App\Http\Middleware\EnforcePlanAccess::class])->prefix('v1')->group(function () {
+    Route::get('me/plan-access', fn (\Illuminate\Http\Request $request) => response()->json(['data' => app(\App\Services\PlanAccess::class)->current($request->user())])->header('Cache-Control', 'private, no-store'));
+    $retiredAge = fn () => response()->json(['message' => 'The custom age and guardian process has been retired.', 'code' => 'age_flow_retired'], 410);
+    Route::get('me/eligibility', fn (\Illuminate\Http\Request $request) => response()->json(['data' => app(\App\Services\AgeEligibility::class)->state($request->user())]));
+    Route::post('me/age', $retiredAge)->middleware('throttle:10,1');
+    Route::put('me/residence', $retiredAge)->middleware('throttle:3,60');
+    Route::post('me/guardian', $retiredAge)->middleware('throttle:10,1');
+    Route::delete('me/guardian', $retiredAge)->middleware('throttle:10,1');
+    Route::post('me/age-support', $retiredAge)->middleware('throttle:3,1440');
     Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 
+    Route::get('wellness/streak', [\App\Http\Controllers\Api\V1\StreakController::class, 'show'])->middleware('throttle:60,1');
     Route::get('wellness/catalog', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'catalog'])->middleware('throttle:60,1');
     Route::get('wellness/achievements', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'achievements'])->middleware('throttle:30,1');
     Route::get('wellness/challenges', [\App\Http\Controllers\Api\V1\WellnessCatalogController::class, 'challenges'])->middleware('throttle:60,1');
@@ -158,9 +197,14 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('me/device-security', DeviceSecurityController::class)->middleware('throttle:10,60');
     Route::delete('account', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::get('me', [ProfileController::class, 'show']);
+    Route::get('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'index']);
+    Route::post('student-school-requests', [\App\Http\Controllers\StudentSchoolRequestController::class, 'store']);
     Route::get('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'show']);
+    Route::post('student-verification/email', [\App\Http\Controllers\Api\V1\StudentEmailController::class, 'store'])->middleware('throttle:20,60,student-email-request-');
+    Route::post('student-verification/email/confirm', [\App\Http\Controllers\Api\V1\StudentEmailController::class, 'confirm'])->middleware('throttle:10,1,student-email-confirm-');
     Route::post('student-verification', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'store'])->middleware('throttle:2,1440');
     Route::post('student-verification/{id}/verify-email', [\App\Http\Controllers\Api\V1\StudentVerificationController::class, 'sendVerification'])->whereUuid('id')->middleware('throttle:2,60');
+    Route::post('store/purchase-check', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'purchaseCheck'])->middleware('throttle:10,1');
     Route::get('store/config', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'configuration']);
     Route::post('subscription/verify-receipt', [\App\Http\Controllers\Api\V1\StoreBillingController::class, 'verify'])->middleware('throttle:10,1');
     Route::get('emergency-email', [\App\Http\Controllers\Api\V1\EmergencyEmailController::class, 'show']);
@@ -173,6 +217,11 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::post('user/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
 
     Route::get('provider-conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('provider-conversations/{linkId}/journal-shares/preview', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'preview'])->middleware('throttle:30,1');
+    Route::post('provider-conversations/{linkId}/journal-shares', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'store'])->middleware('throttle:30,1');
+    Route::get('provider-conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'show'])->middleware('throttle:60,1');
+    Route::get('provider-conversations/{linkId}/journal-shares/{shareId}/audio', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'audio'])->middleware('throttle:60,1');
+    Route::delete('provider-conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'destroy'])->middleware('throttle:30,1');
     Route::get('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
     Route::post('provider-conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
     Route::post('provider-conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');
@@ -184,7 +233,6 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::patch('me/provider/{linkId}/consent', [PatientConsentController::class, 'update']);
     Route::delete('me/provider/{linkId}', [PatientConsentController::class, 'destroy']);
     Route::patch('me', [ProfileController::class, 'update']);
-    Route::get('mood-entries/stats', MoodStatsController::class)->middleware('throttle:60,1');
     Route::get('mood-entries/stats', MoodStatsController::class)->middleware('throttle:60,1');
     Route::apiResource('mood-entries', MoodEntryController::class);
     Route::apiResource('journal-entries', JournalEntryController::class);
@@ -206,6 +254,8 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::patch('user/notification-preferences', [UserProfileController::class, 'updateNotificationPreferences']);
     Route::delete('provider/invitations/{linkId}', [ProviderController::class, 'cancelInvitation'])->middleware('throttle:30,1');
     Route::get('provider', [ProviderController::class, 'show']);
+    Route::post('provider/replacements', [\App\Http\Controllers\Api\V1\ProviderReplacementController::class, 'store'])->middleware('throttle:5,1');
+    Route::delete('provider/replacements/{requestId}', [\App\Http\Controllers\Api\V1\ProviderReplacementController::class, 'destroy'])->whereUuid('requestId')->middleware('throttle:30,1');
     Route::post('provider/request', [ProviderController::class, 'requestCode'])->middleware('throttle:5,1');
     Route::post('provider/verify', [ProviderController::class, 'verify'])->middleware('throttle:10,1');
     Route::delete('provider', [ProviderController::class, 'destroy']);
@@ -252,7 +302,9 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::get('notifications/preferences', [UserProfileController::class, 'notificationPreferences'])->middleware('throttle:60,1');
     Route::patch('notifications/preferences', [UserProfileController::class, 'updateNotificationPreferences'])->middleware('throttle:30,1');
     Route::get('crisis/resources', CrisisResourceController::class)->middleware('throttle:60,1');
-    Route::prefix('community')->middleware([CommunityReady::class, 'throttle:60,1'])->group(function () {
+    Route::prefix('community')->middleware([CommunityReady::class, \App\Http\Middleware\CommunityParticipation::class, 'throttle:60,1'])->group(function () {
+        Route::get('moderation', [\App\Http\Controllers\CommunityModerationController::class, 'status']);
+        Route::post('decisions/{id}/appeal', [\App\Http\Controllers\CommunityModerationController::class, 'submit'])->whereUuid('id')->middleware('throttle:5,1');
         $community = CommunityController::class;
         Route::get('posts', [$community, 'index']);
         Route::put('{kind}/{id}/reaction', [$community, 'reaction'])->where('kind', 'posts|comments')->whereUuid('id');
@@ -281,11 +333,43 @@ Route::middleware(['auth:sanctum', EnsurePatient::class])->prefix('v1')->group(f
     Route::apiResource('notifications', NotificationController::class);
     Route::get('subscription', [SubscriptionController::class, 'show']);
     Route::post('support/reports', [\App\Http\Controllers\Api\V1\SupportController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('support/reports', [\App\Http\Controllers\Api\V1\SupportController::class, 'index']);
+    Route::get('privacy-requests', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'index']);
+    Route::post('privacy-requests', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'store'])->middleware('throttle:5,60,privacy-submit-');
+    Route::post('privacy-requests/{id}/download', [\App\Http\Controllers\Api\V1\PrivacyRequestController::class, 'download'])->whereUuid('id')->middleware('throttle:3,60,privacy-download-');
+    Route::get('support/reports/{id}', [\App\Http\Controllers\Api\V1\SupportController::class, 'show'])->whereNumber('id');
+    Route::post('support/reports/{id}/replies', [\App\Http\Controllers\Api\V1\SupportController::class, 'reply'])->whereNumber('id')->middleware('throttle:10,1');
     Route::get('subscription/prices', [SubscriptionController::class, 'prices'])->middleware('throttle:60,1');
     Route::post('sync/batch', [SyncController::class, 'batch'])->middleware('throttle:60,1');
 });
 
 // Provider accounts use their own model-scoped Sanctum guard. Patient linking routes above are unchanged.
+Route::prefix('v1/guardian')->middleware('throttle:10,1')->group(function () {
+    $retiredAge = fn () => response()->json(['message' => 'The custom age and guardian process has been retired.', 'code' => 'age_flow_retired'], 410);
+    Route::post('confirm', $retiredAge);
+    Route::post('review', $retiredAge);
+    Route::post('decision', $retiredAge);
+    Route::post('withdrawal', $retiredAge);
+});
+Route::get('v1/crisis/public-resources', CrisisResourceController::class)->middleware('throttle:60,1');
+// Challenge credentials are scoped to one role and never authorize private APIs.
+foreach (['v1/auth', 'v1/provider/auth'] as $securityPrefix) {
+    Route::prefix($securityPrefix)->middleware('throttle:10,1')->group(function () {
+        Route::post('challenge/verify', [\App\Http\Controllers\SignInSecurityController::class, 'verify']);
+        Route::post('challenge/resend', [\App\Http\Controllers\SignInSecurityController::class, 'resend']);
+    });
+}
+foreach (['v1/auth' => ['auth:sanctum', EnsurePatient::class], 'v1/provider/auth' => ['auth:provider', EnsureActiveProvider::class]] as $securityPrefix => $securityMiddleware) {
+    Route::prefix($securityPrefix)->middleware([...$securityMiddleware, 'throttle:10,1'])->group(function () {
+        Route::get('security', [\App\Http\Controllers\SignInSecurityController::class, 'show']);
+        Route::post('security/reauthenticate', [\App\Http\Controllers\SignInSecurityController::class, 'reauthenticate']);
+        Route::put('security', [\App\Http\Controllers\SignInSecurityController::class, 'update']);
+    });
+}
+Route::prefix('v1/admin/age-cases')->middleware(['auth:sanctum', 'role:admin', 'admin.manage:guardians', 'throttle:30,1'])->group(function () {
+    Route::get('/', fn () => response()->json(['code' => 'age_flow_retired'], 410));
+    Route::post('{id}/resolve', fn () => response()->json(['code' => 'age_flow_retired'], 410))->whereUuid('id');
+});
 Route::prefix('v1/provider')->group(function () {
     Route::post('auth/refresh', [AuthSessionController::class, 'refresh'])->middleware('throttle:30,1');
     $controller = ProviderAuthController::class;
@@ -302,12 +386,15 @@ Route::prefix('v1/provider')->group(function () {
         Route::post('invitations/connect', [\App\Http\Controllers\Api\V1\Provider\ProviderInvitationController::class, 'connect'])->middleware('throttle:provider-invitation-code');
         Route::post('auth/revoke-refresh', [AuthSessionController::class, 'revokeRefresh'])->middleware('throttle:30,1');
         Route::get('me', [$controller, 'me']);
+        Route::get('overview', \App\Http\Controllers\Api\V1\Provider\ProviderOverviewController::class)->middleware('throttle:60,1');
         Route::get('consent-config', [DocumentConsentController::class, 'configuration'])->middleware('throttle:60,1');
         Route::get('me/consents', [DocumentConsentController::class, 'index'])->middleware('throttle:60,1');
         Route::post('me/consents', [DocumentConsentController::class, 'store'])->middleware('throttle:30,1');
         Route::patch('me', [$controller, 'update']);
 
     Route::get('conversations', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'index']);
+    Route::get('conversations/{linkId}/journal-shares/{shareId}', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'show'])->middleware('throttle:60,1');
+    Route::get('conversations/{linkId}/journal-shares/{shareId}/audio', [\App\Http\Controllers\Api\V1\Provider\JournalSharingController::class, 'audio'])->middleware('throttle:60,1');
     Route::get('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'messages'])->middleware('throttle:60,1');
     Route::post('conversations/{linkId}/messages', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'store'])->middleware('throttle:60,1');
     Route::post('conversations/{linkId}/read', [\App\Http\Controllers\Api\V1\Provider\ProviderMessageController::class, 'read'])->middleware('throttle:60,1');
@@ -316,6 +403,7 @@ Route::prefix('v1/provider')->group(function () {
         Route::get('quiz-shares/{id}', [\App\Http\Controllers\Api\V1\Provider\ProviderQuizSharingController::class, 'show']);
         Route::get('clients', [$clients, 'index']);
         Route::get('clients/{userId}', [$clients, 'show']);
+        Route::get('clients/{userId}/insights', [$clients, 'insights']);
         Route::get('clients/{userId}/moods', [$clients, 'moods']);
         Route::get('clients/{userId}/journals', [$clients, 'journals']);
         Route::get('clients/{userId}/quizzes', [$clients, 'quizzes']);

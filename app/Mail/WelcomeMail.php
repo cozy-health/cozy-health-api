@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class WelcomeMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue
+class WelcomeMail extends Mailable implements \Illuminate\Contracts\Queue\ShouldQueue, \Illuminate\Contracts\Queue\ShouldBeEncrypted
 {
     use \App\Mail\Concerns\TracksDelivery;
     use Queueable, SerializesModels;

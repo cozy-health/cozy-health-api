@@ -1,0 +1,641 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/v1/register",
+    "operation": {
+      "summary": "Register",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "example": {
+              "name": "Jane Doe",
+              "email": "jane@example.com",
+              "password": "password123",
+              "password_confirmation": "password123"
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/login",
+    "operation": {
+      "summary": "Login",
+      "responses": {
+        "200": {
+          "description": "Valid credentials return a session or challenge_required with an opaque pending challenge. Pending challenges contain no access or refresh token."
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "password"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "maxLength": 190
+                },
+                "password": {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "device_id": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "device_name": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "device_proof": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$",
+                  "description": "Account-bound secure-storage proof, never a public device ID."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/logout",
+    "operation": {
+      "summary": "Logout",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me",
+    "operation": {
+      "summary": "Update supported account profile fields",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/feelings",
+    "operation": {
+      "summary": "List feelings",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/feeling-expressions",
+    "operation": {
+      "summary": "List feeling expressions",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/feeling-causes",
+    "operation": {
+      "summary": "List causes",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/coping-mechanisms",
+    "operation": {
+      "summary": "List coping mechanisms",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mood-checkins",
+    "operation": {
+      "summary": "List mood check-ins",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/mood-checkins",
+    "operation": {
+      "summary": "Create mood check-in",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "example": {
+              "feeling_exp_id": 1,
+              "intensity": 7,
+              "reason_ids": [
+                1
+              ],
+              "coping_mechanism_ids": [
+                1
+              ],
+              "journal": "Optional"
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mood-checkins/today",
+    "operation": {
+      "summary": "Today check-in",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/journals",
+    "operation": {
+      "summary": "Create journal",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "example": {
+              "title": "Today",
+              "content": "My thoughts"
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity/overview",
+    "operation": {
+      "summary": "Activity overview",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity/mood-chart",
+    "operation": {
+      "summary": "Mood chart",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity/common-triggers",
+    "operation": {
+      "summary": "Common triggers",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity/journal-stats",
+    "operation": {
+      "summary": "Journal stats",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity/recommendations",
+    "operation": {
+      "summary": "Recommendations",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscription/packages",
+    "operation": {
+      "summary": "Subscription packages",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/support/my-reports",
+    "operation": {
+      "summary": "Support reports",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/activate",
+    "operation": {
+      "summary": "Activate subscription",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "example": {
+              "package_id": 1
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/cancel",
+    "operation": {
+      "summary": "Cancel subscription",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/support/report-problem",
+    "operation": {
+      "summary": "Report a problem",
+      "responses": {
+        "200": {
+          "description": "Success"
+        },
+        "401": {
+          "description": "Unauthenticated"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "example": {
+              "subject": "Issue",
+              "message": "Description"
+            }
+          }
+        }
+      }
+    },
+    "disposition": "Obsolete advertised operation; not a current server route. Historical only, not a supported alias."
+  }
+]

@@ -183,6 +183,8 @@ class ProviderAuthTest extends TestCase
 
     public function test_provider_forgot_password_creates_reset(): void
     {
+        // Preserve an exact expiry assertion without racing the wall-clock second.
+        $this->freezeTime();
         $provider = $this->provider();
         $this->postJson('/api/v1/provider/auth/forgot-password', ['email' => $provider->email])->assertOk();
         $record = DB::table('provider_password_reset_tokens')->first();

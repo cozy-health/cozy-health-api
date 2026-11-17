@@ -48,6 +48,10 @@ class FcmSender implements PushSender
 
     public function send(PushDevice $device, AppNotification $notification): string
     {
+        if (config('age.enabled')) {
+            $user = \App\Models\User::find($device->user_id);
+            if (! $user || ! app(\App\Services\AgeEligibility::class)->allows($user)) return 'failed';
+        }
         try {
             $project = config('push.project_id');
             if (! $project) return 'failed';

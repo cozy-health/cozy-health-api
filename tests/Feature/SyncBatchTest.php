@@ -91,7 +91,11 @@ it('rejects cancellation sync and preserves the server subscription', function (
 it('keeps database failures isolated and reports them instead of acknowledging success', function () {
     $first = syncMoodOperation('first');
     $broken = syncMoodOperation('broken');
-    unset($broken['data']['mood']); // Required DB column: force a real SQL failure.
+    // Corrupt a required DB column after validation to exercise a real SQL
+    // failure, rather than relying on an invalid client payload reaching SQL.
+    MoodEntry::creating(function (MoodEntry $entry) use ($broken) {
+        if ($entry->id === $broken['data']['id']) $entry->mood = null;
+    });
     $last = syncMoodOperation('last');
     $response = $this->postJson('/api/v1/sync/batch', ['operations' => [$first, $broken, $last]])
         ->assertOk()->assertJsonCount(3, 'data.results')

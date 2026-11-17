@@ -39,7 +39,7 @@ class DocumentConsentController extends Controller
         $marketing = $data['document_type'] === 'marketing';
         if ($pre && ($data['accepted'] || $document['published'] || $marketing)) throw ValidationException::withMessages(['pre_acceptance' => ['Only unpublished, non-marketing documents allow draft tracking.']]);
         if ($data['accepted'] && (! $document['published'] || blank($document['content']) || str_starts_with($document['version'], 'draft-'))) throw ValidationException::withMessages(['accepted' => ['This document is not published yet.']]);
-        if (! $data['accepted'] && ! $pre && ! $marketing) throw ValidationException::withMessages(['accepted' => ['Use draft tracking for unpublished documents.']]);
+        if (! $data['accepted'] && ! $pre && ! $marketing && $data['document_type'] !== 'health_data') throw ValidationException::withMessages(['accepted' => ['Use draft tracking for unpublished documents.']]);
         $status = $pre ? 'pre_acceptance' : ($data['accepted'] ? 'accepted' : 'withdrawn');
         $record = DB::transaction(function () use ($request, $owner, $data, $status) {
             $request->user()->newQuery()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();

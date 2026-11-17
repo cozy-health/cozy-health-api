@@ -29,7 +29,7 @@ class StoreWebhookController extends Controller
             abort_unless($decoded !== false, 422);
             $notification = json_decode($decoded, true, flags: JSON_THROW_ON_ERROR);
             abort_unless(($notification['packageName'] ?? '') === config('launch.google.package_name'), 403);
-            $reference = $notification['subscriptionNotification']['purchaseToken'] ?? null;
+            $reference = $notification['subscriptionNotification']['purchaseToken'] ?? $notification['voidedPurchaseNotification']['purchaseToken'] ?? null;
         }
         if (!$reference) return response()->noContent();
         // Notification fields never directly update access; both stores are queried again.

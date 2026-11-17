@@ -30,6 +30,15 @@ class AdminContentController extends Controller
         return response()->json(['data' => $rows, ...($resource === 'expressions' ? ['lookups' => ['moods' => DB::table('feelings')->select('id', 'name')->orderBy('name')->get()]] : [])])->header('Cache-Control', 'private, no-store');
     }
 
+    public function show(Request $request, string $resource, string $id)
+    {
+        abort_unless($resource === 'packages', 404);
+        $row = DB::table($this->table($resource))->where('id', $id)->firstOrFail();
+        $row->version = $this->priceVersion($row);
+        $row->features = json_decode($row->features, true);
+        return response()->json(['data' => $row])->header('Cache-Control', 'private, no-store');
+    }
+
     private function rules(string $resource, ?string $id): array
     {
         $table = $this->table($resource);
@@ -47,7 +56,7 @@ class AdminContentController extends Controller
         if ($resource === 'challenges') $rules += ['duration_days' => 'required|integer|min:1|max:90', 'tasks' => 'required|array|min:1|max:90', 'tasks.*' => 'required|string|max:500'];
         if ($resource === 'packages') $rules += ['price' => 'required|numeric|min:0|max:99999999', 'currency' => ['required', 'regex:/^[A-Z]{3}$/'], 'duration' => 'required|in:monthly,yearly,custom', 'duration_days' => 'required|integer|min:1|max:3660', 'features' => 'required|array|max:50', 'features.*' => 'required|string|max:200',
             'audience' => 'sometimes|in:mobile', 'country_code' => ['nullable', 'regex:/^[A-Z]{2}$/'],
-            'tier' => ['nullable', 'in:free,student,premium', Rule::unique($table)->where(fn ($query) => $query->where('country_code', request('country_code'))->where('audience', 'mobile'))->ignore($id)],
+            'tier' => ['nullable', 'in:standard,student,premium', Rule::unique($table)->where(fn ($query) => $query->where('country_code', request('country_code'))->where('audience', 'mobile'))->ignore($id)],
             'annual_discount' => 'sometimes|integer|min:0|max:100', 'currency_decimals' => 'sometimes|integer|min:0|max:3', 'expected_updated_at' => 'sometimes|date', 'expected_version' => 'sometimes|string|size:64'];
         return $rules;
     }
@@ -61,7 +70,6 @@ class AdminContentController extends Controller
         if (! $id) unset($data['expected_updated_at'], $data['expected_version']);
         if ($resource === 'packages' && ! empty($data['tier'])) {
             abort_unless(! empty($data['country_code']) && $data['duration'] === 'monthly', 422, 'Regional tiers require a country and monthly base price.');
-            abort_if($data['tier'] === 'free' && (float) $data['price'] !== 0.0, 422, 'Free must have a zero price.');
         }
         if ($resource === 'challenges') abort_unless(count($data['tasks']) === $data['duration_days'], 422, 'Provide one task for each day.');
         foreach (['tasks', 'features'] as $field) if (isset($data[$field])) $data[$field] = json_encode(array_values($data[$field]));

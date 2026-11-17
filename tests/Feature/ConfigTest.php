@@ -13,6 +13,7 @@ it('provides public configuration with safe defaults and no crisis switches', fu
 });
 
 it('caches configuration for sixty seconds', function () {
+    config(['community.release_ready' => true, 'community.guidelines_version' => 'cache-test-1']);
     $this->getJson('/api/v1/config')->assertOk();
     DB::table('feature_flags')->where('key', 'community')->update(['enabled' => true]);
     $this->getJson('/api/v1/config')->assertJsonPath('flags.community', false);
@@ -21,6 +22,7 @@ it('caches configuration for sixty seconds', function () {
 });
 
 it('invalidates cached configuration when a flag changes', function () {
+    config(['community.release_ready' => true, 'community.guidelines_version' => 'cache-test-1']);
     $this->getJson('/api/v1/config')->assertOk();
     FeatureFlag::where('key', 'community')->first()->update(['enabled' => true]);
     $this->getJson('/api/v1/config')->assertJsonPath('flags.community', true);

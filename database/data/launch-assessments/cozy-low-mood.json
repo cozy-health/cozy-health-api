@@ -1,0 +1,141 @@
+{
+  "title": "Low Mood Check-In",
+  "slug": "cozy-low-mood",
+  "type": "wellness",
+  "description": "A Cozy well-being check-in. Reflect on feelings and experiences associated with low mood.",
+  "estimated_minutes": 2,
+  "sort_order": 2,
+  "disclaimer": "This Cozy well-being check-in is for personal reflection. It is not a diagnosis or a validated clinical screening tool. The result describes only your answers to these five questions. If you are concerned about your well-being, speak with a qualified professional. If you feel unsafe or need urgent help, contact local emergency services or use the app's crisis support resources.",
+  "scoring_rules": {
+    "timeframe": "Over the past two weeks",
+    "provenance": {
+      "license": "",
+      "approval_reference": ""
+    },
+    "recommendation": "These descriptive result bands are for personal reflection and do not measure clinical severity.",
+    "bands": [
+      {
+        "max": 4,
+        "label": "Few reported difficulties",
+        "recommendation": "Your answers suggest these experiences have occurred infrequently. Keep noticing how you feel and what supports your well-being."
+      },
+      {
+        "max": 9,
+        "label": "Some reported difficulties",
+        "recommendation": "Your answers suggest these experiences have occurred on some days. Consider small, manageable activities and reaching out to someone you trust for support. If they concern you or affect daily life, consider speaking with a qualified professional."
+      },
+      {
+        "max": 15,
+        "label": "Frequent reported difficulties",
+        "recommendation": "Your answers suggest several of these experiences have occurred frequently. Consider small, manageable activities and reaching out to someone you trust for support. Consider speaking with a qualified professional, especially if these experiences persist or affect daily life."
+      }
+    ]
+  },
+  "questions": [
+    {
+      "question": "Over the past two weeks, how often have you had little interest or pleasure in doing things?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt down, depressed, or hopeless?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you had trouble falling or staying asleep, or sleeping too much?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt tired or had little energy?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    },
+    {
+      "question": "How often have you felt bad about yourself—or that you are a failure or have let yourself or your family down?",
+      "options": [
+        {
+          "label": "Not at all",
+          "score": 0
+        },
+        {
+          "label": "Several days",
+          "score": 1
+        },
+        {
+          "label": "More than half the days",
+          "score": 2
+        },
+        {
+          "label": "Nearly every day",
+          "score": 3
+        }
+      ]
+    }
+  ]
+}

@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([\App\Providers\AppServiceProvider::class])
     ->withRouting(api: __DIR__.'/../routes/api.php', commands: __DIR__.'/../routes/console.php', web: __DIR__.'/../routes/web.php', apiPrefix: 'api')
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->prepend([\App\Http\Middleware\SecurityHeaders::class, \App\Http\Middleware\TrackBackupActivity::class]);
+        $middleware->preventRequestsDuringMaintenance(except: ['up']);
         // Railway ingress terminates TLS and supplies X-Forwarded-Proto.
         // Do not trust forwarded host values for URL generation.
         $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        \Sentry\Laravel\Integration::handles($exceptions);
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*', 'admin/*', 'webhooks/*'));
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
@@ -37,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json(['success'=>false,'message'=>'The submitted data is invalid.','errors'=>$e->errors()],422);
         });
         $exceptions->render(function (Throwable $e, Request $request) {
+            if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return $e->getResponse();
             if (!$request->is('api/*', 'admin/*', 'webhooks/*')) return null;
             $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
             $message = $status === 500 && !config('app.debug') ? 'Server error. Please try again later.' : ($e->getMessage() ?: 'Something went wrong.');

@@ -54,9 +54,11 @@ class ProviderInvitationController extends Controller
         return DB::transaction(function () use ($request) {
             $link = $this->find($request);
             abort_unless($link->id === (int) $request->invitation_id, 409, 'The invitation changed. Review it again.');
+            app(\App\Services\PlanAccess::class)->require($link->user, 'provider_connect', 'This patient needs an active Student or Premium plan to confirm this connection. No provider payment is required.');
             foreach ($link->consentFlags() as $type => $allowed) {
                 abort_unless($allowed === (bool) $request->input('consent_flags.'.$type), 409, 'The patient changed their sharing choices. Review the invitation again.');
             }
+            app(\App\Services\Provider\ProviderReplacementService::class)->accept($request, $link);
             $link->update(['provider_id' => $request->user()->id, 'verified_at' => now(), 'linked_at' => now(),
                 'provider_acknowledged_at' => now(), 'verification_code' => null,
                 'invitation_code_lookup' => null, 'verification_expires_at' => null]);

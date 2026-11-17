@@ -18,7 +18,8 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = CarbonImmutable::instance($user->localToday());
         $end = $today->addDay();
-        $weekly = $this->dailyStats($user->id, $today->subDays(6), $end);
+        $weekly = app(\App\Services\PlanAccess::class)->allows($user, 'trends_dashboard')
+            ? $this->dailyStats($user->id, $today->subDays(6), $end) : [];
         $fields = ['id', 'mood', 'intensity', 'created_at', 'client_created_at'];
 
         $todayMood = $this->between($user->id, $today, $end)
@@ -40,8 +41,9 @@ class DashboardController extends Controller
             'success' => true,
             'message' => 'Dashboard retrieved.',
             'data' => [
+                'account_id' => (string) $user->id,
                 'today_mood' => $todayMood,
-                'streak_days' => $this->calculateStreak($user->id, $today, $weekly),
+                'streak_days' => app(\App\Services\StreakService::class)->snapshot($user)['current_days'],
                 'weekly_moods' => $weekly,
                 'recent_entries' => $recent,
                 'timezone' => $user->timezone,
@@ -91,25 +93,4 @@ class DashboardController extends Controller
             ])->all();
     }
 
-    private function calculateStreak(int $userId, CarbonImmutable $today, array $weekly): int
-    {
-        $days = array_fill_keys(array_column($weekly, 'day'), true);
-        $day = isset($days[$today->toDateString()]) ? $today : $today->subDay();
-        $loadedStart = $today->subDays(6);
-        $streak = 0;
-
-        while (true) {
-            if ($day->lessThan($loadedStart)) {
-                // Read at most 31 aggregate dates per query, never raw history.
-                $loadedStart = $day->subDays(30);
-                $history = $this->dailyStats($userId, $loadedStart, $day->addDay());
-                $days = array_fill_keys(array_column($history, 'day'), true);
-            }
-            if (! isset($days[$day->toDateString()])) {
-                return $streak;
-            }
-            $streak++;
-            $day = $day->subDay();
-        }
-    }
 }

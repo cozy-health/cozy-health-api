@@ -59,7 +59,7 @@ class LaunchWorkflowTest extends TestCase
     }
     public function test_student_evidence_is_private_and_requires_a_scoped_reviewer(): void
     {
-        Storage::fake('local'); config(['launch.student.enabled' => true]);
+        Storage::fake('local'); config(['launch.student.documents_enabled' => true, 'launch.student.enabled' => true]);
         $user = $this->login();
         $response = $this->post('/api/v1/student-verification', ['institution' => 'Example University', 'acknowledged' => '1', 'evidence' => UploadedFile::fake()->create('enrolment.pdf', 20, 'application/pdf')], ['Accept' => 'application/json'])->assertCreated();
         $id = $response->json('application.id');
@@ -100,8 +100,15 @@ class LaunchWorkflowTest extends TestCase
         $contact = EmergencyEmailContact::create(['id' => (string) Str::uuid(), 'user_id' => $user->id, 'email' => 'contact@example.test', 'token_hash' => hash('sha256', 'token'), 'unsubscribe_hash' => hash('sha256', 'stop'), 'unsubscribe_token' => 'stop', 'token_expires_at' => now()->addDay(), 'confirmed_at' => now()]);
         $id = (string) Str::uuid();
         DB::table('emergency_email_alerts')->insert(['id' => $id, 'user_id' => $user->id, 'contact_id' => $contact->id, 'request_id' => (string) Str::uuid(), 'status' => 'queued', 'created_at' => now(), 'updated_at' => now()]);
-        Mail::shouldReceive('raw')->once()->with(\Mockery::on(fn ($text) => str_contains($text, $user->name) && str_contains($text, 'not an emergency-service dispatch') && !str_contains($text, 'journal')), \Mockery::type('Closure'));
+        Mail::fake();
         $job = new SendEmergencyContactAlert($id); $job->handle(); $job->handle();
+        Mail::assertSent(\App\Mail\BrandedNoticeMail::class, function ($mail) use ($user, $contact) {
+            $text = implode(' ', $mail->paragraphs);
+            return $mail->hasTo($contact->email) && str_contains($text, $user->name)
+                && str_contains($text, 'not an emergency-service dispatch') && !str_contains($text, 'journal')
+                && $mail->actions[0]['label'] === 'Stop these alerts';
+        });
+        Mail::assertSentCount(1);
         $this->assertDatabaseHas('emergency_email_alerts', ['id' => $id, 'status' => 'mail_service_accepted']);
     }
     public function test_account_deletion_queues_private_evidence_file_cleanup(): void

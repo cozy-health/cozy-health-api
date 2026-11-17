@@ -15,6 +15,7 @@ class AdminOverviewTest extends TestCase
     private function signIn(array $abilities, string $name = 'cozy-admin-management-v1'): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        config(['operations.support_reviewers' => [$admin->id]]);
         app('auth')->forgetGuards();
         $this->withToken($admin->createToken($name, $abilities, now()->addMinutes(30))->plainTextToken);
     }
@@ -39,7 +40,7 @@ class AdminOverviewTest extends TestCase
     {
         $user = User::factory()->create();
         $id = DB::table('support_reports')->insertGetId(['user_id' => $user->id, 'subject' => 'Local request', 'message' => 'Test', 'admin_notes' => 'Keep this note', 'status' => 'open', 'created_at' => now(), 'updated_at' => now()]);
-        $this->signIn(['admin:moderation']);
+        $this->signIn(['admin:support', 'admin:moderation']);
         $this->getJson('/api/v1/admin/support?status=open')->assertOk()->assertJsonPath('data.data.0.admin_notes', 'Keep this note');
         $this->putJson('/api/v1/admin/support/'.$id, ['status' => 'resolved'])->assertOk();
         $this->getJson('/api/v1/admin/support?status=resolved')->assertOk()->assertJsonPath('data.data.0.admin_notes', 'Keep this note');
@@ -84,5 +85,21 @@ class AdminOverviewTest extends TestCase
         }
         $this->getJson('/api/v1/admin/users')->assertStatus(429);
         $this->getJson('/api/v1/admin/auth/session')->assertOk();
+    }
+
+    public function test_subscription_totals_exclude_demo_deleted_and_nonconsumer_accounts_and_show_article_activity(): void
+    {
+        $users = [User::factory()->create(), User::factory()->create(['is_demo' => true]),
+            User::factory()->create(['role' => 'admin']), User::factory()->create()];
+        foreach ($users as $user) DB::table('subscription_statuses')->insert(['id' => (string) Str::uuid(), 'user_id' => $user->id,
+            'status' => 'active', 'plan' => 'premium', 'expires_at' => now()->addDay(), 'created_at' => now(), 'updated_at' => now()]);
+        $users[3]->delete();
+        DB::table('admin_audit_logs')->insert(['actor_id' => $users[2]->id, 'resource' => 'articles', 'resource_id' => 'private-id',
+            'action' => 'publish', 'changed_fields' => '["body"]', 'created_at' => now()]);
+        $this->signIn(['admin:metrics', 'admin:subscriptions', 'admin:content']);
+        $this->getJson('/api/v1/admin/operations/summary')->assertOk()->assertJsonPath('data.totals.active_subscriptions', 1)
+            ->assertJsonPath('data.activity.0.resource', 'articles')->assertJsonMissingPath('data.activity.0.resource_id');
+        $this->signIn(['admin:metrics']);
+        $this->getJson('/api/v1/admin/operations/summary')->assertOk()->assertJsonCount(0, 'data.activity')->assertJsonMissingPath('data.totals.active_subscriptions');
     }
 }

@@ -43,7 +43,7 @@ class ProviderAuthController extends Controller
         ]);
         $data['password_hash'] = $data['password'];
         unset($data['password']);
-        $provider = DB::transaction(function () use ($data, $request) {
+        [$provider, $session] = DB::transaction(function () use ($data, $request) {
             $provider = Provider::create($data);
             $links = ProviderClientLink::whereNull('provider_id')->where('provider_email', $provider->email)
                 ->lockForUpdate()->get();
@@ -53,9 +53,8 @@ class ProviderAuthController extends Controller
                     'action' => 'link_attached', 'resource_type' => 'client', 'resource_id' => (string) $link->id,
                     'ip_address' => $request->ip(), 'user_agent' => $request->userAgent()]);
             }
-            return $provider;
+            return [$provider, app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider')];
         });
-        $session = app(\App\Services\AuthSessions::class)->issue($provider, $request, 'cozy-provider');
         try {
             Mail::to($provider->email)->send(new \App\Mail\ProviderWelcomeMail($provider));
         } catch (\Throwable) {
@@ -116,11 +115,11 @@ class ProviderAuthController extends Controller
         $this->normalizeEmail($request);
         $data = $request->validate(['email' => ['required', 'email', 'max:190']]);
         $provider = Provider::where('email', $data['email'])->where('is_active', true)->first();
-        if ($provider) {
+        if ($provider && ! $provider->email_invalid) {
             $code = (string) random_int(100000, 999999);
             DB::table('provider_password_reset_tokens')->updateOrInsert(
                 ['email' => $provider->email],
-                ['token' => Hash::make($code), 'created_at' => now(), 'expires_at' => now()->addMinutes(15)]
+                ['token' => Hash::make($code), 'created_at' => now(), 'expires_at' => now()->addMinutes(15), 'failed_attempts' => 0]
             );
             Mail::to($provider->email)->send(new ProviderPasswordResetMail($provider, $code));
         }
@@ -138,7 +137,11 @@ class ProviderAuthController extends Controller
         $provider = DB::transaction(function () use ($data) {
             $record = DB::table('provider_password_reset_tokens')->where('email', $data['email'])->lockForUpdate()->first();
             $provider = Provider::where('email', $data['email'])->lockForUpdate()->first();
-            if (!$record || !$provider || !$provider->is_active || now()->gte($record->expires_at) || !Hash::check($data['token'], $record->token)) {
+            if (!$record || !$provider || !$provider->is_active || now()->gte($record->expires_at) || $record->failed_attempts >= 5) {
+                return null;
+            }
+            if (!Hash::check($data['token'], $record->token)) {
+                DB::table('provider_password_reset_tokens')->where('email', $data['email'])->increment('failed_attempts');
                 return null;
             }
             $provider->update(['password_hash' => $data['password']]);
@@ -149,7 +152,12 @@ class ProviderAuthController extends Controller
         if (!$provider) {
             return response()->json(['success' => false, 'message' => 'Invalid or expired reset code.'], 400);
         }
-        Mail::to($provider->email)->send(new ProviderPasswordResetConfirmationMail($provider));
+        try {
+            Mail::to($provider->email)->send(new ProviderPasswordResetConfirmationMail($provider));
+        } catch (\Throwable) {
+            \Log::warning('Provider password reset confirmation could not be queued.');
+            return $this->success(null, 'Your password has been successfully reset. The confirmation email could not be queued.');
+        }
         return $this->success(null, 'Your password has been successfully reset.');
     }
 }

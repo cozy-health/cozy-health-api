@@ -15,6 +15,23 @@ class DocumentConsentTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_development_publication_links_use_development_website_for_both_audiences(): void
+    {
+        config([
+            'app.url' => 'https://api-dev.cozyhealth.org',
+            'development_mail.project_id' => '33f9a938-49e3-42c5-83c7-633ee85760fa',
+            'development_mail.environment_id' => '56b85cc3-e80b-4cb9-a0d4-b47abe8586f6',
+        ]);
+        $manifest = json_decode(file_get_contents(resource_path('legal/launch.json')), true);
+        foreach ([false => 'documents', true => 'provider_documents'] as $provider => $group) {
+            app(SettingsService::class)->set('consent.'.$group, $manifest[$group]);
+            $configuration = app(DocumentConsentService::class)->configuration((bool) $provider);
+            $this->assertStringStartsWith('https://dev.cozyhealth.org/legal/', $configuration['documents']['privacy_policy']['url']);
+        }
+        config(['app.url' => 'https://api.cozyhealth.org']);
+        $this->assertStringStartsWith('https://cozyhealth.org/legal/', app(DocumentConsentService::class)->configuration()['documents']['privacy_policy']['url']);
+    }
+
     private function login(): User
     {
         $user = User::factory()->create();
@@ -65,10 +82,50 @@ class DocumentConsentTest extends TestCase
         $this->assertDatabaseCount('user_consent_events', 2);
     }
 
-    public function test_blocking_requires_published_documents_and_marketing_stays_optional(): void
+    public function test_required_consent_fails_closed_when_documents_are_unavailable_and_recovers(): void
+    {
+        $this->login();
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', true)->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->postJson('/api/v1/sync/batch', ['operations' => []])->assertForbidden();
+        $this->getJson('/api/v1/me/consents')->assertOk();
+        $documents = config('consent.documents');
+        foreach ($documents as $type => &$doc) {
+            if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved fixture text.'];
+        }
+        unset($doc);
+        app(SettingsService::class)->set('consent.documents', $documents);
+        foreach ($documents as $type => $doc) {
+            if ($type !== 'marketing' && $doc['required']) $this->postJson('/api/v1/me/consents', ['document_type' => $type, 'version' => '1.0', 'accepted' => true])->assertOk();
+        }
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+        $published = $documents;
+        // Simulate damaged stored configuration, bypassing the guarded settings writer.
+        $documents['health_data']['content'] = null;
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($documents)]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        unset($documents['health_data']);
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($documents)]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode([])]);
+        $this->getJson('/api/v1/mood-entries')->assertForbidden();
+        Setting::where('key', 'consent.documents')->update(['value' => json_encode($published)]);
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+    }
+
+    public function test_paused_consent_rollout_does_not_block_private_features_on_drafts(): void
+    {
+        $this->login();
+        app(SettingsService::class)->set('consent.enforce_blocking', false);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', false)->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+    }
+
+    public function test_blocking_policy_preserves_readiness_and_marketing_stays_optional(): void
     {
         app(SettingsService::class)->set('consent.enforce_blocking', true);
-        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', false);
+        $this->getJson('/api/v1/config')->assertJsonPath('consent.enforce_blocking', true)->assertJsonPath('consent.documents_ready', false);
         $documents = config('consent.documents');
         foreach ($documents as $type => &$doc) {
             if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved document text for this test.'];
@@ -79,6 +136,74 @@ class DocumentConsentTest extends TestCase
         $this->login();
         $this->postJson('/api/v1/me/consents', ['document_type' => 'tos', 'version' => '1.0', 'accepted' => true])->assertOk()->assertJsonPath('data.status', 'accepted');
         $this->assertNotNull(DB::table('user_consents')->value('accepted_at'));
+    }
+
+    public function test_patient_consent_is_enforced_independently_of_age_and_recovers_after_acceptance(): void
+    {
+        config(['age.enabled' => false]);
+        $documents = config('consent.documents');
+        foreach ($documents as $type => &$doc) {
+            if ($type !== 'marketing') $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved fixture text.'];
+        }
+        unset($doc);
+        app(SettingsService::class)->set('consent.documents', $documents);
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->login();
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->postJson('/api/v1/sync/batch', ['operations' => []])->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/me/consents')->assertOk();
+        $this->getJson('/api/v1/user/profile')->assertOk()->assertJsonCount(3, 'data')->assertJsonMissingPath('data.theme');
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonCount(3, 'data');
+        foreach ($documents as $type => $doc) {
+            if ($type !== 'marketing' && $doc['required']) {
+                $this->postJson('/api/v1/me/consents', ['document_type' => $type, 'version' => '1.0', 'accepted' => true])->assertOk();
+            }
+        }
+        $this->getJson('/api/v1/mood-entries')->assertOk();
+        $this->postJson('/api/v1/me/consents', ['document_type' => 'health_data', 'version' => '1.0', 'accepted' => false])->assertOk();
+        $this->getJson('/api/v1/mood-entries')->assertForbidden()->assertJsonPath('code', 'consent_required');
+    }
+
+    public function test_provider_private_features_require_current_documents_and_recover_without_locking_logout(): void
+    {
+        $provider = Provider::create(['name' => 'Provider', 'email' => 'consent-provider@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $this->withToken($provider->createToken('device')->plainTextToken);
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/provider/consent-config')->assertOk()->assertJsonPath('consent.documents_ready', false);
+        $this->getJson('/api/v1/provider/me')->assertOk();
+        $this->postJson('/api/v1/provider/me/consents', $this->draft())->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertForbidden();
+        $documents = config('consent.provider_documents');
+        foreach ($documents as &$doc) $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved provider fixture.'];
+        unset($doc);
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        foreach ($documents as $type => $doc) $this->postJson('/api/v1/provider/me/consents', ['document_type' => $type, 'version' => $doc['version'], 'accepted' => true])->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        $documents['privacy_policy']['version'] = '1.1';
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden();
+        $this->getJson('/api/v1/provider/me/consents')->assertOk();
+        $this->postJson('/api/v1/provider/auth/logout')->assertOk();
+    }
+
+    public function test_one_providers_acceptance_never_authorizes_another_provider(): void
+    {
+        $documents = config('consent.provider_documents');
+        foreach ($documents as &$doc) $doc = [...$doc, 'version' => '1.0', 'published' => true, 'content' => 'Approved provider fixture.'];
+        unset($doc);
+        app(SettingsService::class)->set('consent.provider_documents', $documents);
+        app(SettingsService::class)->set('consent.enforce_blocking', true);
+        $first = Provider::create(['name' => 'First', 'email' => 'first-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $second = Provider::create(['name' => 'Second', 'email' => 'second-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $this->withToken($first->createToken('first')->plainTextToken);
+        foreach ($documents as $type => $doc) $this->postJson('/api/v1/provider/me/consents', ['document_type' => $type, 'version' => $doc['version'], 'accepted' => true])->assertOk();
+        $this->getJson('/api/v1/provider/clients')->assertOk();
+        app('auth')->forgetGuards();
+        $this->withToken($second->createToken('second')->plainTextToken);
+        $this->getJson('/api/v1/provider/clients')->assertForbidden()->assertJsonPath('code', 'consent_required');
+        $this->getJson('/api/v1/provider/me/consents')->assertOk()->assertJsonPath('owner_id', $second->id)->assertJsonCount(0, 'data');
     }
 
     public function test_provider_documents_have_separate_records_and_draft_config(): void

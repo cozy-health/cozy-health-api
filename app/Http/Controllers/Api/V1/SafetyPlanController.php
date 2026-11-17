@@ -6,7 +6,16 @@ class SafetyPlanController extends ApiController {
         $entries = \App\Models\SafetyPlan::orderBy('updated_at', 'desc')->paginate($request->input('per_page', 20));
         return $this->success($entries);
     }
-    public function store(Request $request) { return $this->success([]); }
+    public function store(\App\Http\Requests\SafetyPlanRequest $request) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            $data['id'] ??= (string) \Illuminate\Support\Str::uuid();
+            $data['user_id'] = $request->user()->id;
+            $error = app(\App\Services\SyncRecordWriter::class)->upsert(\App\Models\SafetyPlan::class, 'safety_plan', $request->user(), $data);
+            if ($error !== null) return $this->error('This record cannot be saved with that identifier.', 'CONFLICT', [], 409);
+            return $this->success(\App\Models\SafetyPlan::withTrashed()->where('user_id', $request->user()->id)->firstOrFail());
+        });
+    }
     public function show(Request $request) {
         $entry = \App\Models\SafetyPlan::where('user_id', $request->user()->id)
             ->where('is_deleted', false)
@@ -21,6 +30,4 @@ class SafetyPlanController extends ApiController {
         }
         return $this->success($entry);
     }
-    public function update(Request $request, $id) { return $this->success([]); }
-    public function destroy($id) { return $this->success([]); }
 }

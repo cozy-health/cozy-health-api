@@ -18,7 +18,7 @@ class SendEmergencyContactAlert implements ShouldQueue, ShouldBeEncrypted
         $alert = DB::table('emergency_email_alerts')->where('id', $this->alertId)->first();
         if (!$alert || $alert->status !== 'queued') return;
         $contact = EmergencyEmailContact::find($alert->contact_id);
-        if (!$contact?->confirmed_at || !config('launch.emergency_email.enabled') || \Illuminate\Support\Carbon::parse($alert->created_at)->lt(now()->subMinutes(10))) {
+        if (!($user = \App\Models\User::find($alert->user_id)) || !app(\App\Services\AgeEligibility::class)->allows($user) || !$contact?->confirmed_at || !config('launch.emergency_email.enabled') || \Illuminate\Support\Carbon::parse($alert->created_at)->lt(now()->subMinutes(10))) {
             DB::table('emergency_email_alerts')->where('id', $this->alertId)->update(['status' => 'failed', 'updated_at' => now()]); return;
         }
         $claimed = DB::table('emergency_email_alerts')->where('id', $this->alertId)->where('status', 'queued')->update(['status' => 'sending', 'updated_at' => now()]);
@@ -26,7 +26,11 @@ class SendEmergencyContactAlert implements ShouldQueue, ShouldBeEncrypted
         $unsubscribe = rtrim(config('app.url'), '/').'/api/v1/emergency-email/unsubscribe?id='.$contact->id.'&token='.urlencode($contact->unsubscribe_token);
         try {
             $name = \App\Models\User::find($alert->user_id)?->name ?? 'Your contact';
-            Mail::raw($name." has requested support through Cozy Health. Please contact them using the details you already know.\n\nThis is an automated email, not an emergency-service dispatch. Email delivery and response are not guaranteed. If there is immediate danger, contact local emergency services.\n\nStop these alerts: ".$unsubscribe, fn ($mail) => $mail->to($contact->email)->subject('Cozy Health: a contact has requested support'));
+            Mail::to($contact->email)->send(new \App\Mail\BrandedNoticeMail(
+                'Cozy Health: a contact has requested support', 'A contact has requested support',
+                [$name.' has requested support through Cozy Health. Please contact them using the details you already know.', 'This is an automated email, not an emergency-service dispatch. Email delivery and response are not guaranteed. If there is immediate danger, contact local emergency services.'],
+                [['label' => 'Stop these alerts', 'url' => $unsubscribe]]
+            ));
             DB::table('emergency_email_alerts')->where('id', $this->alertId)->update(['status' => 'mail_service_accepted', 'updated_at' => now()]);
         } catch (\Throwable) { $this->failed(); }
     }

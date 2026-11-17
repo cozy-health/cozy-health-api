@@ -10,12 +10,27 @@ class EnvironmentIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_health_remains_available_while_operator_maintenance_blocks_application_routes(): void
+    {
+        config(['app.maintenance.driver' => 'cache', 'app.maintenance.store' => 'array']);
+        app()->maintenanceMode()->activate(['time' => microtime(true), 'operator_window' => 'acceptance-window']);
+        try {
+            $this->getJson('/up')->assertOk()->assertJsonPath('status', 'ok');
+            $this->getJson('/api/v1/config')->assertStatus(503);
+            $this->assertTrue(app()->isDownForMaintenance());
+        } finally {
+            app()->maintenanceMode()->deactivate();
+        }
+    }
+
     public function test_fresh_production_schema_has_no_user_or_sample_content(): void
     {
         foreach (['users', 'providers', 'journals', 'quizzes', 'affirmations', 'student_applications', 'store_purchases'] as $table) {
             $this->assertSame(0, DB::table($table)->count(), "Unexpected seeded data in {$table}");
         }
-        $this->assertSame(3, DB::table('subscription_packages')->count());
+        $this->assertSame(4, DB::table('subscription_packages')->count());
+        $this->assertSame(['premium', 'standard', 'student'], DB::table('subscription_packages')->where('is_active', true)->orderBy('tier')->pluck('tier')->all());
+        $this->assertFalse((bool) DB::table('subscription_packages')->where('tier', 'free')->value('is_active'));
     }
 
     public function test_cors_only_allows_the_environment_dashboard(): void

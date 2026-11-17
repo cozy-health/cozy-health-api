@@ -11,6 +11,7 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/*.key
+storage/app/*
 bootstrap/cache/*
 public/storage
 public/hot

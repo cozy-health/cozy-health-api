@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Provider;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class DocumentConsentService
 {
@@ -14,18 +16,73 @@ class DocumentConsentService
         $documents = Setting::find('consent.'.$key)?->value ?? config('consent.'.$key);
         unset($documents['ai_disclosure']);
         $manifest = json_decode(file_get_contents(resource_path('legal/launch.json')), true, flags: JSON_THROW_ON_ERROR);
+        $website = app(DevelopmentMailSafety::class)->development() ? 'https://dev.cozyhealth.org' : 'https://cozyhealth.org';
         foreach ($documents as $type => &$document) {
             $launch = $manifest[$key][$type] ?? null;
-            if ($launch && $document['version'] === $launch['version'] && $document['published']) $document['url'] = $launch['url'];
-            else $document['url'] = 'https://cozyhealth.org/'.($provider ? 'providers/' : '').match ($type) { 'tos' => 'terms', 'privacy_policy' => 'privacy', 'health_data' => 'health-data-consent', 'ugc_guidelines' => 'community-standards', default => 'marketing' };
+            if ($launch && $document['version'] === $launch['version'] && $document['published']) $document['url'] = preg_replace('#^https://cozyhealth\.org(?=/)#', $website, $launch['url']);
+            else $document['url'] = $website.'/'.($provider ? 'providers/' : '').match ($type) { 'tos' => 'terms', 'privacy_policy' => 'privacy', 'health_data' => 'health-data-consent', 'ugc_guidelines' => 'community-standards', default => 'marketing' };
         }
         unset($document);
         $enabled = Setting::find('consent.enforce_blocking')?->value === true;
-        // A misplaced flag must never block access behind unpublished drafts.
-        $ready = collect($documents)->filter(fn ($doc, $type) => $type !== 'marketing' && $doc['required'])
-            ->every(fn ($doc) => $doc['published'] && ! str_starts_with($doc['version'], 'draft-') && filled($doc['content']));
-        return ['enforce_blocking' => $enabled && $ready, 'documents' => $documents,
+        // Publication readiness must not silently disable an explicitly required policy.
+        $requiredTypes = collect(config('consent.'.$key))
+            ->filter(fn ($doc, $type) => $type !== 'marketing' && $doc['required'])->keys();
+        $ready = $requiredTypes->isNotEmpty() && $requiredTypes->every(function ($type) use ($documents) {
+            $doc = $documents[$type] ?? [];
+            return ($doc['required'] ?? false) === true && ($doc['published'] ?? false) === true
+                && is_string($doc['version'] ?? null) && ! str_starts_with($doc['version'], 'draft-')
+                && is_string($doc['content'] ?? null) && filled($doc['content']);
+        });
+        return ['enforce_blocking' => $enabled, 'documents_ready' => $ready, 'documents' => $documents,
             'current_versions' => array_map(fn ($doc) => $doc['version'], $documents)];
+    }
+
+    public function patientConsentCurrent(User $user): bool
+    {
+        return $this->consentCurrent($user, false);
+    }
+
+    public function providerConsentCurrent(Provider $provider): bool
+    {
+        return $this->consentCurrent($provider, true);
+    }
+
+    private function consentCurrent(User|Provider $user, bool $provider): bool
+    {
+        $configuration = $this->configuration($provider);
+        if (! $configuration['enforce_blocking']) return true;
+        if (! $configuration['documents_ready']) return false;
+        $owner = $provider ? 'provider' : 'user';
+        foreach ($configuration['documents'] as $type => $document) {
+            if ($type === 'marketing' || ! $document['required']) continue;
+            if (! DB::table($owner.'_consents')->where([
+                $owner.'_id' => $user->id, 'document_type' => $type,
+                'version' => $document['version'], 'status' => 'accepted',
+            ])->exists()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function requirePatientConsent(User $user): void
+    {
+        $this->requireCurrentConsent($this->patientConsentCurrent($user));
+    }
+
+    public function requireProviderConsent(Provider $provider): void
+    {
+        $this->requireCurrentConsent($this->providerConsentCurrent($provider));
+    }
+
+    private function requireCurrentConsent(bool $current): void
+    {
+        if (! $current) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'Review and accept the required documents before using private features.',
+                'code' => 'consent_required',
+            ], 403));
+        }
     }
 
     public function marketingAllowed(User $user): bool

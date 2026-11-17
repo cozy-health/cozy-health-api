@@ -9,8 +9,8 @@ permissions:
 jobs:
   api:
     name: API release checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     services:
       mysql:
         image: mysql:9
@@ -28,18 +28,26 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd
+          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, curl, zip, gd, sodium
           coverage: none
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Prepare application and required audio tooling
+        run: |
+          # The Azure archive stalled FFmpeg installation until the job timed out.
+          # Keep Ubuntu's signed packages and suites; use the primary archive.
+          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+          fi
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y ffmpeg
+          ffmpeg -version
+          ffprobe -version
           mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
           cp .env.example .env
           composer install --no-interaction --prefer-dist
           php artisan key:generate
       - name: Full application suite
         run: php artisan test --compact
-      - name: Empty MySQL bootstrap and isolation contract
+      - name: Empty MySQL bootstrap, isolation and journal-sharing contract
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -49,4 +57,65 @@ jobs:
           DB_PASSWORD: isolated-test-password
           DB_URL: ''
           DB_TLS_ENFORCE: 'false'
-        run: php artisan test --compact --filter=EnvironmentIsolationTest
+        run: php artisan test --compact --filter='EnvironmentIsolationTest|DocumentConsentTest|JournalSharingTest|VoiceAudioTest|DevelopmentTestAccessTest|PlanAccessTest|PlanCatalogTest|NigerianStudentVerificationTest|StudentEligibilityTest|StudentReviewLifecycleTest|RecoverySafetyTest|RegistrationRecoveryTest|QueuedResetMailTest|StorePlanNotificationsTest|SignInSecurityTest|StreakServiceTest|StreakAccountingTest|MutationIntegrityTest|SyncIntegrityTest|SyncCompatibilityTest|ProviderEmailBounceTest|DevelopmentBrevoWebhookTest|QueuedEmailLifecycleTest|AdminAssessmentPreviewTest|LaunchAssessmentDraftsTest|AdminArticleTest|AdminOverviewTest|ProviderOverviewTest|ProviderReplacementTest|SupportThreadsTest|CustomerPrivacyTest|AccountDeletionTest|AccountFileDeletionTest|DeletionLedgerTest|DevelopmentBackupTest|AdminRefinementTest'
+      - name: Student review, email and reminder MySQL concurrency
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: cozy_release_test
+          DB_USERNAME: root
+          DB_PASSWORD: isolated-test-password
+          DB_URL: ''
+          DB_TLS_ENFORCE: 'false'
+          QUEUE_CONNECTION: database
+          CACHE_STORE: array
+          MAIL_MAILER: array
+        run: php tests/Concurrency/mysql_students.php
+      - name: Support reply and privacy review MySQL concurrency
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: cozy_release_test
+          DB_USERNAME: root
+          DB_PASSWORD: isolated-test-password
+          DB_URL: ''
+          DB_TLS_ENFORCE: 'false'
+          QUEUE_CONNECTION: database
+          CACHE_STORE: array
+          MAIL_MAILER: array
+        run: php tests/Concurrency/mysql_customer_operations.php
+      - name: Provider replacement MySQL concurrency
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_DATABASE: cozy_release_test
+          DB_USERNAME: root
+          DB_PASSWORD: isolated-test-password
+          DB_URL: ''
+          DB_TLS_ENFORCE: 'false'
+          QUEUE_CONNECTION: database
+          CACHE_STORE: array
+          MAIL_MAILER: array
+        run: php tests/Concurrency/mysql_provider_replacements.php
+      - name: Community moderation MySQL concurrency
+        # Moderation races share the same guarded disposable MySQL database as the other contracts.
+        run: |
+          APP_ENV=testing DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3306 DB_DATABASE=cozy_release_test DB_USERNAME=root DB_PASSWORD=isolated-test-password DB_URL= DB_TLS_ENFORCE=false QUEUE_CONNECTION=database CACHE_STORE=array MAIL_MAILER=array php tests/Concurrency/mysql_community_moderation.php
+      - name: Build exact runtime and verify native encrypted backup
+        run: |
+          docker build --target runtime -t cozy-development-backup:${{ github.sha }} .
+          docker run --rm --entrypoint sh \
+            -v "$PWD/tests/Support/verify_development_fpm.sh:/tmp/verify-fpm.sh:ro" \
+            cozy-development-backup:${{ github.sha }} /tmp/verify-fpm.sh
+          docker run --rm --network host --entrypoint php \
+            -e APP_ENV=testing -e DB_CONNECTION=mysql -e DB_HOST=127.0.0.1 -e DB_PORT=3306 \
+            -e DB_DATABASE=cozy_release_test -e DB_USERNAME=root -e DB_PASSWORD=isolated-test-password \
+            -e DB_URL= -e DB_TLS_ENFORCE=false -e DB_REQUIRE_TLS=false -e MAIL_MAILER=array \
+            -v "$PWD/tests/Support/verify_native_development_backup.php:/tmp/verify-backup.php:ro" \
+            cozy-development-backup:${{ github.sha }} /tmp/verify-backup.php

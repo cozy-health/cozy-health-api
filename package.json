@@ -1,0 +1,7 @@
+{
+  "name": "cozy-health-api-infrastructure",
+  "private": true,
+  "devDependencies": {
+    "railway": "3.17.0"
+  }
+}

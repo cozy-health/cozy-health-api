@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Http\Requests\MoodEntryRequest;
+use App\Http\Requests\SafetyPlanRequest;
 use App\Models\User;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\Push\ReminderSettings;
@@ -16,6 +18,13 @@ class SyncRecordWriter
     public function upsert(string $modelClass, string $type, User $user, array $data): ?string
     {
         User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+        if ($type === 'journal_entry') {
+            Validator::make($data, ['is_crisis_flagged' => ['sometimes', 'boolean']])->validate();
+        }
+        $planAccess = app(PlanAccess::class);
+        if ($type === 'mood_entry') $planAccess->require($user, 'mood_checkin');
+        if ($type === 'quiz_attempt') $planAccess->require($user, 'assessments');
+        if ($type === 'journal_entry') $planAccess->journal($user, $data, $modelClass::where('user_id', $user->id)->find($data['id']));
         if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'journal_entry' && (($data['type'] ?? null) === 'voice' || array_key_exists('body', $data))) {
             $data['body'] ??= '';
@@ -62,7 +71,19 @@ class SyncRecordWriter
         if (! $record && $modelClass::withoutGlobalScope('user')->where('id', $data['id'])->exists()) {
             return 'ownership_conflict';
         }
+        if ($type === 'mood_entry') {
+            // Sync also carries partial edits: validate the resulting record,
+            // retaining omitted fields and rejecting invalid explicit changes.
+            Validator::make(
+                [...($record?->toArray() ?? []), ...$data],
+                (new MoodEntryRequest)->rules()
+            )->validate();
+        }
+        if ($type === 'safety_plan') {
+            Validator::make($data, (new SafetyPlanRequest)->rules())->validate();
+        }
         if ($type === 'saved_article') {
+            Validator::make($data, ['license' => 'sometimes|nullable|string|max:2000', 'source_url' => 'sometimes|nullable|url:https|max:2000'])->validate();
             // Legacy mobile bookmarks omit these non-null metadata columns.
             $data['article_slug'] ??= $record?->article_slug ?? (string) ($data['article_id'] ?? '');
             $data['category'] ??= $record?->category ?? '';
@@ -108,6 +129,10 @@ class SyncRecordWriter
 
     public function delete(string $modelClass, string $type, User $user, string $id): void
     {
+        if ($type === 'journal_entry') {
+            app(\App\Services\Provider\JournalSharingService::class)->purge(
+                \App\Models\JournalShare::where('user_id', $user->id)->where('journal_entry_id', $id));
+        }
         if (in_array($type, ['mood_entry', 'journal_entry'], true)) app(AchievementService::class)->retain($user);
         if ($type === 'quiz_attempt') {
             app(QuizSharingService::class)->deleteAttempt($user->id, $id);

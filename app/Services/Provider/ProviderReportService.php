@@ -32,7 +32,9 @@ class ProviderReportService
         try {
             return DB::transaction(function () use ($provider, $user, $type, $from, $to, &$path) {
                 abort_unless($provider->is_active, 404);
+                if (config('age.enabled')) $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
                 $link = ProviderClientLink::active()->where('provider_id', $provider->id)->where('user_id', $user->id)->whereHas('user')->lockForUpdate()->firstOrFail();
+                abort_unless(app(\App\Services\AgeEligibility::class)->allows($user), 403, 'Patient records are unavailable.');
                 $flags = $link->consentFlags();
                 $start = $from->copy()->utc();
                 $end = $to->copy()->utc();
@@ -96,6 +98,7 @@ class ProviderReportService
 
     public function accessible(ProviderReport $report, ProviderClientLink $link): bool
     {
+        if (! $link->user || ! app(\App\Services\AgeEligibility::class)->allows($link->user)) return false;
         if ($report->link_id !== $link->id || ! $report->link_verified_at?->equalTo($link->verified_at) || ! is_array($report->consent_snapshot)) {
             return false;
         }

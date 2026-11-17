@@ -1,7 +1,19 @@
 <?php
 
+\Illuminate\Support\Facades\Schedule::call(fn () => app(\App\Services\CommunityModeration::class)->tick())
+    ->name('community:moderation-notices')->everyMinute()->withoutOverlapping();
+
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('backup:create --execute')->dailyAt('02:00')->timezone('UTC')
+    ->name('development:daily-backup')->withoutOverlapping(10)->runInBackground()
+    ->when(fn () => (bool) config('backup.enabled') && (bool) config('backup.scheduled'));
+Schedule::command('backup:watchdog')->everyMinute()->evenInMaintenanceMode()
+    ->withoutOverlapping()->when(fn () => (bool) config('backup.enabled'));
+
+Schedule::command('privacy:deletions-prune --execute')->daily()->withoutOverlapping()
+    ->when(fn () => (bool) config('deletion-ledger.enabled'));
 
 Schedule::call(function () {
     \Illuminate\Support\Facades\DB::table('quiz_invitations')->whereNull('accepted_at')->where('expires_at', '<', now()->subDays(7))->delete();
@@ -72,7 +84,11 @@ Artisan::command('flags:set {key} {enabled}', function () {
 Artisan::command('audio:cleanup', function () { $this->info('Removed '.app(\App\Services\AudioAttachmentService::class)->cleanup().' unreferenced recordings.'); });
 Schedule::command('audio:cleanup')->daily()->withoutOverlapping();
 
-Schedule::command('launch:prune')->daily()->withoutOverlapping();
+Schedule::command('launch:prune')->everyFiveMinutes()->withoutOverlapping();
+Artisan::command('students:renewal-reminders', function () {
+    $this->info('Queued '.app(\App\Services\StudentRenewalReminders::class)->tick().' Student renewal reminders.');
+});
+Schedule::command('students:renewal-reminders')->everyFiveMinutes()->withoutOverlapping();
 
 // Retention is approved, but deployment must record the approval reference.
 // The command also validates limits and holds before any destructive action.
@@ -80,3 +96,17 @@ Schedule::command('provider:prune --execute --orphan-reports')->daily()->without
     ->when(fn () => filled(config('provider-retention.approval_reference')));
 
 Schedule::command('stores:reconcile')->everyFifteenMinutes()->withoutOverlapping();
+
+Artisan::command('stores:dispatch-plan-emails', function () {
+    $this->info('Queued '.app(\App\Services\StorePlanNotifications::class)->dispatchPending().' pending plan-status emails.');
+});
+Schedule::command('stores:dispatch-plan-emails')->everyMinute()->withoutOverlapping();
+
+Artisan::command('auth:prune-challenges', function () {
+    $count = \Illuminate\Support\Facades\DB::table('signin_challenges')->where('expires_at', '<=', now())
+        ->where(fn ($query) => $query->whereNull('consumed_at')->orWhere('consumed_at', '<=', now()->subMinutes(10)))->delete();
+    $this->info('Removed '.$count.' expired sign-in checks.');
+});
+Schedule::command('auth:prune-challenges')->everyFiveMinutes()->withoutOverlapping();
+
+Schedule::command('students:prune-verification')->daily()->withoutOverlapping();
