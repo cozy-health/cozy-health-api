@@ -37,6 +37,17 @@ class ProviderRedemptionTest extends ProviderDataTestCase
 
     private function providerLogin(Provider $provider): void
     {
+        if (! $provider->is_verified) {
+            app('auth')->forgetGuards();
+            $pending = $this->postJson('/api/v1/provider/auth/login', ['email' => $provider->email, 'password' => 'NewProviderPassword123'])
+                ->assertOk()->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
+            $code = Mail::queued(\App\Mail\SignInChallengeMail::class)->last()->code;
+            $session = $this->postJson('/api/v1/provider/auth/challenge/verify', ['challenge_token' => $pending->json('data.challenge_token'), 'code' => $code])
+                ->assertOk()->assertJsonPath('data.provider.is_verified', true)->json('data');
+            app('auth')->forgetGuards();
+            $this->withToken($session['token']);
+            return;
+        }
         Sanctum::actingAs($provider, ['*'], 'provider');
     }
 

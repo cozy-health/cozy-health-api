@@ -13,7 +13,7 @@ class ProviderOverviewController extends Controller
     public function __invoke(Request $request, ProviderOverviewData $visible)
     {
         abort_if(count($request->query()), 422, 'Unsupported filter.');
-        abort_unless($request->user()->is_verified, 403, 'Provider verification is required.');
+        abort_unless($request->user()->is_verified, 403, 'Verify your provider email before opening patient information.');
         return DB::transaction(function () use ($request, $visible) {
             $links = $visible->links($request->user());
             $totals = [

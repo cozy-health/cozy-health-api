@@ -41,7 +41,7 @@ class AuthHardeningTest extends TestCase
 
     public function test_provider_refresh_is_role_isolated_and_expires_after_thirty_days(): void
     {
-        $provider = Provider::create(['name' => 'Dr', 'email' => 'dr@test.example', 'password_hash' => 'Tr0ub4dor']);
+        $provider = Provider::create(['name' => 'Dr', 'email' => 'dr@test.example', 'password_hash' => 'Tr0ub4dor', 'is_verified' => true]);
         $pair = $this->postJson('/api/v1/provider/auth/login', ['email' => $provider->email, 'password' => 'Tr0ub4dor'])->assertOk()->json('data');
         $this->postJson('/api/v1/auth/refresh', ['refresh_token' => $pair['refresh_token']])->assertUnauthorized();
         $this->travel(31)->days();

@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 class MakeProvider extends Command
 {
     protected $signature = 'user:make-provider {email} {name} {practice} {license_number} {license_state}';
-    protected $description = 'Create a verified provider with a temporary password';
+    protected $description = 'Create a provider requiring email ownership verification';
 
     public function handle(): int
     {
@@ -34,7 +34,7 @@ class MakeProvider extends Command
             return self::FAILURE;
         }
         $password = Str::password(24);
-        Provider::create([...$data, 'password_hash' => $password, 'is_verified' => true, 'is_active' => true]);
+        Provider::create([...$data, 'password_hash' => $password, 'is_verified' => false, 'is_active' => true]);
         $this->info('Provider created. Temporary password: '.$password);
         $this->info('Send this password out-of-band. Ask the provider to reset it before use.');
         return self::SUCCESS;

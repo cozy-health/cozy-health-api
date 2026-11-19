@@ -2,6 +2,8 @@
 
 Providers register at `/provider/register` with a name, email, optional practice, and password. Registration creates an active account with an empty roster; it does not certify professional credentials. Existing provider document consent continues to apply. Provider and admin sign-in pages remain separate.
 
+Provider verification means email ownership only. Unverified registration and password login return the existing `challenge_required` envelope without private-session tokens. Complete the emailed code through `/api/v1/provider/auth/challenge/verify`; successful proof sets `is_verified` and opens the workspace without clinical approval. With the optional sign-in-security rollout paused, this first-email flow configures email protection automatically; an explicitly pending security enrollment is preserved. Changing the registered email invalidates its verification. Operator-created accounts also require email proof. Email delivery failure retains a recoverable account/challenge and does not grant a private session.
+
 In the mobile app, a patient enters the provider's email under My Provider, selects sharing permissions (all off initially), and sends an invitation. Cozy queues an email with a six-digit code. The patient also sees that code and its expiry, with Copy code and Share invitation actions. Native sharing includes the invited email, portal URL and expiry without health records. The provider signs in using that same email, chooses **Accept patient invitation**, enters the code, reviews the patient's choices, and acknowledges appropriate use and revocation before connecting. Connections with all sharing disabled are supported.
 
 Patients can choose **Wrong provider email?** on a pending invitation. The app validates the corrected address, cancels the specific old pending invitation, and sends a replacement while preserving name and sharing choices. Cancellation failure retains the original invitation; send failure keeps the corrected form for retry. If acceptance wins the race, the app refreshes the accepted connection instead of revoking it.
@@ -9,7 +11,7 @@ Patients can choose **Wrong provider email?** on a pending invitation. The app v
 ## Interfaces
 
 - `DELETE /api/v1/provider/invitations/{linkId}`: owning patient cancels a specific pending invitation, clearing its code. Repeated cancellation is safe; an accepted active connection returns 409.
-- `POST /api/v1/provider/auth/register`: existing registration contract, now available through the dashboard bridge. Tokens remain inside the encrypted HttpOnly provider cookie.
+- `POST /api/v1/provider/auth/register`: available through the existing dashboard bridge and email-challenge flow. After successful email proof, tokens remain inside the encrypted HttpOnly provider cookie.
 - `POST /api/v1/provider/request`: optional `verification_actor: "provider"` and `consent_flags` (`moods`, `journals`, `quizzes`, `notes`). Provider-mode invitations queue mail and return the active code only to the owning patient as `provider.invitation_code`, with `invitation_expires_at` and `invitation_portal_url`. Reopening `GET /api/v1/provider` returns the same active code. Provider responses never expose the stored secret. Missing actor retains the legacy patient-verification flow.
 - `POST /api/v1/provider/invitations/preview`: authenticated provider supplies `code`. Returns `data.invitation_id`, `patient_name`, `consent_flags`, and `expires_at`, with no wellness data.
 - `POST /api/v1/provider/invitations/connect`: supplies `code`, `invitation_id`, the reviewed `consent_flags`, `care_acknowledged: true`, and `revocation_acknowledged: true`. Returns the connected patient ID. Changed scope returns 409 for a fresh review; unavailable codes return 422.
@@ -45,6 +47,6 @@ Validation: 584 API tests passed (3963 assertions), including email content, esc
 
 ## Provider welcome email
 
-New provider registrations queue a dedicated HTML/plain-text welcome email after account and session creation. The email uses the Cozy logo and exact brand colors, links to the configured provider portal, and explains empty rosters and patient invitation redemption. It contains no password, authentication token, or patient information. Queue failure is logged without preventing registration. Existing providers do not receive retrospective emails.
+New provider registrations queue a dedicated HTML/plain-text welcome email after account and challenge creation. The email uses the Cozy logo and exact brand colors, links to the configured provider portal, and explains empty rosters and patient invitation redemption. It contains no password, authentication token, or patient information. Queue failure is logged without preventing registration. Existing providers do not receive retrospective emails.
 
 The provider-welcome event is available in admin email delivery tracking and synthetic previews. Queued payloads are encrypted and dispatch after commit. Browser previews at 320px and 800px are stored under docs/validation/provider-welcome; no real emails were sent during validation.
