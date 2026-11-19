@@ -166,7 +166,7 @@ class DocumentConsentTest extends TestCase
 
     public function test_provider_private_features_require_current_documents_and_recover_without_locking_logout(): void
     {
-        $provider = Provider::create(['name' => 'Provider', 'email' => 'consent-provider@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $provider = Provider::create(['is_verified' => true, 'name' => 'Provider', 'email' => 'consent-provider@example.test', 'password_hash' => 'Fixture7!Strong']);
         $this->withToken($provider->createToken('device')->plainTextToken);
         $this->getJson('/api/v1/provider/clients')->assertOk();
         app(SettingsService::class)->set('consent.enforce_blocking', true);
@@ -195,8 +195,8 @@ class DocumentConsentTest extends TestCase
         unset($doc);
         app(SettingsService::class)->set('consent.provider_documents', $documents);
         app(SettingsService::class)->set('consent.enforce_blocking', true);
-        $first = Provider::create(['name' => 'First', 'email' => 'first-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
-        $second = Provider::create(['name' => 'Second', 'email' => 'second-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $first = Provider::create(['is_verified' => true, 'name' => 'First', 'email' => 'first-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $second = Provider::create(['is_verified' => true, 'name' => 'Second', 'email' => 'second-consent@example.test', 'password_hash' => 'Fixture7!Strong']);
         $this->withToken($first->createToken('first')->plainTextToken);
         foreach ($documents as $type => $doc) $this->postJson('/api/v1/provider/me/consents', ['document_type' => $type, 'version' => $doc['version'], 'accepted' => true])->assertOk();
         $this->getJson('/api/v1/provider/clients')->assertOk();
@@ -208,7 +208,7 @@ class DocumentConsentTest extends TestCase
 
     public function test_provider_documents_have_separate_records_and_draft_config(): void
     {
-        $provider = Provider::create(['name' => 'Provider', 'email' => 'provider@example.test', 'password_hash' => 'Fixture7!Strong']);
+        $provider = Provider::create(['is_verified' => true, 'name' => 'Provider', 'email' => 'provider@example.test', 'password_hash' => 'Fixture7!Strong']);
         $this->withToken($provider->createToken('device')->plainTextToken);
         $this->getJson('/api/v1/provider/consent-config')->assertOk()->assertJsonPath('consent.enforce_blocking', false);
         $this->postJson('/api/v1/provider/me/consents', $this->draft())->assertOk();

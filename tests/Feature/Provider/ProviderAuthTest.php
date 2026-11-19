@@ -3,6 +3,7 @@
 namespace Tests\Feature\Provider;
 
 use App\Mail\ProviderPasswordResetMail;
+use App\Mail\SignInChallengeMail;
 use App\Mail\ProviderPasswordResetConfirmationMail;
 use App\Models\Provider;
 use App\Models\ProviderClientLink;
@@ -32,7 +33,7 @@ class ProviderAuthTest extends TestCase
     {
         return Provider::create([...[
             'name' => 'Dr Avery', 'email' => 'avery@example.com',
-            'password_hash' => 'Fixture7!Strong', 'is_active' => true,
+            'password_hash' => 'Fixture7!Strong', 'is_active' => true, 'is_verified' => true,
         ], ...$attributes]);
     }
 
@@ -72,8 +73,14 @@ class ProviderAuthTest extends TestCase
             ->assertJsonMissingPath('data.provider.remember_token');
         $provider = Provider::firstOrFail();
         $this->assertTrue(Hash::check('Fixture7!Strong', $provider->password_hash));
+        $response->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
+        $this->assertDatabaseMissing('personal_access_tokens', ['tokenable_type' => Provider::class, 'tokenable_id' => $provider->id]);
+        $code = Mail::queued(SignInChallengeMail::class)->last()->code;
+        $verified = $this->postJson('/api/v1/provider/auth/challenge/verify', ['challenge_token' => $response->json('data.challenge_token'), 'code' => $code])
+            ->assertOk()->assertJsonPath('data.provider.is_verified', true)->assertJsonPath('data.security_enrollment_required', false);
         $this->assertDatabaseHas('personal_access_tokens', ['tokenable_type' => Provider::class, 'tokenable_id' => $provider->id]);
-        $this->withToken($response->json('data.token'))->getJson('/api/v1/provider/me')->assertOk();
+        app('auth')->forgetGuards();
+        $this->withToken($verified->json('data.token'))->getJson('/api/v1/provider/me')->assertOk();
     }
 
     public function test_dashboard_token_expires_after_thirty_minutes(): void
@@ -164,7 +171,17 @@ class ProviderAuthTest extends TestCase
         $this->withToken($provider->createToken('office')->plainTextToken)->patchJson('/api/v1/provider/me', [
             'name' => 'Dr Updated', 'practice' => 'Cozy Clinic', 'timezone' => 'Africa/Lagos', 'is_verified' => true, 'email' => 'hijack@example.com',
         ])->assertOk()->assertJsonPath('data.provider.name', 'Dr Updated')->assertJsonPath('data.provider.timezone', 'Africa/Lagos')
-            ->assertJsonPath('data.provider.is_verified', false)->assertJsonPath('data.provider.email', 'avery@example.com');
+            ->assertJsonPath('data.provider.is_verified', true)->assertJsonPath('data.provider.email', 'avery@example.com');
+    }
+
+    public function test_unverified_provider_cannot_self_approve_through_profile_update(): void
+    {
+        $provider = $this->provider(['is_verified' => false]);
+        $this->withToken($provider->createToken('office')->plainTextToken)->patchJson('/api/v1/provider/me', [
+            'name' => 'Dr Updated', 'is_verified' => true, 'email' => 'hijack@example.com',
+        ])->assertForbidden();
+        $this->assertFalse($provider->fresh()->is_verified);
+        $this->assertSame('avery@example.com', $provider->fresh()->email);
     }
 
     public function test_provider_profile_rejects_invalid_timezone(): void
@@ -298,11 +315,11 @@ class ProviderAuthTest extends TestCase
         $this->postJson('/api/v1/provider/auth/logout')->assertUnauthorized();
     }
 
-    public function test_make_provider_command_creates_verified_account(): void
+    public function test_make_provider_command_requires_email_verification(): void
     {
         $this->artisan('user:make-provider', ['email' => 'doctor@example.com', 'name' => 'Dr Avery', 'practice' => 'Cozy Clinic', 'license_number' => '123', 'license_state' => 'CA'])->assertExitCode(0);
         $provider = Provider::where('email', 'doctor@example.com')->firstOrFail();
-        $this->assertTrue($provider->is_verified);
+        $this->assertFalse($provider->is_verified);
         $this->assertTrue($provider->is_active);
         $this->assertTrue(Hash::isHashed($provider->password_hash));
         $this->artisan('user:make-provider', ['email' => 'doctor@example.com', 'name' => 'Duplicate', 'practice' => 'Cozy Clinic', 'license_number' => '456', 'license_state' => 'CA'])->assertExitCode(1);

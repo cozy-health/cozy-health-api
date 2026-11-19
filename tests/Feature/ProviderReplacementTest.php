@@ -29,8 +29,8 @@ class ProviderReplacementTest extends TestCase
         Mail::fake();
         $this->travelTo(now()->startOfSecond());
         $this->patient = User::factory()->create();
-        $old = Provider::create(['name' => 'Original', 'email' => 'original@example.test', 'is_active' => true]);
-        $this->replacement = Provider::create(['name' => 'Replacement', 'email' => 'replacement@example.test', 'is_active' => true]);
+        $old = Provider::create(['name' => 'Original', 'email' => 'original@example.test', 'is_active' => true, 'is_verified' => true]);
+        $this->replacement = Provider::create(['name' => 'Replacement', 'email' => 'replacement@example.test', 'is_active' => true, 'is_verified' => true]);
         $this->original = ProviderClientLink::create(['user_id' => $this->patient->id, 'provider_id' => $old->id,
             'provider_email' => $old->email, 'verified_at' => now()->subMonth(), 'consent_moods' => true]);
         $this->login($this->patient);

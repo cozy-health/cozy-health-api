@@ -18,9 +18,10 @@ class ProviderWelcomeMailTest extends ProviderDataTestCase
     {
         Mail::fake();
         $this->postJson('/api/v1/provider/auth/register', $this->registration())
-            ->assertCreated()->assertJsonStructure(['data' => ['provider', 'token']]);
+            ->assertCreated()->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
         Mail::assertQueued(ProviderWelcomeMail::class, fn ($mail) => $mail->hasTo('avery@example.test') && $mail->queue === 'email');
-        Mail::assertQueuedCount(1);
+        Mail::assertQueued(\App\Mail\SignInChallengeMail::class, 1);
+        Mail::assertQueuedCount(2);
         $this->assertDatabaseCount('provider_client_links', 0);
     }
 
@@ -31,14 +32,16 @@ class ProviderWelcomeMailTest extends ProviderDataTestCase
         Mail::assertNothingQueued();
         $this->postJson('/api/v1/provider/auth/register', $this->registration())->assertCreated();
         $this->postJson('/api/v1/provider/auth/register', $this->registration())->assertUnprocessable();
-        Mail::assertQueuedCount(1);
+        Mail::assertQueued(ProviderWelcomeMail::class, 1);
+        Mail::assertQueued(\App\Mail\SignInChallengeMail::class, 1);
+        Mail::assertQueuedCount(2);
     }
 
     public function test_queue_failure_does_not_prevent_registration(): void
     {
-        Mail::shouldReceive('to')->once()->with('avery@example.test')->andThrow(new \RuntimeException('Queue unavailable'));
+        Mail::shouldReceive('to')->twice()->with('avery@example.test')->andThrow(new \RuntimeException('Queue unavailable'));
         $this->postJson('/api/v1/provider/auth/register', $this->registration())
-            ->assertCreated()->assertJsonStructure(['data' => ['token']]);
+            ->assertCreated()->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
         $this->assertDatabaseHas('providers', ['email' => 'avery@example.test']);
     }
 

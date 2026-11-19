@@ -42,7 +42,8 @@ final class SignInSecurity
 
     public function requiresProtection(User|Provider $owner): bool
     {
-        return (bool) config('signin_security.enabled') || $this->scope($owner)->exists() || $this->hasProtectionHistory($owner);
+        return ($owner instanceof Provider && ! $owner->is_verified)
+            || (bool) config('signin_security.enabled') || $this->scope($owner)->exists() || $this->hasProtectionHistory($owner);
     }
 
     private function hasProtectionHistory(User|Provider $owner): bool
@@ -129,6 +130,11 @@ final class SignInSecurity
             abort_if(RateLimiter::tooManyAttempts($key, 5), 429, 'Please wait before requesting another sign-in check.');
             RateLimiter::hit($key, 900);
             $settings = $this->scope($owner)->first();
+            // Provider verification means ownership of this email, never clinical approval.
+            // Keep this first-email flow separate from an already pending security enrollment.
+            if ($purpose === 'login' && $owner instanceof Provider && ! $owner->is_verified && ! config('signin_security.enabled')) {
+                $purpose = 'provider-email';
+            }
             // Questions are usable only after this precise email has been verified.
             $method = $purpose === 'login' && $settings?->method === 'questions'
                 && hash_equals((string) $settings->verified_email_hash, $this->emailHash($owner)) ? 'questions' : 'email';
@@ -247,6 +253,12 @@ final class SignInSecurity
                 $this->scope($owner)->update(['verified_email_hash' => $this->emailHash($owner), 'email_verified_at' => now(), 'updated_at' => now()]);
                 if ($owner instanceof User && ! $owner->email_verified_at) {
                     $owner->forceFill(['email_verified_at' => now()])->save();
+                }
+                if ($owner instanceof Provider) {
+                    $owner->forceFill(['is_verified' => true])->save();
+                    if ($row->purpose === 'provider-email' && ! $existing?->configured_at) {
+                        $this->scope($owner)->update(['method' => 'email', 'configured_at' => now(), 'updated_at' => now()]);
+                    }
                 }
             }
             if ($row->purpose === 'settings') {

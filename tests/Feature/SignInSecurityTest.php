@@ -273,6 +273,7 @@ it('can finish a pending email enrollment after rollout pauses without exposing 
 it('leaves untouched accounts on the existing sign-in path while new enrollment rollout is paused', function (string $role) {
     config(['signin_security.enabled'=>false]);
     $owner = signinOwner($role);
+    if ($owner instanceof Provider) $owner->update(['is_verified' => true]); // Existing email-verified provider.
     $path = signinPath($role);
     $private = $role === 'provider' ? '/api/v1/provider/me' : '/api/v1/me';
     $session = $this->postJson($path.'/login', ['email'=>$owner->email,'password'=>'SecretChoice947!'])->assertOk()->assertJsonMissingPath('data.challenge_token')->json('data');

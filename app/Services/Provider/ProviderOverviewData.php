@@ -18,7 +18,7 @@ class ProviderOverviewData
 
     public function shares(Provider $provider, Collection $links)
     {
-        abort_unless($provider->is_verified, 403, 'Provider verification is required.');
+        abort_unless($provider->is_verified, 403, 'Verify your provider email before opening patient information.');
         return DB::table('quiz_shares')->join('quiz_attempts as attempts', 'attempts.id', '=', 'quiz_shares.quiz_attempt_id')
             ->join('provider_client_links as links', 'links.id', '=', 'quiz_shares.link_id')
             ->join('users', 'users.id', '=', 'quiz_shares.user_id')

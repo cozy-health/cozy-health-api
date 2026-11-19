@@ -21,6 +21,12 @@ class Provider extends Authenticatable
     }
 
     public function getAuthPasswordName(): string { return 'password_hash'; }
+    protected static function booted(): void
+    {
+        static::updating(function (Provider $provider): void {
+            if ($provider->isDirty('email')) $provider->is_verified = false;
+        });
+    }
     public function getAuthPassword(): string { return $this->password_hash ?? ''; }
     public function clientLinks() { return $this->hasMany(ProviderClientLink::class); }
     public function notes() { return $this->hasMany(ProviderNote::class); }
