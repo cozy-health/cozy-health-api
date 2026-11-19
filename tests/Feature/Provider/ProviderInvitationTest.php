@@ -5,6 +5,7 @@ namespace Tests\Feature\Provider;
 use App\Models\ProviderClientLink;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -14,6 +15,7 @@ class ProviderInvitationTest extends TestCase
 
     public function test_email_invitation_uses_only_new_table_and_registration_attaches_and_logs(): void
     {
+        Mail::fake();
         $user = User::factory()->create();
         Sanctum::actingAs($user);
         $this->postJson('/api/v1/provider/request', ['provider_email' => 'Invite@Example.test'])
@@ -23,7 +25,8 @@ class ProviderInvitationTest extends TestCase
         $this->assertDatabaseCount('provider_connections', 0);
         $this->postJson('/api/v1/provider/auth/register', ['name' => 'Invited Provider',
             'email' => 'INVITE@example.test', 'password' => 'test-password7', 'password_confirmation' => 'test-password7'])
-            ->assertCreated();
+            ->assertCreated()->assertJsonPath('data.challenge_required', true)->assertJsonMissingPath('data.token');
+        Mail::assertQueued(\App\Mail\SignInChallengeMail::class, fn ($mail) => $mail->hasTo('invite@example.test'));
         $link->refresh();
         $this->assertNotNull($link->provider_id);
         $this->assertNull($link->verified_at);
