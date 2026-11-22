@@ -68,4 +68,3 @@ Evidence: output/online-resume-20261122/capacity-incomplete-closeout.json, capac
 - Next after billing clears: validate the hosted observer without load; calculate a fresh conservative total including prior attempts against the approved US$3 cap; provision exact isolated fixtures; then run the unchanged 300-user/30-minute plus ten-minute recovery acceptance and shared teardown. Stop if authentication, headroom, observations or spend prerequisites fail. Existing failed attempts stay in the evidence.
 
 Evidence: `output/online-resume-20261122/railway-owner-monitor-verification.json`, `railway-monitor-source-verification.json`, `hosted-observer-preparation.json` (candidate hashes), `test_hosted_observer.py` (15 passed), `monitoring-final-health.json`. Native resource-monitor guidance: https://docs.railway.com/observability . Load acceptance remains open.
-
