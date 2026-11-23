@@ -13081,6 +13081,165 @@
           "x-cozy-operation-id": "community_moderation_review"
         }
       ]
+    },
+    {
+      "name": "Workspace appearance and onboarding",
+      "item": [
+        {
+          "name": "Admin read workspace preferences",
+          "x-cozy-operation-id": "get_admin__workspace_preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/workspace-preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "workspace-preferences"
+              ]
+            },
+            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminAuthController.php:30. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+          }
+        },
+        {
+          "name": "Admin update workspace preferences",
+          "x-cozy-operation-id": "patch_admin__workspace_preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/workspace-preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "workspace-preferences"
+              ]
+            },
+            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminAuthController.php:30. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"layout\": \"focus\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Provider read workspace preferences",
+          "x-cozy-operation-id": "get_provider__workspace_preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{provider_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/provider/workspace-preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "workspace-preferences"
+              ]
+            },
+            "description": "Current provider operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:97. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+          }
+        },
+        {
+          "name": "Provider update workspace preferences",
+          "x-cozy-operation-id": "patch_provider__workspace_preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{provider_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/provider/workspace-preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "workspace-preferences"
+              ]
+            },
+            "description": "Current provider operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/Api/V1/Provider/ProviderAuthController.php:97. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"layout\": \"focus\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

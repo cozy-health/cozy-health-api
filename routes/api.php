@@ -52,6 +52,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'role:admin', 'throttle:60,1,admin-management-'])->prefix('admin')->group(function () {
+        Route::get('workspace-preferences', [\App\Http\Controllers\WorkspacePreferencesController::class, 'adminShow']);
+        Route::patch('workspace-preferences', [\App\Http\Controllers\WorkspacePreferencesController::class, 'adminUpdate']);
         Route::get('operations/summary', \App\Http\Controllers\AdminOverviewController::class)->middleware('admin.manage:metrics');
         Route::middleware('admin.manage:content')->group(function () {
             Route::get('articles', [\App\Http\Controllers\AdminArticleController::class, 'index']);
@@ -378,6 +380,8 @@ Route::prefix('v1/provider')->group(function () {
     Route::post('auth/forgot-password', [$controller, 'forgotPassword'])->middleware(['throttle:5,1', 'throttle:provider-password-reset-email']);
     Route::post('auth/reset-password', [$controller, 'resetPassword'])->middleware('throttle:5,1');
     Route::middleware(['auth:provider', EnsureActiveProvider::class])->group(function () use ($controller) {
+        Route::get('workspace-preferences', [\App\Http\Controllers\WorkspacePreferencesController::class, 'providerShow'])->middleware('throttle:60,1');
+        Route::patch('workspace-preferences', [\App\Http\Controllers\WorkspacePreferencesController::class, 'providerUpdate'])->middleware('throttle:30,1');
     Route::post('audio-attachments', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'store'])->middleware('throttle:20,1');
     Route::get('audio-attachments/{id}', [\App\Http\Controllers\Api\V1\AudioAttachmentController::class, 'show'])->whereUuid('id');
 

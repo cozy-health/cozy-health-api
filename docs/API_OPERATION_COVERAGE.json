@@ -3458,5 +3458,49 @@
     "handler": "App\\Http\\Controllers\\CommunityModerationController@review",
     "validation_sources": [],
     "source": "app/Http/Controllers/CommunityModerationController.php"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/workspace-preferences",
+    "operation_id": "get_admin__workspace_preferences",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\WorkspacePreferencesController@adminShow",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/WorkspacePreferencesController.php:15"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/admin/workspace-preferences",
+    "operation_id": "patch_admin__workspace_preferences",
+    "classification": "admin",
+    "authentication": "admin",
+    "handler": "App\\Http\\Controllers\\WorkspacePreferencesController@adminUpdate",
+    "validation_sources": [
+      "app/Http/Controllers/WorkspacePreferencesController.php"
+    ],
+    "source": "app/Http/Controllers/WorkspacePreferencesController.php:17"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/provider/workspace-preferences",
+    "operation_id": "get_provider__workspace_preferences",
+    "classification": "provider",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\WorkspacePreferencesController@providerShow",
+    "validation_sources": [],
+    "source": "app/Http/Controllers/WorkspacePreferencesController.php:16"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/provider/workspace-preferences",
+    "operation_id": "patch_provider__workspace_preferences",
+    "classification": "provider",
+    "authentication": "provider",
+    "handler": "App\\Http\\Controllers\\WorkspacePreferencesController@providerUpdate",
+    "validation_sources": [
+      "app/Http/Controllers/WorkspacePreferencesController.php"
+    ],
+    "source": "app/Http/Controllers/WorkspacePreferencesController.php:18"
   }
 ]

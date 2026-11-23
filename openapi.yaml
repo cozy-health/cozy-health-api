@@ -975,6 +975,74 @@
             }
           }
         ]
+      },
+      "WorkspacePreferences": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "system",
+              "light",
+              "dark"
+            ]
+          },
+          "accent": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "teal"
+            ]
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "overview",
+              "focus"
+            ]
+          },
+          "density": {
+            "type": "string",
+            "enum": [
+              "comfortable",
+              "compact"
+            ]
+          },
+          "sidebar_collapsed": {
+            "type": "boolean"
+          },
+          "tour_state": {
+            "type": "string",
+            "enum": [
+              "new",
+              "dismissed",
+              "completed"
+            ]
+          },
+          "tour_step": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "tour_version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          }
+        },
+        "required": [
+          "theme",
+          "accent",
+          "layout",
+          "density",
+          "sidebar_collapsed",
+          "tour_state",
+          "tour_step",
+          "tour_version"
+        ],
+        "additionalProperties": false
       }
     }
   },
@@ -28471,6 +28539,362 @@
           }
         },
         "x-cozy-source": "app/Http/Controllers/CommunityModerationController.php"
+      }
+    },
+    "/api/v1/admin/workspace-preferences": {
+      "get": {
+        "operationId": "get_admin__workspace_preferences",
+        "summary": "Read own admin workspace preferences",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\WorkspacePreferencesController@adminShow",
+        "x-cozy-middleware": [
+          "api",
+          "auth:sanctum"
+        ],
+        "x-cozy-validation-source": [],
+        "x-cozy-source": "app/Http/Controllers/WorkspacePreferencesController.php:15",
+        "description": "Preferences belong only to the authenticated account. No owner ID is accepted. Reads return defaults without creating a row; partial updates preserve other preferences. Account deletion cascades stored preferences. No-store responses. Tour progress is optional and grants no access.",
+        "responses": {
+          "200": {
+            "description": "Account-owned preferences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WorkspacePreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Account role or active-provider guard denied."
+          },
+          "422": {
+            "description": "Invalid preference or attempted owner selection."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch_admin__workspace_preferences",
+        "summary": "Update own admin workspace preferences",
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\WorkspacePreferencesController@adminUpdate",
+        "x-cozy-middleware": [
+          "api",
+          "auth:sanctum"
+        ],
+        "x-cozy-validation-source": [
+          "app/Http/Controllers/WorkspacePreferencesController.php"
+        ],
+        "x-cozy-source": "app/Http/Controllers/WorkspacePreferencesController.php:17",
+        "description": "Preferences belong only to the authenticated account. No owner ID is accepted. Reads return defaults without creating a row; partial updates preserve other preferences. Account deletion cascades stored preferences. No-store responses. Tour progress is optional and grants no access.",
+        "responses": {
+          "200": {
+            "description": "Account-owned preferences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WorkspacePreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Account role or active-provider guard denied."
+          },
+          "422": {
+            "description": "Invalid preference or attempted owner selection."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "system",
+                      "light",
+                      "dark"
+                    ]
+                  },
+                  "accent": {
+                    "type": "string",
+                    "enum": [
+                      "blue",
+                      "violet",
+                      "teal"
+                    ]
+                  },
+                  "layout": {
+                    "type": "string",
+                    "enum": [
+                      "overview",
+                      "focus"
+                    ]
+                  },
+                  "density": {
+                    "type": "string",
+                    "enum": [
+                      "comfortable",
+                      "compact"
+                    ]
+                  },
+                  "sidebar_collapsed": {
+                    "type": "boolean"
+                  },
+                  "tour_state": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "dismissed",
+                      "completed"
+                    ]
+                  },
+                  "tour_step": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3
+                  },
+                  "tour_version": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "minProperties": 1
+              },
+              "example": {
+                "theme": "dark",
+                "layout": "focus"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/provider/workspace-preferences": {
+      "get": {
+        "operationId": "get_provider__workspace_preferences",
+        "summary": "Read own provider workspace preferences",
+        "tags": [
+          "provider"
+        ],
+        "security": [
+          {
+            "providerAuth": []
+          }
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\WorkspacePreferencesController@providerShow",
+        "x-cozy-middleware": [
+          "api",
+          "auth:provider"
+        ],
+        "x-cozy-validation-source": [],
+        "x-cozy-source": "app/Http/Controllers/WorkspacePreferencesController.php:16",
+        "description": "Preferences belong only to the authenticated account. No owner ID is accepted. Reads return defaults without creating a row; partial updates preserve other preferences. Account deletion cascades stored preferences. No-store responses. Tour progress is optional and grants no access.",
+        "responses": {
+          "200": {
+            "description": "Account-owned preferences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WorkspacePreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Account role or active-provider guard denied."
+          },
+          "422": {
+            "description": "Invalid preference or attempted owner selection."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch_provider__workspace_preferences",
+        "summary": "Update own provider workspace preferences",
+        "tags": [
+          "provider"
+        ],
+        "security": [
+          {
+            "providerAuth": []
+          }
+        ],
+        "x-cozy-handler": "App\\Http\\Controllers\\WorkspacePreferencesController@providerUpdate",
+        "x-cozy-middleware": [
+          "api",
+          "auth:provider"
+        ],
+        "x-cozy-validation-source": [
+          "app/Http/Controllers/WorkspacePreferencesController.php"
+        ],
+        "x-cozy-source": "app/Http/Controllers/WorkspacePreferencesController.php:18",
+        "description": "Preferences belong only to the authenticated account. No owner ID is accepted. Reads return defaults without creating a row; partial updates preserve other preferences. Account deletion cascades stored preferences. No-store responses. Tour progress is optional and grants no access.",
+        "responses": {
+          "200": {
+            "description": "Account-owned preferences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WorkspacePreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Account role or active-provider guard denied."
+          },
+          "422": {
+            "description": "Invalid preference or attempted owner selection."
+          },
+          "429": {
+            "description": "Rate limit exceeded."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "system",
+                      "light",
+                      "dark"
+                    ]
+                  },
+                  "accent": {
+                    "type": "string",
+                    "enum": [
+                      "blue",
+                      "violet",
+                      "teal"
+                    ]
+                  },
+                  "layout": {
+                    "type": "string",
+                    "enum": [
+                      "overview",
+                      "focus"
+                    ]
+                  },
+                  "density": {
+                    "type": "string",
+                    "enum": [
+                      "comfortable",
+                      "compact"
+                    ]
+                  },
+                  "sidebar_collapsed": {
+                    "type": "boolean"
+                  },
+                  "tour_state": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "dismissed",
+                      "completed"
+                    ]
+                  },
+                  "tour_step": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3
+                  },
+                  "tour_version": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "minProperties": 1
+              },
+              "example": {
+                "theme": "dark",
+                "layout": "focus"
+              }
+            }
+          }
+        }
       }
     }
   }
