@@ -9,6 +9,32 @@ use Illuminate\Support\Facades\DB;
 /** Fixed releases and joint suppression prevent overlapping filters exposing small cohorts. */
 class AdminInsights
 {
+    private bool $exactInternal = false;
+
+    /** Separate short-lived internal cache; never writes exact data into published releases. */
+    public function internalSnapshot(): array
+    {
+        $end = CarbonImmutable::now('UTC')->setMicrosecond(0);
+        $key = 'internal-exact:AdminInsights:v1:'.$end->format('Y-m-d-H-i');
+        return Cache::lock($key.':lock', 180)->block(10, function () use ($key, $end) {
+            return Cache::remember($key, 90, function () use ($end) {
+                $calculator = clone $this;
+                $calculator->exactInternal = true;
+                return DB::transaction(fn () => $calculator->build($end));
+            });
+        });
+    }
+
+    private function periodStart(CarbonImmutable $end, int $days): CarbonImmutable
+    {
+        return $this->exactInternal ? $end->startOfDay()->subDays($days - 1) : $end->subDays($days);
+    }
+
+    private function releasedCount(int $count): int
+    {
+        return $this->exactInternal ? $count : intdiv($count, 5) * 5;
+    }
+
     public function snapshot(): array
     {
         $end = CarbonImmutable::now('UTC')->startOfMonth();
@@ -29,7 +55,7 @@ class AdminInsights
 
     private function build(CarbonImmutable $end): array
     {
-        $start = $end->subDays(90);
+        $start = $this->periodStart($end, 90);
         $buckets = [];
         $daily = [];
         $signups = [];
@@ -51,7 +77,7 @@ class AdminInsights
         }
         foreach ($rows as $row) {
             $date = substr($row->created_at, 0, 10);
-            $segment = $date >= $end->subDays(7)->toDateString() ? 0 : ($date >= $end->subDays(30)->toDateString() ? 1 : 2);
+            $segment = $date >= $this->periodStart($end, 7)->toDateString() ? 0 : ($date >= $this->periodStart($end, 30)->toDateString() ? 1 : 2);
             $mood = strtolower(trim($row->mood));
             $this->add($intensity, 'cohort', 'intensity', $segment, $row->user_id);
             $intensity['cohort']['intensity'][$segment]['sum'] = ($intensity['cohort']['intensity'][$segment]['sum'] ?? 0) + $row->intensity;
@@ -97,20 +123,20 @@ class AdminInsights
             $query->join('users', 'users.id', '=', 'challenge_enrollments.user_id')->join('wellness_challenges', 'wellness_challenges.id', '=', 'challenge_enrollments.challenge_id');
             foreach ($this->consumers($query)->where("$table.$time", '>=', $start)->where("$table.$time", '<', $end)
                 ->select('challenge_enrollments.user_id', 'wellness_challenges.name', "$table.$time as occurred")->cursor() as $row) {
-                $segment = $row->occurred >= $end->subDays(7)->toDateTimeString() ? 0 : ($row->occurred >= $end->subDays(30)->toDateTimeString() ? 1 : 2);
+                $segment = $row->occurred >= $this->periodStart($end, 7)->toDateTimeString() ? 0 : ($row->occurred >= $this->periodStart($end, 30)->toDateTimeString() ? 1 : 2);
                 $this->add($buckets, $kind, $row->name, $segment, $row->user_id);
             }
         }
         foreach ($this->consumers(DB::table('subscription_events')->join('users', 'users.id', '=', 'subscription_events.user_id'))
             ->where('subscription_events.created_at', '>=', $start)->where('subscription_events.created_at', '<', $end)->select('subscription_events.user_id', 'subscription_events.status', 'subscription_events.created_at')->cursor() as $row) {
-            $segment = $row->created_at >= $end->subDays(7)->toDateTimeString() ? 0 : ($row->created_at >= $end->subDays(30)->toDateTimeString() ? 1 : 2);
+            $segment = $row->created_at >= $this->periodStart($end, 7)->toDateTimeString() ? 0 : ($row->created_at >= $this->periodStart($end, 30)->toDateTimeString() ? 1 : 2);
             if (in_array($row->status, ['active', 'inactive', 'cancelled', 'expired', 'trial'], true)) $this->add($buckets, 'subscription_changes', $row->status, $segment, $row->user_id);
         }
         $summaryBuckets = [];
         foreach (['active_users' => $activity, 'new_users' => $signups] as $kind => $dates) {
             $parts = [];
             foreach ($dates as $date => $users) {
-                $segment = $date >= $end->subDays(7)->toDateString() ? 0 : ($date >= $end->subDays(30)->toDateString() ? 1 : 2);
+                $segment = $date >= $this->periodStart($end, 7)->toDateString() ? 0 : ($date >= $this->periodStart($end, 30)->toDateString() ? 1 : 2);
                 $parts[$segment] = ($parts[$segment] ?? []) + $users;
             }
             foreach ($parts as $segment => $users) foreach ($users as $id => $_) $this->add($summaryBuckets, $kind, $kind, $segment, $id);
@@ -119,7 +145,7 @@ class AdminInsights
             ->whereNull('community_posts.deleted_at')->where('community_posts.status', 'published')
             ->where('community_posts.created_at', '>=', $start)->where('community_posts.created_at', '<', $end)
             ->select('community_posts.user_id', 'community_posts.created_at')->cursor() as $post) {
-            $segment = $post->created_at >= $end->subDays(7)->toDateTimeString() ? 0 : ($post->created_at >= $end->subDays(30)->toDateTimeString() ? 1 : 2);
+            $segment = $post->created_at >= $this->periodStart($end, 7)->toDateTimeString() ? 0 : ($post->created_at >= $this->periodStart($end, 30)->toDateTimeString() ? 1 : 2);
             $this->add($summaryBuckets, 'community_posts', 'community_posts', $segment, $post->user_id);
         }
         $pending = $this->consumers(DB::table('support_reports')->join('users', 'users.id', '=', 'support_reports.user_id'))
@@ -132,7 +158,7 @@ class AdminInsights
                 ->select("$table.user_id", 'community_reports.created_at')->get());
         }
         foreach ($pending as $report) {
-            $segment = $report->created_at >= $end->subDays(7)->toDateTimeString() ? 0 : ($report->created_at >= $end->subDays(30)->toDateTimeString() ? 1 : 2);
+            $segment = $report->created_at >= $this->periodStart($end, 7)->toDateTimeString() ? 0 : ($report->created_at >= $this->periodStart($end, 30)->toDateTimeString() ? 1 : 2);
             $this->add($summaryBuckets, 'pending_reports', 'pending_reports', $segment, $report->user_id);
         }
         $devices = [];
@@ -147,18 +173,18 @@ class AdminInsights
                 $data[$kind] = $this->release($buckets[$kind] ?? [], $n);
             }
             $data['daily'] = [];
-            for ($date = $end->subDays($days); $date->lt($end); $date = $date->addDay()) {
+            for ($date = $this->periodStart($end, $days); ($this->exactInternal ? $date->lte($end->startOfDay()) : $date->lt($end)); $date = $date->addDay()) {
                 $day = $date->toDateString();
                 $data['daily'][] = ['date' => $day, 'signups' => $this->cell(count($signups[$day] ?? [])), 'active' => $this->cell(count($activity[$day] ?? []))];
             }
-            $data['mood_trends'] = array_values(array_filter($this->release($daily['moods'] ?? [], 1, false), fn ($row) => substr($row['label'], 0, 10) >= $end->subDays($days)->toDateString()));
+            $data['mood_trends'] = array_values(array_filter($this->release($daily['moods'] ?? [], 1, false), fn ($row) => substr($row['label'], 0, 10) >= $this->periodStart($end, $days)->toDateString()));
             $data['devices'] = $this->release($devices['platforms'] ?? [], 1, false);
             $activeUsers = []; $newUsers = [];
             foreach (array_slice($data['daily'], 0) as $day) {
                 $activeUsers += $activity[$day['date']] ?? [];
                 $newUsers += $signups[$day['date']] ?? [];
             }
-            $hidden = ['status' => 'suppressed', 'count' => '<5'];
+            $hidden = $this->exactInternal ? ['status' => 'available', 'count' => 0] : ['status' => 'suppressed', 'count' => '<5'];
             $data['summary'] = [
                 'active_users' => $this->release($summaryBuckets['active_users'] ?? [], $n) ? $this->cell(count($activeUsers)) : $hidden,
                 'new_users' => $this->release($summaryBuckets['new_users'] ?? [], $n) ? $this->cell(count($newUsers)) : $hidden,
@@ -169,12 +195,12 @@ class AdminInsights
             for ($i = 0; $i < $n; $i++) $parts[] = $intensity['cohort']['intensity'][$i] ?? ['count' => 0, 'sum' => 0];
             $intensityCount = array_sum(array_column($parts, 'count'));
             $data['summary']['average_intensity'] = $this->release($intensity['cohort'] ?? [], $n) && $intensityCount
-                ? ['status' => 'available', 'count' => round(array_sum(array_column($parts, 'sum')) / $intensityCount, 1)] : $hidden;
+                ? ['status' => 'available', 'count' => round(array_sum(array_column($parts, 'sum')) / $intensityCount, 1)] : ($this->exactInternal ? ['status' => 'unavailable', 'count' => null] : $hidden);
             $ranges[$range] = $data;
         }
-        return ['meta' => ['release' => $end->toDateString(), 'timezone' => 'UTC', 'minimum_cohort' => 5,
-            'precision' => 'Frozen monthly release; counts rounded down to multiples of five. Small and related groups are suppressed.',
-            'window' => ['from' => $start->toDateString(), 'to_exclusive' => $end->toDateString()]], 'ranges' => $ranges];
+        return ['meta' => [...($this->exactInternal ? ['view' => 'internal', 'as_of' => $end->toIso8601String()] : []), 'release' => $end->toDateString(), 'timezone' => 'UTC', 'minimum_cohort' => $this->exactInternal ? 0 : 5,
+            'precision' => $this->exactInternal ? 'Exact internal counts; snapshot refreshed at most once per minute.' : 'Frozen monthly release; counts rounded down to multiples of five. Small and related groups are suppressed.',
+            'window' => ['from' => $start->toDateString(), 'to_exclusive' => $this->exactInternal ? $end->toIso8601String() : $end->toDateString()]], 'ranges' => $ranges];
     }
 
     private function add(array &$buckets, string $kind, string $label, int $segment, int $user): void
@@ -185,7 +211,7 @@ class AdminInsights
 
     private function cell(int $count): array
     {
-        return $count < 5 ? ['status' => 'suppressed', 'count' => '<5'] : ['status' => 'available', 'count' => intdiv($count, 5) * 5];
+        return ! $this->exactInternal && $count < 5 ? ['status' => 'suppressed', 'count' => '<5'] : ['status' => 'available', 'count' => $this->releasedCount($count)];
     }
 
     private function release(array $groups, int $n, bool $joint = true): array
@@ -203,9 +229,9 @@ class AdminInsights
         }
         foreach ($groups as $label => $segments) {
             $count = 0;
-            for ($i = 0; $i < $n; $i++) $count += intdiv($segments[$i]['count'] ?? 0, 5) * 5;
+            for ($i = 0; $i < $n; $i++) $count += $this->releasedCount($segments[$i]['count'] ?? 0);
             // Hide labels as well when the category is suppressed.
-            if ($safe) $rows[] = ['label' => $label, 'status' => 'available', 'count' => $count];
+            if ($this->exactInternal || $safe) $rows[] = ['label' => $label, 'status' => 'available', 'count' => $count];
         }
         usort($rows, fn ($a, $b) => $b['count'] <=> $a['count'] ?: strcmp($a['label'], $b['label']));
         return $rows;

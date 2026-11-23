@@ -18,6 +18,15 @@ class AdminMetricsTest extends TestCase
         $admin = User::factory()->create(); $admin->forceFill(['role' => 'admin'])->save();
         $this->withToken($admin->createToken('cozy-admin-dashboard', ['admin:metrics'], now()->addMinutes(30))->plainTextToken);
     }
+    // Match the existing AdminManagement snapshot assertion: JSON object-key
+    // order is not semantic; list order and every scalar type/value still are.
+    private function normalizedSnapshot(mixed $value): mixed
+    {
+        if (! is_array($value)) return $value;
+        if (! array_is_list($value)) ksort($value);
+        foreach ($value as $key => $item) $value[$key] = $this->normalizedSnapshot($item);
+        return $value;
+    }
     private function consumer(string $signup = '2026-06-01'): User
     {
         return User::factory()->create(['created_at' => $signup.' 12:00:00']);
@@ -113,7 +122,7 @@ class AdminMetricsTest extends TestCase
         }
         $first = $this->getJson('/api/v1/admin/metrics/usage?range=7d')->json();
         DB::table('mood_entries')->delete();
-        $this->assertSame($first, $this->getJson('/api/v1/admin/metrics/usage?range=7d')->json());
+        $this->assertSame($this->normalizedSnapshot($first), $this->normalizedSnapshot($this->getJson('/api/v1/admin/metrics/usage?range=7d')->json()));
         Cache::flush();
         DB::table('admin_metric_releases')->delete(); // Isolated fixture reset; never an operations procedure.
         foreach (['current', 'demo', 'admin', 'deleted'] as $kind) {
@@ -149,7 +158,7 @@ class AdminMetricsTest extends TestCase
         }
         $before = $this->getJson('/api/v1/admin/metrics/usage?range=7d')->assertJsonPath('data.features.0.count', 5)->json();
         Cache::flush(); DB::table('mood_entries')->delete();
-        $this->assertSame($before, $this->getJson('/api/v1/admin/metrics/usage?range=7d')->json());
+        $this->assertSame($this->normalizedSnapshot($before), $this->normalizedSnapshot($this->getJson('/api/v1/admin/metrics/usage?range=7d')->json()));
         $stored = DB::table('admin_metric_releases')->first()->payload;
         foreach (['user_id', 'email', 'name', 'body', 'note', 'NEVER RETURN THIS'] as $secret) $this->assertStringNotContainsString('"'.$secret.'"', $stored);
     }

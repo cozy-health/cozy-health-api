@@ -11,6 +11,32 @@ class AdminMetrics
     public const FEATURES = ['mood_entries', 'journal_entries', 'quiz_attempts'];
     public const RANGES = ['7d' => 7, '30d' => 30, '90d' => 90];
 
+    private bool $exactInternal = false;
+
+    /** Separate short-lived internal cache; never writes exact data into published releases. */
+    public function internalSnapshot(): array
+    {
+        $end = CarbonImmutable::now('UTC')->setMicrosecond(0);
+        $key = 'internal-exact:AdminMetrics:v1:'.$end->format('Y-m-d-H-i');
+        return Cache::lock($key.':lock', 180)->block(10, function () use ($key, $end) {
+            return Cache::remember($key, 90, function () use ($end) {
+                $calculator = clone $this;
+                $calculator->exactInternal = true;
+                return DB::transaction(fn () => $calculator->build($end));
+            });
+        });
+    }
+
+    private function periodStart(CarbonImmutable $end, int $days): CarbonImmutable
+    {
+        return $this->exactInternal ? $end->startOfDay()->subDays($days - 1) : $end->subDays($days);
+    }
+
+    private function releasedCount(int $count): int
+    {
+        return $this->exactInternal ? $count : intdiv($count, 5) * 5;
+    }
+
     public function snapshot(): array
     {
         // Immutable monthly releases prevent repeat queries from differencing live edits.
@@ -43,17 +69,18 @@ class AdminMetrics
 
     private function cell(int $count, int $distinct, bool $safe = true): array
     {
+        if ($this->exactInternal) return ['status' => 'available', 'count' => $count];
         if (! $safe || $distinct < 5) return ['status' => 'suppressed', 'count' => '<5'];
         return ['status' => 'available', 'count' => intdiv($count, 5) * 5];
     }
 
     private function build(CarbonImmutable $end): array
     {
-        $start = $end->subDays(90);
+        $start = $this->periodStart($end, 90);
         $activity = [];
         $segments = [];
         foreach ([[7, 0], [30, 7], [90, 30]] as [$older, $newer]) {
-            $segments[] = ['start' => $end->subDays($older), 'end' => $end->subDays($newer)];
+            $segments[] = ['start' => $this->periodStart($end, $older), 'end' => $newer === 0 ? $end : $this->periodStart($end, $newer)];
         }
         $usage = [];
         $safety = array_fill(0, 3, ['count' => 0, 'flagged' => [], 'all' => []]);
@@ -78,7 +105,7 @@ class AdminMetrics
             $safe = ! array_filter($feature, fn ($part) => count($part['users']) < 5);
             foreach (self::RANGES as $range => $days) {
                 $n = $days === 7 ? 1 : ($days === 30 ? 2 : 3);
-                $usage[$range][] = ['feature' => $table, ...$this->cell(array_sum(array_map(fn ($part) => intdiv($part['count'], 5) * 5, array_slice($feature, 0, $n))), 5, $safe)];
+                $usage[$range][] = ['feature' => $table, ...$this->cell(array_sum(array_map(fn ($part) => $this->releasedCount($part['count']), array_slice($feature, 0, $n))), 5, $safe)];
             }
         }
         $safetySafe = ! array_filter($safety, fn ($part) => count($part['flagged']) < 5
@@ -86,10 +113,10 @@ class AdminMetrics
         $safetyRanges = [];
         foreach (self::RANGES as $range => $days) {
             $n = $days === 7 ? 1 : ($days === 30 ? 2 : 3);
-            $safetyRanges[] = ['range' => $range, ...$this->cell(array_sum(array_map(fn ($part) => intdiv($part['count'], 5) * 5, array_slice($safety, 0, $n))), 5, $safetySafe)];
+            $safetyRanges[] = ['range' => $range, ...$this->cell(array_sum(array_map(fn ($part) => $this->releasedCount($part['count']), array_slice($safety, 0, $n))), 5, $safetySafe)];
         }
         $daily = [];
-        for ($day = $end->subDays(30); $day->lt($end); $day = $day->addDay()) {
+        for ($day = $this->periodStart($end, 30); ($this->exactInternal ? $day->lte($end->startOfDay()) : $day->lt($end)); $day = $day->addDay()) {
             $distinct = count($activity[$day->toDateString()] ?? []);
             $daily[] = ['date' => $day->toDateString(), ...$this->cell($distinct, $distinct)];
         }
@@ -120,24 +147,25 @@ class AdminMetrics
                     if (isset($activity[$target][$user->id])) $retained++;
                 }
                 $total = $users->count();
-                $safe = $retained >= 5 && $total - $retained >= 5;
+                $safe = $this->exactInternal || ($retained >= 5 && $total - $retained >= 5);
                 $cell = $this->cell($retained, $retained, $safe);
                 // No exact denominator/rate that could undo rounding or reveal a complement.
-                $cells['d'.$offset] = [...$cell, 'cohort' => $safe ? intdiv($total, 5) * 5 : '<5>',
-                    'rate' => $safe ? round((intdiv($retained, 5) * 5) / (intdiv($total, 5) * 5) * 100) : null];
+                $cells['d'.$offset] = [...$cell, 'cohort' => $safe ? $this->releasedCount($total) : '<5>',
+                    'rate' => $safe && $this->releasedCount($total) > 0 ? round($this->releasedCount($retained) / $this->releasedCount($total) * 100, $this->exactInternal ? 1 : 0) : null];
             }
             // Joint suppression across horizons prevents reconstructing a small retained set.
             $jointSafe = ! array_filter($cells, fn ($cell) => $cell['status'] === 'suppressed')
                 && ! array_filter($patterns, fn ($size) => $size < 5);
-            if (! $jointSafe) foreach ($cells as &$cell) {
+            if (! $this->exactInternal && ! $jointSafe) foreach ($cells as &$cell) {
                 if ($cell['status'] !== 'immature') $cell = ['status' => 'suppressed', 'count' => '<5', 'cohort' => '<5', 'rate' => null];
             }
             unset($cell);
             $cohorts[] = ['week' => $week->toDateString(), 'signups' => $this->cell($users->count(), $users->count(), $jointSafe), 'retention' => $cells];
         }
-        return ['release' => $end->toDateString(), 'timezone' => 'UTC', 'minimum_cohort' => 5,
-            'precision' => 'Counts rounded down to multiples of 5; rates use released rounded counts.',
-            'window' => ['from' => $start->toDateString(), 'to_exclusive' => $end->toDateString()],
+        return [...($this->exactInternal ? ['view' => 'internal', 'as_of' => $end->toIso8601String()] : []),
+            'release' => $end->toDateString(), 'timezone' => 'UTC', 'minimum_cohort' => $this->exactInternal ? 0 : 5,
+            'precision' => $this->exactInternal ? 'Exact internal counts; snapshot refreshed at most once per minute.' : 'Counts rounded down to multiples of 5; rates use released rounded counts.',
+            'window' => ['from' => $start->toDateString(), 'to_exclusive' => $this->exactInternal ? $end->toIso8601String() : $end->toDateString()],
             'overview' => ['daily_activity' => $daily, 'signup_trend' => array_map(fn ($row) => ['week' => $row['week'], ...$row['signups']], $cohorts),
                 'retention_summary' => $cohorts],
             'usage' => $usage, 'retention' => $cohorts, 'safety' => $safetyRanges,
