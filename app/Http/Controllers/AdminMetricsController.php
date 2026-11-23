@@ -13,17 +13,25 @@ class AdminMetricsController extends Controller
     public function show(Request $request, string $metric, AdminMetrics $metrics)
     {
         abort_unless(in_array($metric, ['overview', 'usage', 'retention', 'safety'], true), 404);
-        $allowed = $metric === 'usage' ? ['range'] : [];
+        $allowed = $metric === 'usage' ? ['range', 'view'] : ['view'];
         abort_if(array_diff(array_keys($request->query()), $allowed), 422, 'Only fixed reporting ranges are supported.');
-        $data = $request->validate(['range' => ['sometimes', 'in:7d,30d,90d']]);
-        $snapshot = $metrics->snapshot();
-        $meta = array_intersect_key($snapshot, array_flip(['release', 'timezone', 'minimum_cohort', 'precision', 'window', 'activity_definition']));
+        $data = $request->validate(['range' => ['sometimes', 'in:7d,30d,90d'], 'view' => ['sometimes', 'in:internal,published']]);
+        $internal = ($data['view'] ?? 'published') === 'internal';
+        $snapshot = $internal ? $metrics->internalSnapshot() : $metrics->snapshot();
+        $meta = array_intersect_key($snapshot, array_flip(['release', 'timezone', 'minimum_cohort', 'precision', 'window', 'activity_definition', 'view', 'as_of']));
         $payload = $metric === 'usage' ? ['range' => $data['range'] ?? '30d', 'features' => $snapshot['usage'][$data['range'] ?? '30d'], 'unavailable_features' => $snapshot['unavailable_features']] : $snapshot[$metric];
         if ($metric === 'overview') {
             $payload['operations'] = $this->health();
         }
 
-        return response()->json(['meta' => $meta, 'data' => $payload, ...($metric === 'usage' ? ['comparison' => app(PublishedComparison::class)->make('metrics', $snapshot, $data['range'] ?? '30d')] : [])])->header('Cache-Control', 'private, no-store');
+        if ($internal && $metric === 'usage') {
+            $end = \Carbon\CarbonImmutable::parse($snapshot['as_of']);
+            $meta['window'] = ['from' => $end->startOfDay()->subDays(AdminMetrics::RANGES[$data['range'] ?? '30d'] - 1)->toDateString(), 'to_exclusive' => $snapshot['as_of']];
+        }
+        $comparison = $metric !== 'usage' ? null : ($internal ? ['status' => 'unavailable', 'previous_release' => null,
+            'current_window' => $meta['window'], 'previous_window' => null, 'metrics' => (object) []]
+            : app(PublishedComparison::class)->make('metrics', $snapshot, $data['range'] ?? '30d'));
+        return response()->json(['meta' => $meta, 'data' => $payload, ...($metric === 'usage' ? ['comparison' => $comparison] : [])])->header('Cache-Control', 'private, no-store');
     }
 
     private function health(): array

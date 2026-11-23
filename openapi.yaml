@@ -11346,6 +11346,20 @@
                 "in:7d,30d,90d"
               ]
             }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Authorized admin view. published (default) preserves privacy-protected monthly snapshots. internal returns exact non-demo aggregates, including today in UTC, cached separately for up to one minute. Providers and customers cannot use this admin route. Internal metadata includes view=internal, as_of, minimum_cohort=0, exact precision and actual window; no comparison to rounded published counts is provided.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "published",
+                "internal"
+              ],
+              "default": "published"
+            }
           }
         ],
         "responses": {
@@ -11823,6 +11837,20 @@
                 "in:7d,30d,90d"
               ]
             }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Authorized admin view. published (default) preserves privacy-protected monthly snapshots. internal returns exact non-demo aggregates, including today in UTC, cached separately for up to one minute. Providers and customers cannot use this admin route. Internal metadata includes view=internal, as_of, minimum_cohort=0, exact precision and actual window; no comparison to rounded published counts is provided.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "published",
+                "internal"
+              ],
+              "default": "published"
+            }
           }
         ],
         "responses": {
@@ -12034,6 +12062,20 @@
                 "sometimes",
                 "in:7d,30d,90d"
               ]
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Authorized admin view. published (default) preserves privacy-protected monthly snapshots. internal returns exact non-demo aggregates, including today in UTC, cached separately for up to one minute. Providers and customers cannot use this admin route. Internal metadata includes view=internal, as_of, minimum_cohort=0, exact precision and actual window; no comparison to rounded published counts is provided.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "published",
+                "internal"
+              ],
+              "default": "published"
             }
           }
         ],

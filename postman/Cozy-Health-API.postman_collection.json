@@ -3211,9 +3211,17 @@
                 "admin",
                 "metrics",
                 "insights"
+              ],
+              "query": [
+                {
+                  "key": "view",
+                  "value": "internal",
+                  "disabled": true,
+                  "description": "Enable only for the authorized exact internal admin view; omitted uses protected published snapshots."
+                }
               ]
             },
-            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminInsightsController.php:11. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminInsightsController.php:11. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion.\nOptional view=internal returns exact authorized admin aggregates with UTC as_of/window metadata. Default published retains privacy protections."
           }
         },
         {
@@ -3408,9 +3416,17 @@
                   "key": "metric",
                   "value": "{{metric}}"
                 }
+              ],
+              "query": [
+                {
+                  "key": "view",
+                  "value": "internal",
+                  "disabled": true,
+                  "description": "Enable only for the authorized exact internal admin view; omitted uses protected published snapshots."
+                }
               ]
             },
-            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminMetricsController.php:13. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AdminMetricsController.php:13. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion.\nOptional view=internal returns exact authorized admin aggregates with UTC as_of/window metadata. Default published retains privacy protections."
           }
         },
         {
@@ -3513,9 +3529,17 @@
                 "admin",
                 "metrics",
                 "analytics"
+              ],
+              "query": [
+                {
+                  "key": "view",
+                  "value": "internal",
+                  "disabled": true,
+                  "description": "Enable only for the authorized exact internal admin view; omitted uses protected published snapshots."
+                }
               ]
             },
-            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AnalyticsMetricsController.php:7. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion."
+            "description": "Current admin operation. Authentication does not bypass role, ownership, plan, consent or reviewer checks. Source: app/Http/Controllers/AnalyticsMetricsController.php:7. \nFill owned synthetic fixture variables before executing. A queued/processing response does not establish delivery/deletion.\nOptional view=internal returns exact authorized admin aggregates with UTC as_of/window metadata. Default published retains privacy protections."
           }
         },
         {
