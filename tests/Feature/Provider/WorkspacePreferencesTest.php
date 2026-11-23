@@ -7,6 +7,28 @@ use Illuminate\Support\Facades\DB;
 
 class WorkspacePreferencesTest extends ProviderDataTestCase
 {
+    public function test_actual_admin_sign_in_sessions_can_save_only_their_own_preferences(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_active' => true,
+            'password' => \Illuminate\Support\Facades\Hash::make('Fixture7!Strong')]);
+        foreach (['management-v1', null] as $mode) {
+            app('auth')->forgetGuards();
+            $this->withHeaders(['Authorization' => '']);
+            $login = $this->postJson('/api/v1/admin/auth/login', [
+                'email' => $admin->email, 'password' => 'Fixture7!Strong', 'session_mode' => $mode,
+            ])->assertOk();
+            app('auth')->forgetGuards();
+            $this->withToken($login->json('token'))
+                ->getJson('/api/v1/admin/workspace-preferences')->assertOk();
+            $this->patchJson('/api/v1/admin/workspace-preferences', ['theme' => 'dark'])
+                ->assertOk()->assertJsonPath('data.theme', 'dark');
+            $this->patchJson('/api/v1/admin/workspace-preferences', ['user_id' => $admin->id + 1])
+                ->assertUnprocessable();
+            $this->getJson('/api/v1/me')->assertForbidden();
+        }
+        $this->assertDatabaseCount('workspace_preferences', 1);
+    }
+
     public function test_defaults_are_read_only_and_private(): void
     {
         $this->asProvider($this->provider())->getJson('/api/v1/provider/workspace-preferences')

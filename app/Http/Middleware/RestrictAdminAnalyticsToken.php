@@ -10,6 +10,13 @@ class RestrictAdminAnalyticsToken
     public function handle(Request $request, Closure $next)
     {
         $token = $request->user()?->currentAccessToken();
+        // Personal display settings do not grant access to any management or patient data.
+        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken
+            && in_array($token->name, ['cozy-admin-management-v1', 'cozy-admin-dashboard'], true)
+            && $request->is('api/v1/admin/workspace-preferences')
+            && in_array($request->method(), ['GET', 'PATCH'], true)) {
+            return $next($request);
+        }
         if ($token instanceof \Laravel\Sanctum\PersonalAccessToken && $token->name === 'cozy-admin-management-v1') {
             $path = preg_replace('#^api/v1/admin/#', '', $request->path());
             if (preg_match('#^community-moderation(?:/bans(?:/[a-f0-9-]{36}/lift)?|/appeals/[a-f0-9-]{36}/review)?$#', $path)) return $next($request);
