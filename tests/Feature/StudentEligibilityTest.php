@@ -64,15 +64,20 @@ class StudentEligibilityTest extends TestCase
         Mail::fake(); config(['launch.student.enabled' => true]); $this->login($user);
         $response = $this->postJson('/api/v1/student-verification/email', ['email' => $email])->assertOk();
         $mail = Mail::sent(BrandedNoticeMail::class)->last();
-        parse_str(parse_url($mail->actions[0]['url'], PHP_URL_QUERY), $params);
+        $this->assertSame([], $mail->actions, 'Student mail must not expose token-bearing verification URLs.');
+        $this->assertStringNotContainsString('/student-email/confirm', $mail->render());
+        $this->assertStringNotContainsString('token=', $mail->render());
+        $plain = view('emails.notice-text', ['heading' => $mail->heading, 'paragraphs' => $mail->paragraphs, 'actions' => $mail->actions])->render();
+        $this->assertStringNotContainsString('/student-email/confirm', $plain);
+        $this->assertStringNotContainsString('token=', $plain);
         preg_match('/\b[0-9]{6}\b/', $mail->paragraphs[0], $match);
-        return ['id' => $response->json('challenge_id'), 'token' => $params['token'], 'code' => $match[0]];
+        return ['id' => $response->json('challenge_id'), 'token' => $match[0], 'code' => $match[0]];
     }
 
     public function test_email_verification_is_account_bound_single_use_and_does_not_grant_a_paid_plan(): void
     {
         $this->domain(); $user = User::factory()->create(); $challenge = $this->challenge($user);
-        $this->getJson('/api/v1/student-email/confirm?id='.$challenge['id'].'&token='.$challenge['token'])->assertOk();
+        $this->getJson('/api/v1/student-email/confirm?id='.$challenge['id'].'&token='.str_repeat('x', 64))->assertOk();
         $this->assertNull(app(StudentEligibility::class)->current($user->id));
         $this->login(User::factory()->create());
         $this->postJson('/api/v1/student-verification/email/confirm', $challenge)->assertUnprocessable();
