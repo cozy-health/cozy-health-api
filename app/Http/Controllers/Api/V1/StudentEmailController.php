@@ -49,8 +49,8 @@ class StudentEmailController extends Controller
         });
         try {
             Mail::to($email)->send(new BrandedNoticeMail('Verify your student email', 'Verify your student email',
-                ['Your verification code is '.$code.'. It expires in 10 minutes.', 'Return to Student verification in the Cozy Health account that requested this email and enter this code. You can also paste the verification link.', 'Verification unlocks Student purchase eligibility, not a paid subscription.'],
-                [['label' => 'Student verification instructions', 'url' => rtrim(config('app.url'), '/').'/api/v1/student-email/confirm?id='.$id.'&token='.$token]]));
+                ['Your verification code is '.$code.'. It expires in 10 minutes.', 'Return to Student verification in the Cozy Health account that requested this email and enter this code. Never share this code.', 'Verification unlocks Student purchase eligibility, not a paid subscription.'],
+                []));
         } catch (\Throwable) {
             DB::table('student_email_challenges')->where('id', $id)->delete();
             abort(503, 'Could not send verification. Please retry.');
